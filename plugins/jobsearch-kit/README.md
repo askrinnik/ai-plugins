@@ -152,3 +152,4 @@ Delete `%LOCALAPPDATA%\ai-plugins\jobsearch-kit` to remove the npm packages, the
 | The PDF has no links | It was printed with "Microsoft Print to PDF": use `export-pdf.ps1` |
 | `transcribe.py` cannot find CUDA DLLs | Run `install-whisper.ps1` again, or pass `--device cpu` |
 | A skill is not found or plugin changes do not appear | Reinstall as in "Update", then start a new session |
+| Claude Code asks for permission before every read of a plugin file ("Read outside the working directories") | The skills read their reference files and scripts from the plugin folder, which is outside your workspace. Add a read rule for the plugin folder only to `permissions.allow` in `~/.claude/settings.json`, for example `"Read(//c/path/to/ai-plugins/plugins/**)"` (the path of the marketplace clone, with forward slashes and a leading `//`). Protection for every other path stays on |

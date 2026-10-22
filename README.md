@@ -34,26 +34,6 @@ not add this one. Uninstall the plugins of the other marketplace, remove it with
 | Remove the marketplace | `claude plugin marketplace remove ai-plugins` (uninstall its plugins first) |
 | The clone moved | Remove the marketplace as above and add it again from the new path |
 
-### Move from an older registration
-
-Use these steps if the machine already has another marketplace named `ai-plugins` (for example a team copy kept
-inside another repository). The other marketplace's folder is not touched; only its registration is removed.
-
-1. Back up the user settings: copy `~/.claude/settings.json` somewhere outside the Claude config folder.
-2. List what the old marketplace installed: `claude plugin list`.
-3. Uninstall each of those plugins: `claude plugin uninstall <plugin>@ai-plugins`.
-4. Remove the old marketplace: `claude plugin marketplace remove ai-plugins`.
-5. Add this one: `claude plugin marketplace add <path to the clone>`.
-6. Install the plugins again from this marketplace: `claude plugin install <plugin>@ai-plugins`.
-7. Check with `claude plugin list` that every plugin reads from the new path, then start a new session.
-
-### Reads outside the working directory
-
-Skills read their own reference files and scripts from the plugin folder, which is outside the folder a session
-works in. If Claude Code asks for permission on every such read, add a read rule for the plugin folder only to
-`permissions.allow` in `~/.claude/settings.json`, for example `"Read(//c/path/to/ai-plugins/plugins/**)"` (the path
-of the clone, with forward slashes and a leading `//`). This keeps the protection for every other path.
-
 ## Install, update and remove a plugin
 
 | Task | Command |
@@ -65,24 +45,3 @@ of the clone, with forward slashes and a leading `//`). This keeps the protectio
 
 `install` copies the plugin into the plugin cache of the Claude config folder, and sessions run that copy. A change
 in the clone therefore reaches a session only after a new install. Each plugin README gives the details.
-
-To try a plugin from the clone without installing it, start the CLI with `claude --plugin-dir plugins/<plugin>`.
-
-## Add a plugin
-
-1. Create `plugins/<name>/` with `.claude-plugin/plugin.json` (`name`, `description`, `version`, `author`).
-2. Put the plugin's skills under `plugins/<name>/skills/<skill>/SKILL.md`. Put scripts that several skills share
-   under `plugins/<name>/scripts/`; a skill calls them as `${CLAUDE_SKILL_DIR}/../../scripts/<script>`.
-3. Write `plugins/<name>/README.md`: what the plugin does, requirements, install, update, removal, troubleshooting.
-4. Add an entry to `plugins` in `.claude-plugin/marketplace.json` with `name`, `source` (`./plugins/<name>`) and
-   `description`.
-5. Add the plugin to the table above.
-6. Run `claude plugin validate .` in the repository root.
-
-## Layout and documentation
-
-| Level | Folder | README answers |
-|---|---|---|
-| Marketplace | repository root | What it lists, how to register it |
-| Plugin | `plugins/<name>/` | What it contains, how to install, update, remove and maintain it |
-| Skill | `plugins/<name>/skills/<skill>/` | What it does and how to use it (optional; `SKILL.md` is enough for small skills) |
