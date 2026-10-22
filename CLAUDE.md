@@ -41,6 +41,9 @@ how to register it and install, update and remove a plugin. This file is for the
 
 - `tests/<plugin>/` holds the developer tests of a plugin and their materials (fictional inputs, reference outputs).
   It is outside `plugins/`, so it is not installed with the plugin.
+- If you change a jobsearch-kit script or its workspace template, run the script tests:
+  `pwsh -File tests/jobsearch-kit/scripts/Test-Scripts.ps1`. They start no model session. See
+  `tests/jobsearch-kit/README.md`.
 
 - To try a plugin from the clone without installing it, start the CLI with `claude --plugin-dir plugins/<plugin>`
   from a test workspace.

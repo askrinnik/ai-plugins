@@ -25,7 +25,7 @@ function Sync-FolderVariable {
   if ($full -ieq $defaultFull) {
     if ($current -and ($current.TrimEnd('\') -ine $full)) {
       Write-Warning ("$Name (user environment) points to $current, so the scripts use that folder, not $full. " +
-        "To use the default folder, remove the variable: [Environment]::SetEnvironmentVariable('$Name', `$null, 'User')")
+        "To use the default folder, remove the variable: [Environment]::SetEnvironmentVariable('$Name', [NullString]::Value, 'User')")
     }
     return
   }

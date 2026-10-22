@@ -86,7 +86,7 @@ The skills never submit forms, send messages or commit on their own.
 
    An environment variable set by these scripts reaches only new terminals and new Claude Code sessions. To check
    or remove one: `[Environment]::GetEnvironmentVariable('<name>', 'User')`,
-   `[Environment]::SetEnvironmentVariable('<name>', $null, 'User')`.
+   `[Environment]::SetEnvironmentVariable('<name>', [NullString]::Value, 'User')`.
 
 ## Start a workspace
 

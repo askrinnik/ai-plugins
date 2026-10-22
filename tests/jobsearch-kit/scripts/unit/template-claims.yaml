@@ -1,0 +1,31 @@
+# Template consistency: every CV claim of the template master must be backed by the template facts.
+# Each key is a text unit of MyProfile/cv/cv_master.yaml; each value lists phrases that must appear in
+# MyProfile/candidate_facts.md (spaces and line breaks are compared loosely). template.test.js fails when the master
+# has a unit without an entry here, or when a phrase is not in the facts.
+# Add an entry only with a phrase that the facts really state: the point is to catch claims such as "Mentoring" that
+# the facts do not back.
+header.name: [Jordan Sample]
+header.contacts.phone: ["+000 0000 0000"]
+header.contacts.email: [jordan.sample@example.com]
+header.contacts.github: [github.com/example]
+header.contacts.location: [Lisbon, Portugal, open to hybrid work]
+titles.backend: [Senior Backend Engineer, Java]
+titles.lead: [Leads a team of four engineers, Java]
+summary.default: [Senior Backend Engineer, 10 years, payment API, event-driven processing, Spring Boot, PostgreSQL, Kafka, Leads a team of four engineers]
+summary.lead: [Leads a team of four engineers, payment API, owns its services in production, Java 21, Spring Boot, PostgreSQL, Kafka]
+soft-skills.leadership: [Leads a team of four engineers]
+soft-skills.reviews: [runs code reviews]
+soft-skills.ownership: [owns its services in production]
+key-skills.backend: [Java 21, Spring Boot, REST API design]
+key-skills.data: [PostgreSQL, Schema design, query tuning, MySQL]
+key-skills.messaging: [Kafka, RabbitMQ]
+key-skills.cloud: [Docker, Kubernetes | Working knowledge]
+work.example-payments: [Senior Backend Engineer at Example Payments Ltd, Lisbon, 2019 – present]
+work.example-payments.api: [Develops the payment API, about 2 million requests per day]
+work.example-payments.settlement: [moved settlement batch jobs to event-driven processing, from 6 hours to 40 minutes, Kafka]
+work.example-payments.lead: [Leads a team of four engineers, runs code reviews and the onboarding]
+work.sample-retail: [Backend Developer at Sample Retail SA, Porto, 2015 – 2019]
+work.sample-retail.orders: [Built the order and stock services with Java 8, Spring and MySQL]
+work.sample-retail.queues: [connected the stores and the warehouse through RabbitMQ]
+projects.ledger: [Ledger demo, github.com/example/ledger, double-entry ledger service, idempotent postings, balance snapshots, written to try new Java features, Java 21, Spring Boot, PostgreSQL, Sole developer]
+education.0: [BSc in Computer Science, Example University, 2015]
