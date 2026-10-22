@@ -1,0 +1,12 @@
+[
+  { "type": "answer-contains", "pattern": "jobsearch-kit:analyze-vacancy" },
+  { "type": "answer-contains", "pattern": "jobsearch-kit:adapt-cv" },
+  { "type": "answer-contains", "pattern": "jobsearch-kit:cover-letter" },
+  { "type": "answer-contains", "pattern": "jobsearch-kit:submit-application" },
+  { "type": "answer-contains", "pattern": "jobsearch-kit:process-call" },
+  { "type": "answer-contains", "pattern": "jobsearch-kit:update-cv-facts" },
+  { "name": "SKILL_DIR resolved to the plugin folder", "type": "answer-contains", "pattern": "SKILL_DIR:.*jobsearch-kit[\\\\/]+skills[\\\\/]+update-cv-facts" },
+  { "name": "no unresolved CLAUDE_SKILL_DIR", "type": "answer-not-contains", "pattern": "SKILL_DIR:.*CLAUDE_SKILL_DIR" },
+  { "name": "reference/scripts.md was read", "type": "answer-contains", "pattern": "HEADING:\\s*#?\\s*Scripts" },
+  { "name": "no file changed", "type": "unchanged", "path": "." }
+]

@@ -1,0 +1,4 @@
+{
+  "description": "The plugin loads from --plugin-dir, the six skills are visible, and ${CLAUDE_SKILL_DIR} resolves to the plugin folder.",
+  "allowedTools": ["Skill", "Read", "Glob", "Grep"]
+}

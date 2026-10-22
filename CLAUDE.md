@@ -44,7 +44,16 @@ how to register it and install, update and remove a plugin. This file is for the
 - If you change a jobsearch-kit script or its workspace template, run the script tests:
   `pwsh -File tests/jobsearch-kit/scripts/Test-Scripts.ps1`. They start no model session. See
   `tests/jobsearch-kit/README.md`.
-
+- If you change a jobsearch-kit skill, run its fixtures: `pwsh -File tests/jobsearch-kit/scripts/Run-Tests.ps1
+  -Fixture <names> -Note "<what changed>"`, or use the `jobsearch-kit-tests` skill of this repository. The sessions
+  use the Claude usage limit: check the plan with `-DryRun` first.
+  - Use model `sonnet` for test sessions and the judge.
+  - During development run a fixture with 1 repetition; run its full repetitions once, as the final check before the
+    commit.
+  - Give every fixture an explicit tool list (`allowedTools` or the default), so that no session waits for a prompt.
+  - Keep test workspaces outside the repository (the runner uses `%TEMP%\jobsearch-tests\`).
+  - Commit `tests/jobsearch-kit/run-history.csv` and the new report with the change that the run checked.
+  - A new skill test is a new fixture folder; the format is in `tests/jobsearch-kit/README.md`.
 - To try a plugin from the clone without installing it, start the CLI with `claude --plugin-dir plugins/<plugin>`
   from a test workspace.
 - For a plugin that is installed, reinstall it after a change (`claude plugin uninstall`, then

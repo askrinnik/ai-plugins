@@ -1,0 +1,4 @@
+[
+  { "type": "exists", "path": "notes/plan.md" },
+  { "name": "the session stopped before notes/done.md", "type": "absent", "path": "notes/done.md" }
+]

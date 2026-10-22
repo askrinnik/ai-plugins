@@ -1,0 +1,9 @@
+This is a smoke test of the jobsearch-kit plugin. Change no file in this folder.
+
+1. List every skill of the jobsearch-kit plugin that is available to you, one per line, as `jobsearch-kit:<name>`.
+2. Load the skill jobsearch-kit:update-cv-facts with the Skill tool, but do not follow its procedure. In the loaded
+   text, find the path that stands where the skill refers to its own folder, and read the file
+   `<that folder>/../../reference/scripts.md`.
+3. End your answer with two lines:
+   SKILL_DIR: <the folder path from step 2, exactly as it appears in the loaded skill text>
+   HEADING: <the first heading of scripts.md>

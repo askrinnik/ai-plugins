@@ -1,0 +1,12 @@
+{
+  "description": "Framework self-test without the plugin's skills: a check after turn 1 proves that the session stopped and waited.",
+  "allowedTools": [
+    "Read",
+    "Write"
+  ],
+  "judge": {
+    "files": [
+      "notes/*.md"
+    ]
+  }
+}

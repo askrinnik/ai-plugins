@@ -1,0 +1,4 @@
+[
+  { "type": "exists", "path": "notes/done.md" },
+  { "type": "contains", "path": "notes/done.md", "pattern": "^done" }
+]
