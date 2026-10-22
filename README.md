@@ -34,6 +34,26 @@ not add this one. Uninstall the plugins of the other marketplace, remove it with
 | Remove the marketplace | `claude plugin marketplace remove ai-plugins` (uninstall its plugins first) |
 | The clone moved | Remove the marketplace as above and add it again from the new path |
 
+### Move from an older registration
+
+Use these steps if the machine already has another marketplace named `ai-plugins` (for example a team copy kept
+inside another repository). The other marketplace's folder is not touched; only its registration is removed.
+
+1. Back up the user settings: copy `~/.claude/settings.json` somewhere outside the Claude config folder.
+2. List what the old marketplace installed: `claude plugin list`.
+3. Uninstall each of those plugins: `claude plugin uninstall <plugin>@ai-plugins`.
+4. Remove the old marketplace: `claude plugin marketplace remove ai-plugins`.
+5. Add this one: `claude plugin marketplace add <path to the clone>`.
+6. Install the plugins again from this marketplace: `claude plugin install <plugin>@ai-plugins`.
+7. Check with `claude plugin list` that every plugin reads from the new path, then start a new session.
+
+### Reads outside the working directory
+
+Skills read their own reference files and scripts from the plugin folder, which is outside the folder a session
+works in. If Claude Code asks for permission on every such read, add a read rule for the plugin folder only to
+`permissions.allow` in `~/.claude/settings.json`, for example `"Read(//c/path/to/ai-plugins/plugins/**)"` (the path
+of the clone, with forward slashes and a leading `//`). This keeps the protection for every other path.
+
 ## Install, update and remove a plugin
 
 | Task | Command |
