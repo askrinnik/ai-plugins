@@ -48,7 +48,8 @@ After the user submits, record the confirmation, the status and the log.
    - If the diff is empty, the CV text is current.
    - If the diff is not empty, show it to the user. If the user accepts it, rebuild the `.docx`:
      `node "${CLAUDE_SKILL_DIR}/../../scripts/cv.js" <folder>/cv_profile.yaml`. If not, restore the `.md` with `git checkout -- <file>`.
-   - If the `.md` is not in git yet, rebuild the `.docx` without the diff.
+   - If the `.md` is not in git yet (`git ls-files --error-unmatch <file>` fails), `git diff` says nothing: rebuild
+     the `.docx` without the diff.
 3. Check the cover letter by time: if `cover-letter.md` is newer than its `.docx`, rebuild it with the build part of
    the `jobsearch-kit:cover-letter` skill.
 4. If a PDF is missing or older than its `.docx`, export it in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/export-pdf.ps1" -Docx <docx>`.
@@ -68,7 +69,7 @@ After the user submits, record the confirmation, the status and the log.
 ### 1.3 Check the link
 
 1. If `applications.md` or `vacancy.md` records a referral link for the vacancy, tell the user to submit through that
-   link only. Show the link.
+   link only. Show the link. If no referral link is recorded, show the vacancy link and skip step 2.
 2. If the user sends a screenshot of the form, check that its address carries the referral parameters (for
    SmartRecruiters, the `rsid` of the referral link). If it does not, tell the user before they continue.
 

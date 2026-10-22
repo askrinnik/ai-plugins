@@ -38,9 +38,10 @@ the user has answered the gap questions. In that case:
 
 ## 1. Gather inputs
 
-1. Read the vacancy with the built-in browser (`navigate`, then `get_page_text`). Record the company, legal entity,
+1. Read the vacancy with the built-in browser (`navigate`, then `get_page_text`). If the user gives the vacancy as
+   text, use the text and record "text from the user, <date>" as the source. Record the company, legal entity,
    title, location, work model, requirements, "nice to have" items, tech stack and eligibility rules (citizenship,
-   work permit, language).
+   work permit, language) in `<folder>/vacancy.md` in the notes language.
 2. Read `MyProfile/candidate_facts.md` and `MyProfile/cv/cv_master.yaml`.
 3. Find the newest `cv_profile.yaml` in another application folder (by the folder date). It is the starting point of
    the new profile. If no application folder has one yet, start from `MyProfile/cv/profile_full.yaml`.
@@ -86,7 +87,7 @@ the user has answered the gap questions. In that case:
    a rule to pass the build.
 3. Review the text: compare `<output>.md` with the `.md` of the profile you started from (`git diff --no-index`), so
    that you see every selection change.
-4. Render in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/render-preview.ps1" -Docx <folder>\<output>.docx`, then read
+4. Render in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/render-preview.ps1" -Docx <folder>/<output>.docx`, then read
    `%TEMP%\jobsearch\preview\page*.png`.
 5. Check the page count, headings left alone at the bottom of a page, header lines that wrap, and empty pages. Fix
    the profile, rebuild and render again until the pages are clean.
@@ -101,7 +102,9 @@ the user has answered the gap questions. In that case:
    answers.
 4. Add a work log entry to `README.md` in the notes language: the vacancy link, the status ("CV prepared" until the
    user says it was submitted), the changes and open follow-ups.
-5. Do not commit. Offer the commit to the user and commit only if they say so. Never push.
+5. If `applications.md` has no row for this vacancy, add one with the status "not submitted" (in the notes language)
+   and a short comment. `jobsearch-kit:submit-application` reads this row later.
+6. Do not commit. Offer the commit to the user and commit only if they say so. Never push.
 
 ## Older formats
 

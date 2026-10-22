@@ -30,9 +30,12 @@ rendered pages, then show the PDF to the user.
 
 1. Get the application folder `YYYY_MM_DD_<Company>/`. If the user did not name it, take the newest folder for the
    company from `applications.md`. If no folder exists, run `jobsearch-kit:analyze-vacancy` first or ask the user.
-2. Read `vacancy.md` and `fit-analysis.md` in the application folder. If they do not exist, read the vacancy page
-   with the built-in browser (`navigate`, then `get_page_text`).
-3. Read `_Companies/<Company>/` (README and people notes): mission, products, team, what matters to them.
+2. Read `vacancy.md` and `fit-analysis.md` in the application folder. If `vacancy.md` does not exist, read the
+   vacancy page with the built-in browser (`navigate`, then `get_page_text`). If `fit-analysis.md` does not exist,
+   find the gaps yourself: compare the requirements with `candidate_facts.md`.
+3. Read `_Companies/<Company>/` (README and people notes): mission, products, team, what matters to them. If the
+   folder does not exist, take the "why this company" points from the vacancy text only, and tell the user that the
+   letter has no company research behind it (`jobsearch-kit:analyze-vacancy` does that research).
 4. Read `MyProfile/candidate_facts.md` and `MyProfile/cv/cv_master.yaml`. Take the name and the contacts from
    `header` in the master.
 5. If the folder has a tailored CV (`cv_profile.yaml`, the built `.md`), read it. The letter must agree with it.
@@ -64,7 +67,8 @@ rendered pages, then show the PDF to the user.
    - why this company and team: one or two points from the company research that connect to the user's experience;
    - a short closing and thanks;
    - a sign-off block: "Kind regards," and the name and the contacts (phone · e-mail) on separate lines of one block.
-4. Keep the body to 250–350 words. Count the words without the front matter and the sign-off block.
+4. Keep the body to 250–350 words. Count the words without the front matter, the date, the greeting and the sign-off
+   block.
 5. Use the style for CVs and cover letters (`rules.md`, "Writing style", unless the workspace sets another): active
    voice, no noun clusters, rich vocabulary. Use the vacancy's keywords and
    technology names.
@@ -84,7 +88,7 @@ rendered pages, then show the PDF to the user.
 ## 4. Build and check
 
 1. Build the `.docx`: `node "${CLAUDE_SKILL_DIR}/../../scripts/build-letter.js" <folder>/cover-letter.md`.
-2. Build the PDF in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/export-pdf.ps1" -Docx <folder>\<output>.docx`. If Word locks the file,
+2. Build the PDF in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/export-pdf.ps1" -Docx <folder>/<output>.docx`. If Word locks the file,
    ask the user to close it. Do not close Word yourself.
 3. Render the PDF to PNG in Windows PowerShell 5.1:
    `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_SKILL_DIR}/../../scripts/pdf-to-png.ps1" -Pdf <pdf> -OutDir %TEMP%\jobsearch\letter`.
@@ -94,7 +98,8 @@ rendered pages, then show the PDF to the user.
 
 ## 5. Show it
 
-1. Send the PDF with `SendUserFile` (`display: render`).
+1. Send the PDF with `SendUserFile` (`display: render`). If that tool is not available, give the user the path of the
+   PDF.
 2. Tell the user the word count, which gaps the letter names and any sentence they should check.
 3. If the form has a cover letter text field, tell the user that `cover-letter.md` can be pasted as it is (without
    the front matter).

@@ -43,6 +43,8 @@ limits the wording, it becomes a rule. Then the full CV is rebuilt, and unsent t
 2. If something is missing, ask only for that: the date or period, the user's own role ("took part in" or "led"),
    numbers, and whether the fact may go into a CV.
 3. Never add details that the user did not give. If a detail is unknown, write "not stated" or leave it out.
+4. Keep the strength of the user's verbs. "Used" does not become "introduced", "took part in" does not become "led",
+   and "helped" does not become "built". If a stronger verb would sell better, ask the user whether it is true.
 
 ## 2. Add it to `candidate_facts.md`
 
@@ -62,9 +64,9 @@ Do this step only if the fact changes CV text.
    new text.
 3. If the fact is new, add a bullet with a new unique `id` and `tags` that match the existing tags of the job. Put it
    next to the bullets on the same topic.
-4. If the fact changes a skill level, change the skill group text in `tech-skills`.
+4. If the fact changes a skill level, change the skill text (the section of kind `groups` or the skills `list`).
 5. Use the style for CVs (`rules.md`, "Writing style", unless the workspace sets another): active voice, rich
-   vocabulary, the wording limits of `candidate_facts.md`.
+   vocabulary, the wording limits of `candidate_facts.md`. Keep the verb strength of the fact (step 1.4).
 
 ## 4. Add or change a wording rule
 
@@ -82,7 +84,8 @@ Do this step only if the fact limits the wording (for example "no experience wit
 1. Run `node "${CLAUDE_SKILL_DIR}/../../scripts/cv.js" MyProfile/cv/profile_full.yaml`.
 2. If a wording rule fails, fix the text in the master. Change `cv_rules.yaml` only if step 4 changed the facts.
 3. Show the user `git diff` of `MyProfile/cv/<output>.md`, where `<output>` comes from `profile_full.yaml`. Check that
-   the diff holds only the intended change.
+   the diff holds only the intended change. If the file is not in git yet, `git diff` says nothing: show the changed
+   lines of the `.md` instead.
 4. If the layout can change (a new bullet, a longer text), check the pages: run
    `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/render-preview.ps1" -Docx <full CV .docx>` in pwsh, then read `%TEMP%\jobsearch\preview\page*.png`.
 

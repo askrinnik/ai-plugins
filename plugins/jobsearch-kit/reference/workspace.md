@@ -28,8 +28,9 @@ If the workspace `CLAUDE.md` sets a rule, use it instead of the plugin default. 
 | `YYYY_MM_DD_<Company>[_<Stage>]/` | **Stage folder**: one later stage (call or interview): recording, transcripts, summary, side notes, `interview-prep.md`. Its date is the stage date. Never put stage files into the application folder |
 | `_Companies/<Company>/` | Company research in the notes language, one folder per company, shared by all its vacancies: `README.md`, `people.md` |
 
-The workspace should be a git repository: the skills compare CV text with `git diff`. Keep recordings out of git
-(add `*.mp3`, `*.m4a`, `*.wav` to `.gitignore`).
+The workspace should be a git repository: the skills compare CV text with `git diff`. `git diff` compares with the
+last commit (or the staged state), so commit the workspace regularly; a file that git does not track yet shows no
+diff. Keep recordings out of git (add `*.mp3`, `*.m4a`, `*.wav` to `.gitignore`).
 
 Keep scratch files outside the workspace, in `%TEMP%\jobsearch\` (for example `%TEMP%\jobsearch\preview\`).
 

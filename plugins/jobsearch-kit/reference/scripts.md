@@ -16,6 +16,13 @@ and run them from the workspace root.
 | `install-deps.ps1` | `pwsh -File` | Installs the npm packages outside the plugin |
 | `install-whisper.ps1` | `pwsh -File` | Creates the whisper venv outside the plugin |
 
+## Shells
+
+- Write paths in commands with forward slashes (`<folder>/<file>.docx`). The scripts accept them, and the Bash tool
+  treats a backslash as an escape character.
+- Run the `.ps1` scripts with `pwsh -File` (or `powershell.exe -File` where the table says so). This works from the
+  PowerShell tool and from the Bash tool.
+
 ## Workspace root
 
 The scripts find the workspace root in this order: `--root <dir>`, the `JOBSEARCH_ROOT` environment variable, the

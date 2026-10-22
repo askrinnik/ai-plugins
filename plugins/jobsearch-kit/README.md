@@ -107,7 +107,9 @@ The skills never submit forms, send messages or commit on their own.
    node "<plugin folder>/scripts/cv.js" MyProfile/cv/profile_full.yaml
    ```
 
-4. Share a vacancy link and ask Claude to analyze it.
+4. Commit the workspace. The skills compare CV text with `git diff`, which shows nothing for files that git does
+   not track yet.
+5. Share a vacancy link and ask Claude to analyze it.
 
 The scripts find the workspace root by looking upwards for `MyProfile/cv/cv_master.yaml`; `--root <folder>` or the
 `JOBSEARCH_ROOT` environment variable override it.
