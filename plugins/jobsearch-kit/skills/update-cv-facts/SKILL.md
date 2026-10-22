@@ -81,7 +81,8 @@ Do this step only if the fact limits the wording (for example "no experience wit
 
 ## 5. Rebuild the full CV
 
-1. Run `node "${CLAUDE_SKILL_DIR}/../../scripts/cv.js" MyProfile/cv/profile_full.yaml`.
+1. Run `node "${CLAUDE_SKILL_DIR}/../../scripts/cv.js" MyProfile/cv/profile_full.yaml` without `--no-docx`. The full
+   CV is the base document, so it always needs both the `.md` and the `.docx`. Check that both files exist.
 2. If a wording rule fails, fix the text in the master. Change `cv_rules.yaml` only if step 4 changed the facts.
 3. Show the user `git diff` of `MyProfile/cv/<output>.md`, where `<output>` comes from `profile_full.yaml`. Check that
    the diff holds only the intended change. If the file is not in git yet, `git diff` says nothing: show the changed

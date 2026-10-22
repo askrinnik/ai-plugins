@@ -50,7 +50,8 @@ the user has answered the gap questions. In that case:
 
 ## 2. Gap analysis (show it to the user before building anything)
 
-1. Present a table: requirement, evidence in the CV, status (✅ confirmed / 🟡 partial / ❌ missing).
+1. Present a table: requirement, evidence in the CV, status (✅ confirmed / 🟡 partial / ❌ missing /
+   ❓ not in the facts, question to the user).
 2. List concrete proposals: what to emphasise, rename, cut or reorder, and which keywords to add for ATS.
 3. Ask targeted questions **only** about requirements that `candidate_facts.md` does not cover. Never fill gaps by
    guessing.

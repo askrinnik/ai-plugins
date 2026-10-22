@@ -33,7 +33,8 @@ The skill has two stages with one stop between them:
 - Read `MyProfile/candidate_facts.md` and `MyProfile/cv/cv_master.yaml` (the single source of CV text).
 - Write `fit-analysis.md` in the notes language:
   - separate tables for required items, nice-to-have items and hidden requirements (found in step 3);
-  - columns: requirement, status (✅ confirmed / 🟡 partial / ❌ missing), evidence or comment;
+  - columns: requirement, status (✅ confirmed / 🟡 partial / ❌ missing / ❓ not in the facts, question to the
+    user), evidence or comment; after the user answers, replace each ❓ with one of the other statuses;
   - a summary: fit estimate in percent, the strongest matches, the main risks and gaps, eligibility risks.
 - Show all the tables and the summary in the chat.
 - Ask targeted questions **only** about requirements that `candidate_facts.md` does not cover. Never fill a gap by

@@ -35,15 +35,15 @@ sections:
         Senior Backend Engineer with 10 years of Java experience, building payment APIs and event-driven services
         with Spring Boot, PostgreSQL and Kafka. Leads a team of four engineers.
       lead: >-
-        Backend team lead who grows engineers and ships reliable payment services: Java, Spring Boot, PostgreSQL
-        and Kafka in production.
+        Backend team lead of four engineers, shipping payment services in production with Java, Spring Boot,
+        PostgreSQL and Kafka.
 
   - id: soft-skills
     heading: Skills
     kind: list
     items:
-      - id: mentoring
-        text: Mentoring
+      - id: leadership
+        text: Team leadership
       - id: reviews
         text: Code reviews
       - id: ownership

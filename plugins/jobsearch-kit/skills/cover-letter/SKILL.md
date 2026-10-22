@@ -74,7 +74,10 @@ rendered pages, then show the PDF to the user.
    technology names.
 6. Use only confirmed facts. If the letter needs a fact that is not in `candidate_facts.md`, ask the user. Then run
    `jobsearch-kit:update-cv-facts` with the answer.
-7. Check the text against the "Cover letters" section of `rules.md` and the cover letter preferences of the
+7. Do not derive new numbers or periods from dates or other facts (for example "the last seven years in payments"
+   from a job's start year, or "since 2015" from the dates of a job). Use only the numbers that the facts state. If a
+   derived number would help, ask the user to confirm it as a fact first.
+8. Check the text against the "Cover letters" section of `rules.md` and the cover letter preferences of the
    workspace.
 
 ## 3. Lint
