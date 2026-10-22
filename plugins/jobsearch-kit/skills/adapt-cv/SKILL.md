@@ -43,7 +43,7 @@ the user has answered the gap questions. In that case:
    work permit, language).
 2. Read `MyProfile/candidate_facts.md` and `MyProfile/cv/cv_master.yaml`.
 3. Find the newest `cv_profile.yaml` in another application folder (by the folder date). It is the starting point of
-   the new profile.
+   the new profile. If no application folder has one yet, start from `MyProfile/cv/profile_full.yaml`.
 4. Check that the master is current. If it misses confirmed facts from `candidate_facts.md`, tell the user and run
    `jobsearch-kit:update-cv-facts` first.
 

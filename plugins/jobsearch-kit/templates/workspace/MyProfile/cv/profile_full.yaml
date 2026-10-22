@@ -1,0 +1,13 @@
+# Profile of the full CV: everything from the master.
+# Build from the workspace root: node "<plugin>/scripts/cv.js" MyProfile/cv/profile_full.yaml
+# Output: MyProfile/cv/<output>.md (compare with git diff) and .docx.
+output: CV_Jordan_Sample_full
+title: backend
+sections:
+  - id: summary
+  - id: soft-skills
+    inline: true
+  - id: key-skills
+  - id: work
+  - id: projects
+  - id: education
