@@ -118,7 +118,7 @@ foreach ($f in $selected) {
         error = $(if ($r.ExitCode -ne 0 -or -not $j) { (($r.Err + ' ' + $r.Out) -replace '\s+', ' ').Trim() })
         checks = @(); groundTruth = $t.GroundTruth; judge = $null
       }
-      $turn.checks = @(Invoke-TurnChecks -Turn $t -Workspace $ws -Answer $answer -FixtureDir $f.Dir -ScratchDir $scratch)
+      $turn.checks = @(Invoke-TurnChecks -Turn $t -Workspace $ws -Answer $answer -FixtureDir $f.Dir -ScratchDir $scratch -Transcript $(if ($sessionId) { Find-Transcript $sessionId }))
       foreach ($c in $turn.checks) {
         $mark = if ($c.Skipped) { 'skip' } elseif ($c.Pass) { 'ok  ' } else { 'FAIL' }
         Write-Output "      $mark  $($c.Name)$(if (-not $c.Pass) { " — expected $($c.Expected); actual: $(($c.Actual -replace '\s+', ' ').Trim())" })"

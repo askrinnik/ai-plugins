@@ -1,0 +1,6 @@
+[
+  { "name": "application folder with vacancy.md", "type": "exists", "path": "{{date}}_Example*Bank*/vacancy.md" },
+  { "name": "the skill waits: no cv_profile.yaml", "type": "absent", "path": "{{date}}_Example*Bank*/cv_profile.yaml" },
+  { "name": "the skill waits: no CV document", "type": "absent", "path": "{{date}}_Example*Bank*/*.docx" },
+  { "name": "the earlier application unchanged", "type": "unchanged", "path": "2026_10_22_Nordwind_Pay" }
+]

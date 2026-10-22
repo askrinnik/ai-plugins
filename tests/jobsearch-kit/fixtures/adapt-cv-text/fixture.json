@@ -1,0 +1,26 @@
+{
+  "description": "adapt-cv with a vacancy given as text: proposals first and no build until the user agrees; then a one-page CV that passes the wording rules and a \"not submitted\" row. The seed has an earlier tailored CV (Nordwind Pay) as the starting profile.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "requires": [
+    "word"
+  ],
+  "judge": {
+    "files": [
+      "{{date}}_Example*Bank*/vacancy.md"
+    ],
+    "minScore": 3
+  },
+  "seedCommands": [
+    "node {{plugin}}/scripts/cv.js 2026_10_22_Nordwind_Pay/cv_profile.yaml"
+  ],
+  "seedCopy": [
+    {
+      "from": "tests/jobsearch-kit/materials/seeds/nordwind-pay",
+      "to": "."
+    }
+  ],
+  "seedDiffs": [
+    "tests/jobsearch-kit/materials/seeds/nordwind-pay.diff"
+  ]
+}

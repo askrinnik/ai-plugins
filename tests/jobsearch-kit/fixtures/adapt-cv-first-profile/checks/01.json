@@ -1,0 +1,9 @@
+[
+  { "name": "the profile starts from profile_full.yaml", "type": "tool-input", "pattern": "profile_full\\.yaml" },
+  { "name": "cv_profile.yaml", "type": "exists", "path": "{{date}}_Example*Bank*/cv_profile.yaml" },
+  { "name": "CV .md", "type": "exists", "path": "{{date}}_Example*Bank*/*CV*.md" },
+  { "name": "CV .docx", "type": "exists", "path": "{{date}}_Example*Bank*/*CV*.docx" },
+  { "name": "the CV passes the wording rules", "type": "lint", "path": "{{date}}_Example*Bank*/*CV*.md" },
+  { "name": "no Redis or mentoring claim", "type": "not-contains", "path": "{{date}}_Example*Bank*/*CV*.md", "pattern": "Redis|\\bmentor" },
+  { "name": "\"not submitted\" row", "type": "contains", "path": "applications.md", "pattern": "Example\\s*Bank[^\\n]*not submitted" }
+]

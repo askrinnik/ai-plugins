@@ -1,0 +1,5 @@
+Add this fact to my facts and my CV:
+
+At Example Payments Ltd I have used Redis in production since 2022 as a cache for the payment API, which cut the p95 response time from 300 ms to 120 ms. It may go into CVs.
+
+The fact is complete; do not ask me for more details. Do not commit.

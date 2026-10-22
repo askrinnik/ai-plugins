@@ -1,0 +1,8 @@
+{
+  "description": "update-cv-facts keeps the verb strength of a fact (regression: \"used\" became \"introduced\") and rebuilds the full CV with .md and .docx.",
+  "repetitions": 3,
+  "judge": {
+    "files": ["MyProfile/candidate_facts.md", "MyProfile/cv/cv_master.yaml"],
+    "minScore": 3
+  }
+}

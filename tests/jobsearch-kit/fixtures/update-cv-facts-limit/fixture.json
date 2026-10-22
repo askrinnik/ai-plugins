@@ -1,0 +1,4 @@
+{
+  "repetitions": 3,
+  "description": "update-cv-facts turns a \"no experience with X\" fact into a wording rule that lets honest negations through."
+}

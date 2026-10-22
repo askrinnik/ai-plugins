@@ -1,0 +1,13 @@
+[
+  { "name": "application folder with vacancy.md", "type": "exists", "path": "{{date}}_Nordwind*/vacancy.md" },
+  { "name": "application folder with fit-analysis.md", "type": "exists", "path": "{{date}}_Nordwind*/fit-analysis.md" },
+  { "name": "company research", "type": "exists", "path": "_Companies/Nordwind*/README.md" },
+  { "name": "\"not submitted\" row in applications.md", "type": "contains", "path": "applications.md", "pattern": "\\|\\s*Nordwind[^\\n]*not submitted" },
+  { "name": "Go is missing in the fit table", "type": "contains", "path": "{{date}}_Nordwind*/fit-analysis.md", "pattern": "\\bGo\\b[^\\n]*❌" },
+  { "name": "Kubernetes is partial in the fit table", "type": "contains", "path": "{{date}}_Nordwind*/fit-analysis.md", "pattern": "Kubernetes[^\\n]*🟡" },
+  { "name": "PCI DSS is a question or missing", "type": "contains", "path": "{{date}}_Nordwind*/fit-analysis.md", "pattern": "PCI[^\\n]*(❓|❌)" },
+  { "name": "the skill stopped: no cv_profile.yaml", "type": "absent", "path": "*cv_profile.yaml" },
+  { "name": "the skill stopped: no tailored CV", "type": "absent", "path": "{{date}}_Nordwind*/*.docx" },
+  { "name": "facts unchanged before the user answers", "type": "unchanged", "path": "MyProfile/candidate_facts.md" },
+  { "name": "the skill stopped before the CV step: adapt-cv not invoked", "type": "no-tool-input", "pattern": "^Skill: .*adapt-cv" }
+]

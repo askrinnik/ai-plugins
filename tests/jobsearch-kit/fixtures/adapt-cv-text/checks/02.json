@@ -1,0 +1,10 @@
+[
+  { "name": "cv_profile.yaml", "type": "exists", "path": "{{date}}_Example*Bank*/cv_profile.yaml" },
+  { "name": "CV .md", "type": "exists", "path": "{{date}}_Example*Bank*/*CV*.md" },
+  { "name": "CV .docx", "type": "exists", "path": "{{date}}_Example*Bank*/*CV*.docx" },
+  { "name": "the CV passes the wording rules", "type": "lint", "path": "{{date}}_Example*Bank*/*CV*.md" },
+  { "name": "no Redis or mentoring claim", "type": "not-contains", "path": "{{date}}_Example*Bank*/*CV*.md", "pattern": "Redis|\\bmentor" },
+  { "name": "one page", "type": "pages", "path": "{{date}}_Example*Bank*/*CV*.docx", "max": 1 },
+  { "name": "\"not submitted\" row", "type": "contains", "path": "applications.md", "pattern": "Example\\s*Bank[^\\n]*not submitted" },
+  { "name": "the earlier application unchanged", "type": "unchanged", "path": "2026_10_22_Nordwind_Pay" }
+]

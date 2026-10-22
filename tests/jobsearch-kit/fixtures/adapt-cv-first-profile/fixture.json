@@ -1,0 +1,6 @@
+{
+  "description": "adapt-cv in a workspace without an earlier application: the new profile starts from profile_full.yaml; the user agrees in advance, so the CV is built in one turn.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "requires": ["word"]
+}

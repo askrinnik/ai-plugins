@@ -1,0 +1,9 @@
+[
+  { "name": "the defer reason is in applications.md", "type": "contains", "path": "applications.md", "pattern": "Nordwind[^\\n]*(defer|postpon|on hold)[^\\n]*" },
+  { "name": "the reason names the office days or Tallinn", "type": "contains", "path": "applications.md", "pattern": "Nordwind[^\\n]*(office|Tallinn|on-site|onsite)" },
+  { "name": "no cv_profile.yaml", "type": "absent", "path": "*cv_profile.yaml" },
+  { "name": "no CV or letter documents", "type": "absent", "path": "{{date}}_Nordwind*/*.docx" },
+  { "name": "work log entry", "type": "contains", "path": "README.md", "pattern": "Nordwind" },
+  { "name": "facts unchanged", "type": "unchanged", "path": "MyProfile/candidate_facts.md" },
+  { "name": "the skill stopped before the CV step: adapt-cv not invoked", "type": "no-tool-input", "pattern": "^Skill: .*adapt-cv" }
+]

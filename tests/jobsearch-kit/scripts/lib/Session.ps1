@@ -53,6 +53,8 @@ function Read-Fixture {
     TimeoutMinutes = $(if ($cfg.timeoutMinutes) { [int]$cfg.timeoutMinutes } else { 20 })
     SeedCopy       = @($cfg.seedCopy | Where-Object { $_ })
     SeedRemove     = @($cfg.seedRemove | Where-Object { $_ })
+    SeedCommands   = @($cfg.seedCommands | Where-Object { $_ })
+    SeedDiffs      = @($cfg.seedDiffs | Where-Object { $_ })
     JudgeFiles     = @($judge.files | Where-Object { $_ })
     MinScore       = $judge.minScore
     Turns          = @($turns)
@@ -78,7 +80,21 @@ function Test-Requirement {
 }
 
 function Expand-Placeholders {
+  <#
+  .SYNOPSIS
+    Replaces {{today}}, {{date}}, {{workspace}} and {{include:<path in the repository>#<n>}} (the n-th fenced code
+    block of that file, so a prompt can use a vacancy text or the user answers of materials/ without a copy).
+  #>
   param([string]$Text, [string]$Workspace)
+  $Text = [regex]::Replace($Text, '\{\{include:([^#}]+)#(\d+)\}\}', {
+      param($m)
+      $file = Join-Path $script:Repo $m.Groups[1].Value
+      $content = (Get-Content $file -Raw) -replace "`r`n", "`n"
+      $blocks = [regex]::Matches($content, '(?ms)^```[^\n]*\n(.*?)\n```')
+      $n = [int]$m.Groups[2].Value
+      if ($n -lt 1 -or $n -gt $blocks.Count) { throw "$($m.Value): $file has $($blocks.Count) code block(s)" }
+      $blocks[$n - 1].Groups[1].Value
+    })
   $now = Get-Date
   $Text.Replace('{{today}}', $now.ToString('yyyy-MM-dd')).Replace('{{date}}', $now.ToString('yyyy_MM_dd')).Replace('{{workspace}}', ($Workspace -replace '\\', '/'))
 }
@@ -90,7 +106,9 @@ function New-TestWorkspace {
   .DESCRIPTION
     Order: copy the seed workspace (config.json "seed"); remove "seedRemove" paths; copy "seedCopy" items
     ({ from: <path relative to the repository>, to: <path relative to the workspace> }; placeholders allowed in
-    "to"); copy the fixture's seed\ folder over it; apply seed.diff with git apply; commit everything.
+    "to"); copy the fixture's seed\ folder over it; apply the "seedDiffs" (paths in the repository) and seed.diff
+    with git apply; run "seedCommands" (pwsh commands in the workspace, for example a CV build; {{plugin}} is the
+    plugin folder); commit everything.
   #>
   param([Parameter(Mandatory)]$Fixture, [Parameter(Mandatory)][string]$Path)
   if (Test-Path $Path) { Remove-Item $Path -Recurse -Force }
@@ -114,10 +132,20 @@ function New-TestWorkspace {
   $seed = Join-Path $Fixture.Dir 'seed'
   if (Test-Path $seed) { Copy-Item (Join-Path $seed '*') $Path -Recurse -Force }
   $null = git -C $Path init -q -b main 2>&1
-  $diff = Join-Path $Fixture.Dir 'seed.diff'
-  if (Test-Path $diff) {
-    $out = git -C $Path apply --whitespace=nowarn $diff 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "git apply seed.diff failed: $out" }
+  # --ignore-whitespace: the diffs are stored with LF, the seed files may have CRLF (core.autocrlf).
+  $diffs = @($Fixture.SeedDiffs | ForEach-Object { Join-Path $script:Repo $_ }) + @(Join-Path $Fixture.Dir 'seed.diff' | Where-Object { Test-Path $_ })
+  foreach ($diff in $diffs) {
+    $out = git -C $Path apply --ignore-whitespace --whitespace=nowarn $diff 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "git apply $diff failed: $out" }
+  }
+  foreach ($cmd in $Fixture.SeedCommands) {
+    $line = (Expand-Placeholders $cmd $Path).Replace('{{plugin}}', ($script:PluginDir -replace '\\', '/'))
+    Push-Location $Path
+    try {
+      $out = & pwsh -NoProfile -Command $line 2>&1 | Out-String
+      if ($LASTEXITCODE -ne 0) { throw "seedCommands failed: $line`n$out" }
+    }
+    finally { Pop-Location }
   }
   $null = git -C $Path add -A 2>&1
   $null = git -C $Path -c user.name=jobsearch-tests -c user.email=tests@example.com commit -q -m 'Seed workspace' 2>&1

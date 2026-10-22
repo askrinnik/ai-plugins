@@ -1,0 +1,38 @@
+diff --git a/MyProfile/candidate_facts.md b/MyProfile/candidate_facts.md
+index 3b14f5c..f3563b5 100644
+--- a/MyProfile/candidate_facts.md
++++ b/MyProfile/candidate_facts.md
+@@ -12,6 +12,8 @@ appear in CVs with "Not for CVs".
+ - Right to work: EU citizen, no sponsorship needed (confirmed 2026-01-10).
+ - Salary expectation: 5000 EUR gross per month for an employee contract. Not for CVs (confirmed 2026-01-10).
+ - Earliest start date: one month after an offer. Not for CVs (confirmed 2026-01-10).
++- Relocation: ready to relocate to Tallinn, Estonia at own cost and to work 3 days a week in the office. Not for CVs
++  (confirmed 2026-10-22; extends the earlier "open to hybrid work").
+ - Languages: English fluent, Portuguese native (confirmed 2026-01-10).
+ 
+ ## Experience
+@@ -46,3 +48,5 @@ appear in CVs with "Not for CVs".
+ | Kafka | Production | Since 2021 |
+ | Kubernetes | Working knowledge | Deploys services with existing Helm charts; never set up a cluster |
+ | Go | None | Do not claim |
++| PCI DSS | None | Do not claim (confirmed 2026-10-22) |
++| Merchant onboarding, payouts (domain) | None | Do not claim (confirmed 2026-10-22). The payment API and settlement work are confirmed separately |
+diff --git a/MyProfile/cv/cv_rules.yaml b/MyProfile/cv/cv_rules.yaml
+index 05ec372..2fc3c52 100644
+--- a/MyProfile/cv/cv_rules.yaml
++++ b/MyProfile/cv/cv_rules.yaml
+@@ -21,6 +21,14 @@ rules:
+     allow: *negation
+     message: "No experience with Go (facts, 2026-01-10)."
+ 
++  - pattern: \bPCI([- ]?DSS)?\b
++    allow: *negation
++    message: "No experience with PCI DSS (facts, 2026-10-22)."
++
++  - pattern: \b(merchant onboarding|onboarding of merchants|payouts?)\b
++    allow: *negation
++    message: "No experience with merchant onboarding or payouts (facts, 2026-10-22)."
++
+   - pattern: \bKubernetes\b
+     unless: working knowledge
+     message: "Kubernetes is working knowledge only (facts, 2026-01-10)."

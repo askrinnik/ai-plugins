@@ -1,0 +1,9 @@
+[
+  { "name": "a new application folder for today", "type": "exists", "path": "{{date}}_Nordwind*/vacancy.md" },
+  { "name": "the earlier application folder unchanged", "type": "unchanged", "path": "2026_03_02_Nordwind_Pay" },
+  { "name": "the company notes keep the interview notes", "type": "contains", "path": "_Companies/Nordwind_Pay/README.md", "pattern": "ledger reconciliation" },
+  { "name": "the earlier row stays in applications.md", "type": "contains", "path": "applications.md", "pattern": "Core Ledger" },
+  { "name": "the answer mentions the earlier application", "type": "answer-contains", "pattern": "(2026-03-02|2026_03_02|Core Ledger|earlier application|previous application|applied (to Nordwind Pay )?before|rejected)" },
+  { "name": "the skill stopped: no cv_profile.yaml", "type": "absent", "path": "*cv_profile.yaml" },
+  { "name": "the skill stopped before the CV step: adapt-cv not invoked", "type": "no-tool-input", "pattern": "^Skill: .*adapt-cv" }
+]

@@ -32,7 +32,7 @@ function Invoke-Check {
   .SYNOPSIS
     Runs one check object against the workspace and the turn's answer; returns a result with expected and actual.
   #>
-  param([Parameter(Mandatory)]$Check, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir)
+  param([Parameter(Mandatory)]$Check, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript)
   $type = $Check.type
   $path = [string]$Check.path
   $name = if ($Check.name) { $Check.name } else { "$type $path$(if ($Check.pattern) { " /$($Check.pattern)/" })".Trim() }
@@ -98,11 +98,28 @@ function Invoke-Check {
       $tracked = @($all | Where-Object { $null = git -C $Workspace check-ignore -q $_.FullName 2>&1; $LASTEXITCODE -ne 0 })
       return New-CheckResult $name ($tracked.Count -eq 0) "every file matching $path ignored by git" "not ignored: $(& $list $tracked)"
     }
+    { $_ -in 'tool-input', 'no-tool-input' } {
+      # The inputs of the session's tool calls so far (file paths, commands), not the text the session read.
+      $inputs = if ($Transcript -and (Test-Path $Transcript)) {
+        foreach ($line in [IO.File]::ReadLines($Transcript)) {
+          if ($line -notmatch '"tool_use"') { continue }
+          $o = $line | ConvertFrom-Json
+          foreach ($c in @($o.message.content | Where-Object { $_.type -eq 'tool_use' })) { "$($c.name): $($c.input | ConvertTo-Json -Compress -Depth 5)" }
+        }
+      }
+      $hit = @($inputs | Where-Object { [regex]::IsMatch($_, $Check.pattern, $opts) } | Select-Object -First 1)
+      $want = $type -eq 'tool-input'
+      $actual = if (-not $Transcript) { 'no transcript' } elseif ($hit.Count) { "found: $($hit[0].Substring(0, [math]::Min(200, $hit[0].Length)))" } else { "not found in $(@($inputs).Count) tool call(s)" }
+      return New-CheckResult $name ([bool]$hit.Count -eq $want) "$(if (-not $want) { 'no ' })tool call input matching /$($Check.pattern)/" $actual
+    }
     'script' {
+      # "file" is relative to the fixture folder, or to the repository (shared checks in tests/jobsearch-kit/scripts/checks/).
       $file = Join-Path $FixtureDir $Check.file
+      if (-not (Test-Path $file)) { $file = Join-Path $script:Repo $Check.file }
       $answerFile = Join-Path $ScratchDir 'answer.md'
       Set-Content -LiteralPath $answerFile -Value $Answer -Encoding UTF8
-      $out = & pwsh -NoProfile -File $file -Workspace $Workspace -AnswerFile $answerFile 2>&1 | Out-String
+      $extra = @($Check.args | Where-Object { $null -ne $_ } | ForEach-Object { Expand-Placeholders ([string]$_) $Workspace })
+      $out = & pwsh -NoProfile -File $file -Workspace $Workspace -AnswerFile $answerFile @extra 2>&1 | Out-String
       return New-CheckResult $name ($LASTEXITCODE -eq 0) "$($Check.file) exits with 0" $out.Trim()
     }
     default { return New-CheckResult $name $false "a known check type" "unknown check type '$type'" }
@@ -110,11 +127,11 @@ function Invoke-Check {
 }
 
 function Invoke-TurnChecks {
-  param([Parameter(Mandatory)]$Turn, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir)
+  param([Parameter(Mandatory)]$Turn, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript)
   if (-not $Turn.ChecksFile) { return @() }
   $checks = @(Get-Content $Turn.ChecksFile -Raw | ConvertFrom-Json)
   foreach ($c in $checks) {
-    try { Invoke-Check -Check $c -Workspace $Workspace -Answer $Answer -FixtureDir $FixtureDir -ScratchDir $ScratchDir }
+    try { Invoke-Check -Check $c -Workspace $Workspace -Answer $Answer -FixtureDir $FixtureDir -ScratchDir $ScratchDir -Transcript $Transcript }
     catch { New-CheckResult "$($c.type) $($c.path)" $false 'the check runs' "error: $($_.Exception.Message)" }
   }
 }

@@ -1,0 +1,13 @@
+# Tailored CV for Example Bank One, Senior Backend Engineer. Submitted 2026-09-02.
+output: 2026_09_01_CV_Jordan_Sample_Example_Bank_One
+title: backend
+sections:
+  - id: summary
+  - id: key-skills
+  - id: work
+    jobs:
+      - id: example-payments
+        bullets: all
+      - id: sample-retail
+        bullets: all
+  - id: education

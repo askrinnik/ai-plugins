@@ -1,0 +1,3 @@
+Add this fact: I have no experience with GraphQL. Never claim it in a CV or a letter, but an honest "I have not worked with GraphQL" is fine.
+
+The fact is complete; do not ask me for more details. Do not commit.

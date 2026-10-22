@@ -1,0 +1,17 @@
+# Profile of the tailored CV for ExampleBank, Senior Backend Engineer (Java), Payments Platform.
+output: 2026_10_20_CV_Jordan_Sample_ExampleBank
+title: backend
+sections:
+  - id: summary
+  - id: soft-skills
+    inline: true
+  - id: key-skills
+    groups: [backend, messaging, data, cloud]
+  - id: work
+    jobs:
+      - id: example-payments
+        bullets: [api, settlement, lead]
+      - id: sample-retail
+        bullets: [orders, queues]
+  - id: projects
+  - id: education

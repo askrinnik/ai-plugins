@@ -1,0 +1,10 @@
+[
+  { "name": "facts changed", "type": "changed", "path": "MyProfile/candidate_facts.md" },
+  { "name": "PCI DSS limit in the facts, with a date", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "PCI[^\\n]*20\\d\\d-\\d\\d-\\d\\d" },
+  { "name": "merchant onboarding or payouts limit in the facts, with a date", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "(merchant onboarding|payouts?)[^\\n]*20\\d\\d-\\d\\d-\\d\\d" },
+  { "name": "PCI DSS wording rule", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "PCI" },
+  { "name": "merchant onboarding or payouts wording rule", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "payout|merchant[ _-]?onboarding" },
+  { "name": "no open question left for PCI DSS", "type": "not-contains", "path": "{{date}}_Nordwind*/fit-analysis.md", "pattern": "PCI[^\\n]*❓" },
+  { "name": "no open question left for merchant onboarding and payouts", "type": "not-contains", "path": "{{date}}_Nordwind*/fit-analysis.md", "pattern": "(onboarding|payouts?)[^\\n]*❓" },
+  { "name": "still no CV", "type": "absent", "path": "*cv_profile.yaml" }
+]

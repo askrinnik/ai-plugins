@@ -1,0 +1,9 @@
+{
+  "description": "analyze-vacancy when the workspace already has an application to the same company: the skill mentions it and keeps the company notes.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "judge": {
+    "files": ["_Companies/Nordwind_Pay/README.md", "applications.md"],
+    "minScore": 3
+  }
+}

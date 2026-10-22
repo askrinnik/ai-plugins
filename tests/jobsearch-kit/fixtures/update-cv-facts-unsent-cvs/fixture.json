@@ -1,0 +1,14 @@
+{
+  "description": "update-cv-facts checks the unsent tailored CVs (rebuild with --no-docx, diff shown) and leaves the submitted one untouched.",
+  "repetitions": 3,
+  "judge": {
+    "files": [
+      "applications.md"
+    ],
+    "minScore": 2
+  },
+  "seedCommands": [
+    "node {{plugin}}/scripts/cv.js 2026_09_01_Example_Bank_One/cv_profile.yaml",
+    "node {{plugin}}/scripts/cv.js 2026_10_01_Sample_Logistics/cv_profile.yaml --no-docx"
+  ]
+}

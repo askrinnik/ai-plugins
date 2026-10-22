@@ -1,0 +1,13 @@
+# Tailored CV for Sample Logistics, Backend Engineer (Java). Not submitted yet.
+output: 2026_10_01_CV_Jordan_Sample_Sample_Logistics
+title: backend
+sections:
+  - id: summary
+  - id: key-skills
+  - id: work
+    jobs:
+      - id: example-payments
+        bullets: all
+      - id: sample-retail
+        bullets: { tags: [api] }
+  - id: education

@@ -1,0 +1,3 @@
+Adapt my CV for this vacancy. I only have the text, there is no link. I found it myself.
+
+{{include:tests/jobsearch-kit/materials/vacancies/examplebank.md#1}}

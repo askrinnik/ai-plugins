@@ -1,0 +1,24 @@
+# Profile of the tailored CV for Nordwind Pay, Senior Java Engineer (Merchant Payments).
+# Build from the workspace root: node "<plugin>/scripts/cv.js" 2026_10_22_Nordwind_Pay/cv_profile.yaml
+output: 2026_10_22_CV_Jordan_Sample_Nordwind_Pay
+title: Senior Java Engineer
+sections:
+  - id: summary
+    text: >-
+      Senior Java Engineer with 10 years of experience building payment APIs and event-driven services with
+      Spring Boot, PostgreSQL and Kafka. Moved settlement batch jobs to event-driven processing and cut settlement
+      time from 6 hours to 40 minutes. Leads a team of four engineers and runs code reviews.
+  - id: soft-skills
+    items: [leadership, reviews, ownership]
+    inline: true
+  - id: key-skills
+    groups: [backend, messaging, data, cloud]
+  - id: work
+    jobs:
+      - id: example-payments
+        bullets: [settlement, api, lead]
+      - id: sample-retail
+        bullets: [queues, orders]
+  - id: projects
+    projects: all
+  - id: education

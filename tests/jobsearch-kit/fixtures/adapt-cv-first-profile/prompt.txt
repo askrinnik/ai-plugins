@@ -1,0 +1,3 @@
+Adapt my CV for this vacancy and build it in this session. I agree in advance with your proposals, so do not wait for my confirmation. I only have the text, there is no link. I found it myself. I have no Redis experience. Mentoring: only what my facts say (code reviews and onboarding of new engineers).
+
+{{include:tests/jobsearch-kit/materials/vacancies/examplebank.md#1}}

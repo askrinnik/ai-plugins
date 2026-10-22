@@ -1,0 +1,9 @@
+{
+  "description": "analyze-vacancy with a vacancy given as text: fit table and company research, then the skill stops; the answers reach the facts and the wording rules.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "judge": {
+    "files": ["{{date}}_Nordwind*/fit-analysis.md", "_Companies/*/README.md", "applications.md"],
+    "minScore": 6
+  }
+}

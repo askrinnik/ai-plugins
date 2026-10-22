@@ -1,0 +1,11 @@
+[
+  { "name": "the fact in candidate_facts.md with a date", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "Redis[^\\n]*20\\d\\d-\\d\\d-\\d\\d" },
+  { "name": "a Redis bullet in the master", "type": "contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "Redis" },
+  { "name": "the bullet keeps the verb \"use\"", "type": "contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "\\b(use|used|uses|using)\\b[^\\n]*Redis" },
+  { "name": "no stronger verb for Redis", "type": "not-contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "\\b(introduc\\w*|led|built|implemented|spearheaded|drove|pioneered|architected|designed)\\b[^\\n]*Redis" },
+  { "name": "the numbers of the fact are kept", "type": "contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "Redis[^\\n]*300[^\\n]*120|300[^\\n]*120[^\\n]*Redis" },
+  { "name": "full CV .md rebuilt with Redis", "type": "contains", "path": "MyProfile/cv/CV_Jordan_Sample_full.md", "pattern": "Redis" },
+  { "name": "full CV .docx rebuilt too", "type": "exists", "path": "MyProfile/cv/CV_Jordan_Sample_full.docx" },
+  { "name": "the full CV passes the wording rules", "type": "lint", "path": "MyProfile/cv/CV_Jordan_Sample_full.md" },
+  { "name": "work log entry", "type": "contains", "path": "README.md", "pattern": "Redis" }
+]

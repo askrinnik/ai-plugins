@@ -1,3 +1,0 @@
-"run_id","started","note","fixture","rep","model","effort","plugin_version","commit","status","turns","checks_passed","checks_total","score","max_score","false_positives","permission_denials","duration_s","calls","output_tokens","max_context","cost_usd","cost_units"
-"20261023-002424","2026-10-23T00:24:24","Framework for multi-turn skill fixtures (#10)","selftest-stop","1","sonnet","default","0.1.5","b3f5480+dirty","pass","2","4","4","2","2","0","0","9","4","311","21685","0.0762","18934"
-"20261023-002424","2026-10-23T00:24:24","Framework for multi-turn skill fixtures (#10)","smoke","1","sonnet","default","0.1.5","b3f5480+dirty","pass","1","10","10",,,,"0","8","3","368","25957","0.0573","22701"

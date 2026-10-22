@@ -1,0 +1,5 @@
+{
+  "description": "analyze-vacancy, then the user defers: the reason is recorded and no CV is made.",
+  "repetitions": 3,
+  "timeoutMinutes": 25
+}

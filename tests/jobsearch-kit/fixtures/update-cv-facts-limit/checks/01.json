@@ -1,0 +1,6 @@
+[
+  { "name": "the limit in candidate_facts.md with a date", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "GraphQL[^\\n]*20\\d\\d-\\d\\d-\\d\\d" },
+  { "name": "a GraphQL rule that allows honest negations", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "GraphQL[^\\n]*\\n(\\s+\\w+:[^\\n]*\\n)*?\\s+allow:\\s*\\*negation" },
+  { "name": "an honest negation passes, a claim fails", "type": "script", "file": "checks/lint-graphql.ps1" },
+  { "name": "the master gains no GraphQL claim", "type": "not-contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "GraphQL" }
+]
