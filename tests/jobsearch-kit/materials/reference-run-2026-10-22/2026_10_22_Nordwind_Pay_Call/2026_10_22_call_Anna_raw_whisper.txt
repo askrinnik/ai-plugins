@@ -1,0 +1,29 @@
+# Raw faster-whisper output, 2026-10-22 Nordwind Pay call. One pass: English 00:00:00-00:01:25, Russian 00:01:25-00:02:17 (switch time set by hand).
+[00:00:00] Hi, Jordan. This is Anna from NordwayPay. Thanks for applying to the Senior Java Engineer role. Do you have a few minutes?
+[00:00:09] Hi, Anna. Yes, of course. Thanks for calling.
+[00:00:13] Great. Can you tell me about your experience with Kafka?
+[00:00:17] Sure. At example payments, we moved our settlement bunch job to Kafka. Settlement time fell from 6 hours to 40 minutes.
+[00:00:26] I have used Kafka in production since 2021.
+[00:00:30] That's very close to what our team does.
+[00:00:34] And Kubernetes?
+[00:00:36] Our platform runs on it.
+[00:00:38] Yes, I have a lot of experience with Kubernetes.
+[00:00:41] I set up our clusters myself.
+[00:00:44] Good to hear.
+[00:00:46] What are your salary expectations?
+[00:00:49] Around 5,500 euros gross per month.
+[00:00:53] OK, that fits our range.
+[00:00:56] When could you start?
+[00:00:58] months after an offer. I would also relocate to Tallinn at my own cost.
+[00:01:05] Perfect. The next step is a technical interview with our team lead, Marek.
+[00:01:11] I will send you an invitation by Friday. Great. Thank you, Anna. By the way, I saw
+[00:01:18] on LinkedIn that you speak Russian. Yes, I do. We can switch if you like.
+[00:01:25] Да, давайте. Мне так проще задать пару вопросов.
+[00:01:29] Сколько человек в команде Merchant Payment?
+[00:01:32] Сейчас шесть разработчиков и один тестировщик.
+[00:01:35] Тимлит Марик. С ним будет техническое интервью.
+[00:01:40] Понятно. А как часто нужно быть в офисе? В вакансии написано 3 дня в неделю.
+[00:01:47] Да, 3 дня. Обычно вторник, среда, четверг. Офис в центре Таллина, рядом со старым городом.
+[00:01:54] Хорошо, меня это устраивает. И еще вопрос. Есть ли дежурство?
+[00:01:59] Да, 6 раз в 6 недель. Неделя дежурства. Она оплачивается отдельно.
+[00:02:07] отдельно. Спасибо, это все, что я хотел узнать. Отлично, жду вас на интервью. До свидания.

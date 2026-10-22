@@ -1,0 +1,72 @@
+diff --git a/MyProfile/candidate_facts.md b/MyProfile/candidate_facts.md
+index 90b4cc8..dd074a3 100644
+--- a/MyProfile/candidate_facts.md
++++ b/MyProfile/candidate_facts.md
+@@ -12,6 +12,8 @@ appear in CVs with "Not for CVs".
+ - Right to work: EU citizen, no sponsorship needed (confirmed 2026-01-10).
+ - Salary expectation: 5000 EUR gross per month for an employee contract. Not for CVs (confirmed 2026-01-10).
+ - Earliest start date: one month after an offer. Not for CVs (confirmed 2026-01-10).
++- Relocation: ready to relocate to Tallinn, Estonia at own cost and to work 3 days a week in the office. Not for CVs
++  (confirmed 2026-10-22; extends the earlier "open to hybrid work").
+ - Languages: English fluent, Portuguese native (confirmed 2026-01-10).
+ 
+ ## Experience
+@@ -35,3 +37,5 @@ appear in CVs with "Not for CVs".
+ | Kafka | Production | Since 2021 |
+ | Kubernetes | Working knowledge | Deploys services with existing Helm charts; never set up a cluster |
+ | Go | None | Do not claim |
++| PCI DSS | None | Do not claim (confirmed 2026-10-22) |
++| Merchant onboarding, payouts (domain) | None | Do not claim (confirmed 2026-10-22). The payment API and settlement work are confirmed separately |
+diff --git a/MyProfile/cv/cv_rules.yaml b/MyProfile/cv/cv_rules.yaml
+index 05ec372..2fc3c52 100644
+--- a/MyProfile/cv/cv_rules.yaml
++++ b/MyProfile/cv/cv_rules.yaml
+@@ -21,6 +21,14 @@ rules:
+     allow: *negation
+     message: "No experience with Go (facts, 2026-01-10)."
+ 
++  - pattern: \bPCI([- ]?DSS)?\b
++    allow: *negation
++    message: "No experience with PCI DSS (facts, 2026-10-22)."
++
++  - pattern: \b(merchant onboarding|onboarding of merchants|payouts?)\b
++    allow: *negation
++    message: "No experience with merchant onboarding or payouts (facts, 2026-10-22)."
++
+   - pattern: \bKubernetes\b
+     unless: working knowledge
+     message: "Kubernetes is working knowledge only (facts, 2026-01-10)."
+diff --git a/README.md b/README.md
+index 39ce6b1..1cd24b7 100644
+--- a/README.md
++++ b/README.md
+@@ -17,3 +17,20 @@
+ ## Work log
+ 
+ <!-- The skills add one dated entry per session that changes something, newest first. -->
++
++### 2026-10-22: Nordwind Pay, recruiter call with Anna
++
++- **Stage folder:** `2026_10_22_Nordwind_Pay_Call/` (recording, raw and cleaned transcript, summary, side talk).
++- **Result:** the call passed. Next: technical interview with team lead Marek; invitation due by 2026-10-23.
++- **Risk:** the candidate claimed Kubernetes cluster setup on the call. The facts say working knowledge only.
++- **Confirmed by the user:** the Kubernetes claim was an exaggeration (facts unchanged; the user corrects it with Marek); salary 5000 EUR; start one month after an offer.
++- **Open follow-ups:** ask about the on-call rotation; check the entity in the register. The user does not need the LinkedIn search.
++
++### 2026-10-22: Nordwind Pay, Senior Java Engineer
++
++- **Vacancy:** text from the user, no link. Found by the user, no referral.
++- **Fit:** about 88%.
++- **Status:** CV and cover letter prepared, not submitted.
++- **Files:** `2026_10_22_Nordwind_Pay/` (`vacancy.md`, `fit-analysis.md`, `cv_profile.yaml`, tailored CV `.md` and `.docx`, `cover-letter.md` with `.docx` and `.pdf`), `_Companies/Nordwind_Pay/README.md`.
++- **Facts recorded:** no PCI DSS experience; no merchant onboarding or payouts experience; ready to relocate to Tallinn. Wording rules for the first two added to `MyProfile/cv/cv_rules.yaml`.
++- **Open follow-ups:** verify Nordwind Pay OÜ in the Estonian business register and the Finantsinspektsioon register; PDF export of the CV (`submit-application`); the user to check the cover letter.
+diff --git a/applications.md b/applications.md
+index 6f0a223..073de06 100644
+--- a/applications.md
++++ b/applications.md
+@@ -2,3 +2,4 @@
+ 
+ | Company | Vacancy | Status | Sent | Comment |
+ |---|---|---|---|---|
++| Nordwind Pay | Senior Java Engineer, Merchant Payments (Tallinn, hybrid; text only, no link) | recruiter call done 2026-10-22; technical interview with Marek next (invitation due 2026-10-23) | | Fit about 88%. Vacancy text from the user, 2026-10-22. Found by the user, no referral. Company not verified in the register. Kubernetes claim on the call was an exaggeration; the candidate will correct it with Marek. Salary 5000 EUR and one-month start confirmed. |

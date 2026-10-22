@@ -39,6 +39,9 @@ how to register it and install, update and remove a plugin. This file is for the
 
 ## Test a change
 
+- `tests/<plugin>/` holds the developer tests of a plugin and their materials (fictional inputs, reference outputs).
+  It is outside `plugins/`, so it is not installed with the plugin.
+
 - To try a plugin from the clone without installing it, start the CLI with `claude --plugin-dir plugins/<plugin>`
   from a test workspace.
 - For a plugin that is installed, reinstall it after a change (`claude plugin uninstall`, then

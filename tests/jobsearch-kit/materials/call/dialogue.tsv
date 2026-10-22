@@ -1,0 +1,21 @@
+Anna	en	Hi Jordan, this is Anna from Nordwind Pay. Thanks for applying to the Senior Java Engineer role. Do you have a few minutes?
+Jordan	en	Hi Anna, yes, of course. Thanks for calling.
+Anna	en	Great. Can you tell me about your experience with Kafka?
+Jordan	en	Sure. At Example Payments we moved our settlement batch jobs to Kafka. Settlement time fell from six hours to forty minutes. I have used Kafka in production since 2021.
+Anna	en	That is very close to what our team does. And Kubernetes? Our platform runs on it.
+Jordan	en	Yes, I have a lot of experience with Kubernetes. I set up our clusters myself.
+Anna	en	Good to hear. What are your salary expectations?
+Jordan	en	Around five thousand five hundred euros gross per month.
+Anna	en	Okay, that fits our range. When could you start?
+Jordan	en	One month after an offer. I would also relocate to Tallinn at my own cost.
+Anna	en	Perfect. The next step is a technical interview with our team lead, Marek. I will send you an invitation by Friday.
+Jordan	en	Great, thank you, Anna. By the way, I saw on LinkedIn that you speak Russian?
+Anna	en	Yes, I do. We can switch if you like.
+Jordan	ru	Да, давайте. Мне так проще задать пару вопросов. Сколько человек в команде Merchant Payments?
+Anna	ru	Сейчас шесть разработчиков и один тестировщик. Тимлид — Марек, с ним будет техническое интервью.
+Jordan	ru	Понятно. А как часто нужно быть в офисе? В вакансии написано три дня в неделю.
+Anna	ru	Да, три дня, обычно вторник, среда и четверг. Офис в центре Таллинна, рядом со старым городом.
+Jordan	ru	Хорошо, меня это устраивает. И ещё вопрос: есть ли дежурства?
+Anna	ru	Да, раз в шесть недель, неделя дежурства. Она оплачивается отдельно.
+Jordan	ru	Спасибо, это всё, что я хотел узнать.
+Anna	ru	Отлично. Жду вас на интервью. До свидания!
