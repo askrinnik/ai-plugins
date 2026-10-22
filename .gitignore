@@ -1,0 +1,16 @@
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+
+# OS and editor files
+Thumbs.db
+desktop.ini
+.DS_Store
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Office lock files
+~$*

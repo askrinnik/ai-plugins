@@ -1,0 +1,6 @@
+{
+  "name": "ai-plugins",
+  "owner": { "name": "askrinnik" },
+  "description": "Personal Claude Code plugin marketplace.",
+  "plugins": []
+}
