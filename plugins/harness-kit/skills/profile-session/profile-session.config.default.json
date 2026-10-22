@@ -1,0 +1,10 @@
+{
+  "resultsDir": ".ai/benchmarks/sessions",
+  "baseBranch": "",
+  "workItemPattern": ["^#(\\d+)"],
+  "workItemCommandPattern": "",
+  "lanePlanGlob": ".ai/plans/*-{id}-*.md",
+  "excludeSessionManifests": [],
+  "activityRules": [],
+  "costWeights": { "input": 1, "cacheRead": 0.1, "cacheWrite": 1.25, "output": 5 }
+}

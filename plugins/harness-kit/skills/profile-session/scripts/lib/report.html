@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work session profiles</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --surface-2: #f3f2ef; --surface-sel: #e3edfa;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #77766f;
+    --rule: #e4e3df; --grid: #ecebe7; --focus: #2a78d6;
+    --series-1: #2a78d6; --series-2: #eb6834;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --surface-2: #242423; --surface-sel: #20324a;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #9a998f;
+      --rule: #383835; --grid: #2c2c2a; --focus: #3987e5;
+      --series-1: #3987e5; --series-2: #d95926;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 32px 48px; background: var(--surface-1); color: var(--text-primary);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 32px 0 8px; }
+  h3 { font-size: 15px; margin: 20px 0 6px; }
+  p, li { color: var(--text-secondary); }
+  .lead { margin: 0 0 16px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: end; padding: 12px 0;
+    border-bottom: 1px solid var(--rule); }
+  .filters label { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 2px; }
+  select, input, button { font: inherit; color: var(--text-primary); background: var(--surface-1);
+    border: 1px solid var(--rule); border-radius: 4px; padding: 3px 6px; }
+  button { cursor: pointer; }
+  button:disabled { cursor: default; color: var(--text-muted); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .pager { display: flex; gap: 10px; align-items: center; margin: 12px 0 4px; color: var(--text-secondary); }
+  table { border-collapse: collapse; margin: 4px 0 8px; }
+  th, td { padding: 4px 7px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  thead th { position: sticky; top: 0; background: var(--surface-2); z-index: 1; font-weight: 600; font-size: 13px; }
+  #t-trend thead th { padding-right: 14px; }
+  #t-trend thead th.num { padding-right: 7px; padding-left: 14px; }
+  thead th button { all: unset; cursor: pointer; position: relative; display: inline-block; }
+  thead th button:focus-visible { outline: 2px solid var(--focus); }
+  thead th .arrow { position: absolute; left: 100%; bottom: 1px; margin-left: 2px; color: var(--text-muted); font-size: 10px; }
+  thead th.num .arrow { left: auto; right: 100%; margin: 0 2px 0 0; }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover { background: var(--surface-2); }
+  tbody tr.row a { color: inherit; text-decoration: none; }
+  tbody tr.row:hover a { text-decoration: underline; }
+  .muted { color: var(--text-muted); }
+  .empty { color: var(--text-muted); padding: 8px 0; }
+  #t-trend td:nth-child(-n+2), #t-trend thead th { white-space: nowrap; }
+  .info { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;
+    margin-left: 6px; border: 1px solid var(--text-muted); border-radius: 50%; color: var(--text-secondary);
+    font: italic 600 11px/1 Georgia, serif; cursor: default; vertical-align: 1px; }
+  .info.marker { font: 600 9px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin-left: 4px; }
+  .info:hover, .info:focus-visible { border-color: var(--focus); color: var(--focus); }
+  .info-pop { display: none; position: absolute; left: -6px; bottom: calc(100% + 8px); z-index: 3; width: max-content; max-width: 380px;
+    padding: 6px 10px; background: var(--surface-1); border: 1px solid var(--rule); border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15); color: var(--text-primary); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    white-space: normal; text-align: left; }
+  .info:hover .info-pop, .info:focus .info-pop { display: block; }
+  .info-pop ul { margin: 4px 0 0; padding-left: 16px; }
+  /* the pointer covers the area below and right of its tip, so the hint opens above the icon, or below and to the
+     right of the pointer when there is no room above */
+  .info.below .info-pop { bottom: auto; top: calc(100% + 6px); left: 24px; }
+  .breakdown { border: 1px solid var(--rule); border-radius: 6px; padding: 4px 16px 12px; margin-top: 8px; }
+  .breakdown ul { padding-left: 18px; }
+  .bd-nav { display: flex; gap: 10px; align-items: center; margin: 8px 0 4px; color: var(--text-secondary); }
+  .bd-nav a { margin-left: 12px; color: var(--focus); }
+  .chart-wrap { position: relative; max-width: 900px; }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); margin: 4px 0; }
+  .legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 6px; }
+  svg text { fill: var(--text-secondary); font-size: 11px; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 6px 8px; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,.15); display: none; white-space: nowrap; }
+  details { margin-top: 32px; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  details p { max-width: 900px; }
+  code { font-size: 12.5px; background: var(--surface-2); padding: 0 3px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="breakdown-view" hidden>
+  <h1 id="breakdown-title">Session breakdown</h1>
+  <nav class="bd-nav" aria-label="Sessions of the trend table">
+    <button type="button" id="bd-prev">← Previous</button>
+    <span id="bd-pos" aria-live="polite"></span>
+    <button type="button" id="bd-next">Next →</button>
+    <a id="bd-full" href="">Full report</a>
+  </nav>
+  <p class="muted" id="bd-order"></p>
+  <div class="breakdown" id="breakdown"></div>
+</div>
+
+<div id="report-view">
+<h1>Work session profiles</h1>
+<p class="lead" id="lead"></p>
+
+<div class="filters" role="group" aria-label="Filters">
+  <label>Work item <select id="f-wi"></select></label>
+  <label>Lane <select id="f-lane"></select></label>
+  <label>Model <select id="f-model"></select></label>
+  <label>Account <select id="f-account"></select></label>
+  <label>Length <select id="f-band"></select></label>
+  <label>From <input type="date" id="f-from"></label>
+  <label>To <input type="date" id="f-to"></label>
+  <button type="button" id="f-reset">Reset filters</button>
+</div>
+
+<h2>Trend</h2>
+<div class="pager">
+  <label>Rows per page <select id="page-size"><option>10</option><option>50</option><option>100</option></select></label>
+  <button type="button" id="page-prev">Previous</button>
+  <span id="page-info" aria-live="polite"></span>
+  <button type="button" id="page-next">Next</button>
+</div>
+<table id="t-trend"></table>
+<p class="muted">Click a row or a point of the chart to open the breakdown of that session in a new tab; open several to compare them.</p>
+
+<h2>Medians</h2>
+<p>Medians are used rather than means because one long session would dominate a mean. A value followed by "(n of m)" comes from only the n sessions of the group that have it. Computed over the filtered sessions.</p>
+<table id="t-medians"></table>
+
+<h2>Units per main-thread call over time</h2>
+<div class="chart-wrap" id="chart-wrap">
+  <div class="legend" id="legend"></div>
+  <svg id="chart" viewBox="0 0 900 280" width="100%" role="img" aria-label="Units per main-thread call per session, first 40 calls and whole session, oldest first"></svg>
+  <div class="tip" id="tip"></div>
+</div>
+
+<details>
+<summary>How to read this report</summary>
+<p><b>Cost units.</b> <code>input x w1 + cache read x w2 + cache write x w3 + output x w4</code> with the weights 1, 0.1, 1.25 and 5 unless the settings change them, summed over every model call of the main thread and its subagents. The weights are relative prices, not money; the token counts and weights of each session are stored in its record, so a value can be recomputed from it.</p>
+<p><b>Subagent share.</b> The part of the cost units spent by subagents. It is not in the per-call figures, which are main-thread only.</p>
+<p><b>Units per main-thread call.</b> Main-thread cost units divided by main-thread calls: the cost of an average call. A call re-reads the whole context, and the context grows during a session, so this figure grows with the length of the session: a 500-call session costs more per call than a 50-call one even under the same instructions. Compare sessions of different length by <b>first 40 (70) calls, per call</b>, the same average over only the first 40 (70) main-thread calls (empty for a shorter session), and by the length bands of the medians. The column sorts by the whole-session figure.</p>
+<p><b>Duration, active / wall.</b> Wall is the time from the first human turn to the last assistant line or tool result of the profiled period. Active is wall minus the time spent waiting for the user: from the end of each agent reply to the next human message, and from an <code>AskUserQuestion</code> or <code>ExitPlanMode</code> call to its answer. A permission prompt cannot be told apart from a long-running tool in the transcript, so its wait counts as active. The column sorts by active time.</p>
+<p><b>Calls, human turns, start / max ctx.</b> Main thread only. A human turn is a message from a person; background-task notifications, compaction summaries and local command output are not. A context is input + cache read + cache write of one call; start ctx is that of the first call, so it shows the size of the system prompt, instructions and tools loaded before any work, and max ctx is the largest of the session.</p>
+<p><b>Cache hit.</b> Cache-read tokens over cache-read plus cache-write tokens, main thread and subagents: how much of the context came from the cache rather than being written to it again.</p>
+<p><b>Idle rebuilds and compactions</b> (session breakdown). An idle rebuild is a call after a pause longer than the lifetime of the cache the session writes (one hour or five minutes, read from the transcript) that wrote over 30k tokens to the cache again. A compaction is a call whose context fell below 60 % of the previous one.</p>
+<p><b>Weekly % used and units per 1 %.</b> Recorded only when the session called <code>get_usage</code> (the Claude desktop app's plan-usage tool) at least twice: the first result in the transcript is the start reading, the last one the end. Only the cost between the two readings is related to the used percent, since the start reading already contains what the session spent before it. Both readings are whole numbers, so the percent really used is up to one point more or less than the difference; the session breakdown gives the range of units per 1 % this allows. Other use of the account in the same period (other sessions, chat) counts too, and the limit formula is not public and may weight models differently. Treat it as a trend indicator; 100 x units per 1 % is only an estimate of the weekly allowance in units for the same plan and model.</p>
+<p><b>Account.</b> <code>org-</code> and the first four hex digits of the SHA-256 of the organization id in the transcript; the id itself is never stored. Empty for transcripts of Claude Code versions that do not record it.</p>
+<p><b>Changed vs previous session</b> (the <i>i</i> icon next to the work item, which also shows the note of the session; the <b>M</b> icon next to it shows the marker of the session, a label such as the change of rules the session was the first to run under). A different model, Claude Code version, cache lifetime or set of cost weights than the previous session in time order (over all records, not only the filtered ones), one per line: a change of cost there may come from that, not from the instructions; sessions costed with different weights are not comparable in cost units. A cache change is flagged only when both sessions have a value. The account is not flagged: it is shown in its own column and does not change the token figures; the medians have a row per account.</p>
+<p><b>Medians.</b> One row per lane (Bug or Feature), session length band and account (each account has its own plan and limit; records without an account form "(unknown)"), and one over all sessions, for the sessions that pass the filters. The columns are those of the trend table, each the median of that column over the group; the duration cell holds the median active and the median wall time, which may come from different sessions. Compare groups of different length by the first-40-calls figure, which does not depend on session length. Units per 1 % in a lane, length or all-sessions row marked "mixed accounts" comes from sessions of more than one account; only the account rows compare like with like.</p>
+<p><b>Accuracy.</b> Token totals and context sizes are exact (API usage). The split by activity is inferred from the tools each call used. The commit is read when the session is profiled, not when it ran, and is empty for a record amended into that commit. A workflow that profiles its session before shipping leaves the last actions (push, pull request, time report) out of the profile. With only a few sessions the trend is indicative, not statistically reliable; a benchmark that runs fixed test sessions is the repeatable reference.</p>
+</details>
+</div>
+
+<script id="session-data" type="application/json">/*SESSION_DATA*/</script>
+<script>
+(function () {
+  'use strict';
+  const records = JSON.parse(document.getElementById('session-data').textContent);
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const isNum = x => typeof x === 'number' && isFinite(x);
+
+  // ---- number formats of the report: thousands with a separator, smaller values with up to one decimal
+  const fmt = x => !isNum(x) ? '' : Math.abs(x) >= 100 ? Math.round(x).toLocaleString('en-US') : String(Math.round(x * 10) / 10);
+  const fix1 = x => !isNum(x) ? '' : x.toFixed(1);
+  const k = x => !isNum(x) ? '' : (x / 1000).toFixed(1) + 'k';
+  const dur = s => { if (!isNum(s)) return ''; const m = Math.round(s / 60); return m >= 60 ? Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm' : m + 'm'; };
+
+  // ---- derived figures, oldest first
+  const all = records.slice().sort((a, b) => (a.started + a.session).localeCompare(b.started + b.session));
+  all.forEach((r, i) => {
+    r.wiLabel = [r.lane, r.workItem ? '#' + r.workItem : null].filter(Boolean).join(' ');
+    r.mainPerCall = r.calls ? r.cost.main / r.calls : null;
+    r.subShare = r.cost.total ? 100 * r.cost.subagents / r.cost.total : null;
+    const t = r.tokens.cacheRead + r.tokens.cacheWrite;
+    r.cacheHit = t ? 100 * r.tokens.cacheRead / t : null;
+    r.band = r.calls <= 80 ? 'up to 80 calls' : r.calls <= 200 ? '81-200 calls' : 'over 200 calls';
+    r.date = r.started.substring(0, 10);
+    const p = all[i - 1];
+    r.changes = [];
+    if (p) {
+      if (p.model !== r.model) r.changes.push(['model', p.model, r.model]);
+      if (p.version !== r.version) r.changes.push(['Claude Code', p.version, r.version]);
+      if (p.cacheTtl && r.cacheTtl && p.cacheTtl !== r.cacheTtl) r.changes.push(['cache lifetime', p.cacheTtl, r.cacheTtl]);
+      const wt = w => w ? [w.input, w.cacheRead, w.cacheWrite, w.output].join(' / ') : '';
+      if (wt(p.weights) && wt(r.weights) && wt(p.weights) !== wt(r.weights)) r.changes.push(['cost weights', wt(p.weights), wt(r.weights)]);
+    }
+  });
+  const bands = ['up to 80 calls', '81-200 calls', 'over 200 calls'];
+
+  // ---- columns: value for sorting, cell text for display
+  const date = { key: 'started', label: 'Date (UTC)', val: r => r.started,
+    cell: r => '<a href="' + esc(hrefFor(r.session)) + '" target="_blank" tabindex="-1">' + esc(r.started) + '</a>' };
+  const wi = { key: 'wi', label: 'Work item', val: r => r.wiLabel || null, cell: r => esc(r.wiLabel) + infoIcon(r) + markerIcon(r) };
+  const trendCols = [date, wi,
+    { key: 'duration', label: 'Duration<br>active / wall', num: true, val: r => r.duration ? r.duration.active : null,
+      cell: r => r.duration ? dur(r.duration.active) + ' / ' + dur(r.duration.wall) : '' },
+    { key: 'turns', label: 'Human<br>turns', num: true, val: r => r.humanTurns, cell: r => fmt(r.humanTurns) },
+    { key: 'cost', label: 'Cost<br>units', num: true, val: r => r.cost.total, cell: r => fmt(r.cost.total) },
+    { key: 'used', label: 'Weekly<br>% used', num: true, val: r => r.limit ? r.limit.usedPct : null, cell: r => fmt(r.limit && r.limit.usedPct) },
+    { key: 'perPct', label: 'Units<br>per 1 %', num: true, val: r => r.limit ? r.limit.unitsPerPct : null, cell: r => fmt(r.limit && r.limit.unitsPerPct) },
+    { key: 'sub', label: 'Subagent<br>share', num: true, val: r => r.subShare, cell: r => isNum(r.subShare) ? fix1(r.subShare) + ' %' : '' },
+    { key: 'calls', label: 'Calls', num: true, val: r => r.calls, cell: r => fmt(r.calls) },
+    { key: 'perCall', label: 'Units per<br>main-thread call<br>first 40 / whole', num: true, val: r => r.mainPerCall,
+      cell: r => (isNum(r.unitsPerCall.first40) ? k(r.unitsPerCall.first40) : '-') + ' / ' + k(r.mainPerCall) },
+    { key: 'ctx', label: 'Start / max<br>ctx', num: true, val: r => r.context.first, cell: r => k(r.context.first) + ' / ' + k(r.context.max) },
+    { key: 'hit', label: 'Cache<br>hit', num: true, val: r => r.cacheHit, cell: r => isNum(r.cacheHit) ? fix1(r.cacheHit) + ' %' : '' },
+    { key: 'account', label: 'Account', val: r => r.account, cell: r => esc(r.account) },
+    { key: 'model', label: 'Model', val: r => r.model, cell: r => esc(r.model) }];
+  const colByKey = {};
+  trendCols.forEach(c => { colByKey[c.key] = c; });
+
+  const state = { sort: 'started', dir: -1, page: 0, size: 10,
+    f: { wi: '', lane: '', model: '', account: '', band: '', from: '', to: '' } };
+
+  // ---- routing: "#session=<id>" plus the sort and filters of the trend table it was opened from shows the breakdown
+  // of that session alone, and previous / next step through that table
+  function hrefFor(session) {
+    const p = new URLSearchParams({ session: session, sort: state.sort, dir: String(state.dir) });
+    Object.keys(state.f).forEach(key => { if (state.f[key]) p.set(key, state.f[key]); });
+    return '#' + p.toString();
+  }
+  // the session of the address, with the sort and filters it carries applied to state; null for the full report
+  function readRoute() {
+    const p = new URLSearchParams(location.hash.replace(/^#/, ''));
+    const session = p.get('session');
+    if (!session) return null;
+    state.sort = colByKey[p.get('sort')] ? p.get('sort') : 'started';
+    state.dir = p.get('dir') === '1' ? 1 : -1;
+    Object.keys(state.f).forEach(key => { state.f[key] = p.get(key) || ''; });
+    return session;
+  }
+  const openSession = session => window.open(hrefFor(session), '_blank');
+
+  // ---- filters
+  function fillSelect(id, values, allLabel) {
+    const s = $(id);
+    s.innerHTML = '<option value="">' + esc(allLabel) + '</option>' + values.map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+  }
+  const distinct = f => [...new Set(all.map(f).filter(v => v != null && v !== ''))];
+  fillSelect('f-wi', distinct(r => r.workItem).sort((a, b) => Number(a) - Number(b)).map(String), 'All');
+  fillSelect('f-lane', distinct(r => r.lane).sort(), 'All');
+  fillSelect('f-model', distinct(r => r.model).sort(), 'All');
+  fillSelect('f-account', distinct(r => r.account).sort(), 'All');
+  fillSelect('f-band', bands.filter(b => all.some(r => r.band === b)), 'All');
+  const filterInputs = [['f-wi', 'wi'], ['f-lane', 'lane'], ['f-model', 'model'], ['f-account', 'account'], ['f-band', 'band'], ['f-from', 'from'], ['f-to', 'to']];
+  filterInputs.forEach(([id, key]) => {
+    $(id).addEventListener('change', e => { state.f[key] = e.target.value; state.page = 0; render(); });
+  });
+  $('f-reset').addEventListener('click', () => {
+    Object.keys(state.f).forEach(key => { state.f[key] = ''; });
+    state.page = 0; render();
+  });
+  $('page-size').addEventListener('change', e => { state.size = Number(e.target.value); state.page = 0; render(); });
+  $('page-prev').addEventListener('click', () => { state.page--; render(); });
+  $('page-next').addEventListener('click', () => { state.page++; render(); });
+
+  function filtered() {
+    const f = state.f;
+    return all.filter(r => (!f.wi || r.workItem === f.wi) && (!f.lane || r.lane === f.lane) && (!f.model || r.model === f.model)
+      && (!f.account || r.account === f.account) && (!f.band || r.band === f.band)
+      && (!f.from || r.date >= f.from) && (!f.to || r.date <= f.to));
+  }
+
+  // empty values sort last in both directions
+  function sorted(rows) {
+    const c = colByKey[state.sort];
+    return rows.map((r, i) => [r, i]).sort((x, y) => {
+      const a = c.val(x[0]), b = c.val(y[0]);
+      const ea = a == null || a === '', eb = b == null || b === '';
+      if (ea || eb) return ea === eb ? x[1] - y[1] : ea ? 1 : -1;
+      const d = typeof a === 'number' ? a - b : String(a).localeCompare(String(b));
+      return d ? d * state.dir : x[1] - y[1];
+    }).map(x => x[0]);
+  }
+
+  // ---- trend tables
+  function renderTable(id, cols, rows) {
+    const head = '<thead><tr>' + cols.map(c => {
+      const on = state.sort === c.key;
+      const aria = on ? (state.dir > 0 ? 'ascending' : 'descending') : 'none';
+      return '<th scope="col" class="' + (c.num ? 'num' : '') + '" aria-sort="' + aria + '"><button type="button" data-sort="' + c.key + '">' + c.label
+        + '<span class="arrow" aria-hidden="true">' + (on ? (state.dir > 0 ? '▲' : '▼') : '') + '</span></button></th>';
+    }).join('') + '</tr></thead>';
+    const body = rows.length ? rows.map(r => '<tr class="row" tabindex="0" data-session="' + esc(r.session) + '">'
+      + cols.map(c => '<td class="' + (c.num ? 'num' : '') + '">' + c.cell(r) + '</td>').join('') + '</tr>').join('')
+      : '<tr><td colspan="' + cols.length + '" class="empty">No session matches the filters.</td></tr>';
+    $(id).innerHTML = head + '<tbody>' + body + '</tbody>';
+  }
+  document.addEventListener('click', e => {
+    const s = e.target.closest('[data-sort]');
+    if (s) {
+      const key = s.getAttribute('data-sort');
+      if (state.sort === key) state.dir = -state.dir; else { state.sort = key; state.dir = colByKey[key].num || key === 'started' ? -1 : 1; }
+      state.page = 0; render(); return;
+    }
+    if (e.target.closest('.info') || e.target.closest('a')) return;
+    const row = e.target.closest('tr.row');
+    if (row) openSession(row.getAttribute('data-session'));
+  });
+  // a middle click on a row opens it in a new tab, as on the link in its date cell
+  document.addEventListener('auxclick', e => {
+    if (e.button !== 1 || e.target.closest('.info') || e.target.closest('a')) return;
+    const row = e.target.closest('tr.row');
+    if (row) { e.preventDefault(); openSession(row.getAttribute('data-session')); }
+  });
+  function placeHint(e) {
+    const icon = e.target.closest && e.target.closest('.info');
+    if (!icon) return;
+    icon.classList.remove('below');
+    const pop = icon.querySelector('.info-pop');
+    if (icon.getBoundingClientRect().top - pop.offsetHeight - 8 < 0) icon.classList.add('below');
+  }
+  document.addEventListener('mouseover', placeHint);
+  document.addEventListener('focusin', placeHint);
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('.info')) return;
+    const row = e.target.closest && e.target.closest('tr.row');
+    if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openSession(row.getAttribute('data-session')); }
+  });
+
+  // ---- note and changes of a session: an "i" icon in its work-item cell, shown on hover or keyboard focus
+  const changeText = c => 'changed vs previous session: <b>' + esc(c[0]) + '</b> ' + esc(c[1]) + ' → ' + esc(c[2]);
+  function infoIcon(r) {
+    if (!r.note && !r.changes.length) return '';
+    const label = [r.note].concat(r.changes.map(c => 'changed vs previous session: ' + c[0] + ' ' + c[1] + ' → ' + c[2])).filter(Boolean).join('; ');
+    return '<span class="info" tabindex="0" aria-label="' + esc(label) + '">i<span class="info-pop" aria-hidden="true">'
+      + (r.note ? esc(r.note) : '') + (r.changes.length ? '<ul>' + r.changes.map(c => '<li>' + changeText(c) + '</li>').join('') + '</ul>' : '') + '</span></span>';
+  }
+  // the marker labels the session a change of rules or workflow first applied to, so it gets an icon of its own
+  function markerIcon(r) {
+    if (!r.marker) return '';
+    return '<span class="info marker" tabindex="0" aria-label="' + esc('Marker: ' + r.marker) + '">M<span class="info-pop" aria-hidden="true">Marker: <b>'
+      + esc(r.marker) + '</b></span></span>';
+  }
+
+  // ---- medians
+  function median(values) {
+    const v = values.filter(isNum).sort((a, b) => a - b);
+    if (!v.length) return null;
+    const m = Math.floor(v.length / 2);
+    return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+  }
+  function medianCell(values, of, f) {
+    const v = values.filter(isNum);
+    if (!v.length) return '';
+    const t = f(median(v));
+    return v.length < of ? t + ' (' + v.length + ' of ' + of + ')' : t;
+  }
+  const accountOf = r => r.account || '(unknown)';
+  // one cell per numeric column of the trend table, in its order and format
+  const medianCols = [
+    { label: 'Duration<br>active / wall', cell: (g, n) => medianCell(g.map(r => r.duration && r.duration.active), n, dur) + ' / ' + medianCell(g.map(r => r.duration && r.duration.wall), n, dur) },
+    { label: 'Human<br>turns', cell: (g, n) => medianCell(g.map(r => r.humanTurns), n, fmt) },
+    { label: 'Cost<br>units', cell: (g, n) => medianCell(g.map(r => r.cost.total), n, fmt) },
+    { label: 'Weekly<br>% used', cell: (g, n) => medianCell(g.map(r => r.limit && r.limit.usedPct), n, fmt) },
+    { label: 'Units<br>per 1 %', cell: (g, n, mixed) => {
+      const t = medianCell(g.map(r => r.limit && r.limit.unitsPerPct), n, fmt);
+      return t && mixed ? t + ' <span class="muted">mixed accounts</span>' : t;
+    } },
+    { label: 'Subagent<br>share', cell: (g, n) => medianCell(g.map(r => r.subShare), n, x => fix1(x) + ' %') },
+    { label: 'Calls', cell: (g, n) => medianCell(g.map(r => r.calls), n, fmt) },
+    { label: 'Units per<br>main-thread call<br>first 40 / whole', cell: (g, n) => (medianCell(g.map(r => r.unitsPerCall.first40), n, k) || '-') + ' / ' + medianCell(g.map(r => r.mainPerCall), n, k) },
+    { label: 'Start / max<br>ctx', cell: (g, n) => medianCell(g.map(r => r.context.first), n, k) + ' / ' + medianCell(g.map(r => r.context.max), n, k) },
+    { label: 'Cache<br>hit', cell: (g, n) => medianCell(g.map(r => r.cacheHit), n, x => fix1(x) + ' %') }];
+  // a lane, length or all-sessions group whose limit figures come from more than one account mixes plans and limits
+  function groupRow(label, rows, byAccount) {
+    const n = rows.length;
+    const mixed = !byAccount && new Set(rows.filter(r => r.limit && isNum(r.limit.unitsPerPct)).map(accountOf)).size > 1;
+    return '<tr><td>' + esc(label) + '</td><td class="num">' + n + '</td>' + medianCols.map(c => '<td class="num">' + c.cell(rows, n, mixed) + '</td>').join('') + '</tr>';
+  }
+  function renderMedians(rows) {
+    if (!rows.length) { $('t-medians').innerHTML = '<tbody><tr><td class="empty">No session matches the filters.</td></tr></tbody>'; return; }
+    let body = '';
+    const lanes = [...new Set(rows.map(r => r.lane || '(no lane)'))].sort();
+    lanes.forEach(l => { body += groupRow('Lane: ' + l, rows.filter(r => (r.lane || '(no lane)') === l)); });
+    bands.forEach(b => { const g = rows.filter(r => r.band === b); if (g.length) body += groupRow('Length: ' + b, g); });
+    [...new Set(rows.map(accountOf))].sort().forEach(a => { body += groupRow('Account: ' + a, rows.filter(r => accountOf(r) === a), true); });
+    body += groupRow('All sessions', rows);
+    $('t-medians').innerHTML = '<thead><tr><th>Group</th><th class="num">Sessions</th>' + medianCols.map(c => '<th class="num">' + c.label + '</th>').join('')
+      + '</tr></thead><tbody>' + body + '</tbody>';
+  }
+
+  // ---- session breakdown
+  function limitRange(cost, used) {
+    if (!cost || !used) return '';
+    const low = fmt(cost / (used + 1));
+    return used <= 1 ? 'at least ' + low + ' from whole-percent rounding' : 'range ' + low + '-' + fmt(cost / (used - 1)) + ' from whole-percent rounding';
+  }
+  function renderBreakdown(r) {
+    const total = r.cost.total;
+    const share = x => total ? fix1(100 * x / total) + ' %' : '';
+    let h = '<p>Session <code>' + esc(r.session) + '</code>, branch <code>' + esc(r.branch) + '</code>' + (r.commit ? ', commit ' + esc(r.commit) : '')
+      + ', Claude Code ' + esc(r.version) + ', model ' + esc(r.model) + (r.account ? ', account ' + esc(r.account) : '') + '. ' + esc(r.started) + ' → ' + esc(r.ended) + ' UTC. '
+      + fmt(r.calls) + ' main-thread calls, ' + fmt(r.humanTurns) + ' human turns, ' + fmt(r.subagents) + ' subagents with ' + fmt(r.subagentCalls) + ' calls; '
+      + fmt(total) + ' cost units in total.</p>';
+    if (r.note) h += '<p>Note: ' + esc(r.note) + '</p>';
+    if (r.changes.length) h += '<ul>' + r.changes.map(c => '<li>' + changeText(c) + '</li>').join('') + '</ul>';
+    if (r.marker) h += '<p>Marker: ' + esc(r.marker) + '</p>';
+    const perCall = (cost, calls) => calls ? k(cost / calls) : '';
+    const td = x => '<td class="num">' + x + '</td>';
+    h += '<h3>By activity</h3><table><thead><tr><th>Activity</th><th class="num">Calls</th><th class="num">Cost units</th><th class="num">Units per call</th><th class="num">Share</th></tr></thead><tbody>';
+    r.byActivity.forEach(a => { h += '<tr><td>' + esc(a.activity) + '</td>' + td(fmt(a.calls)) + td(fmt(a.cost)) + td(perCall(a.cost, a.calls)) + td(share(a.cost)) + '</tr>'; });
+    h += '<tr><td>subagents (all types)</td>' + td(fmt(r.subagentCalls)) + td(fmt(r.cost.subagents)) + td(perCall(r.cost.subagents, r.subagentCalls)) + td(share(r.cost.subagents)) + '</tr>';
+    const allCalls = r.calls + r.subagentCalls;
+    h += '<tr><td><b>Total</b></td>' + td('<b>' + fmt(allCalls) + '</b>') + td('<b>' + fmt(total) + '</b>') + td('<b>' + perCall(total, allCalls) + '</b>') + td('<b>' + (total ? '100.0 %' : '') + '</b>') + '</tr></tbody></table>';
+    h += '<p class="muted">Activity rows are main-thread calls; the subagent row holds every subagent call. Units per call is cost units over calls.</p>';
+    if (r.subagentsByType && r.subagentsByType.length) {
+      h += '<h3>Subagents by type and model</h3><table><thead><tr><th>Type</th><th>Model</th><th class="num">Agents</th><th class="num">Calls</th><th class="num">Cost units</th><th class="num">Units per call</th><th class="num">Share</th></tr></thead><tbody>'
+        + r.subagentsByType.map(s => '<tr><td>' + esc(s.type) + '</td><td>' + esc(s.model) + '</td>' + td(fmt(s.agents)) + td(fmt(s.calls)) + td(fmt(s.cost)) + td(perCall(s.cost, s.calls)) + td(share(s.cost)) + '</tr>').join('')
+        + '</tbody></table><p class="muted">Calls and cost are split by the model of each call; a subagent that used several models counts in Agents of each, so that column can add up to more than the number of subagents.</p>';
+    }
+    const carriers = (r.topCarriers || []).map(c => esc(c.tools) + ' ' + fmt(c.cost)).join(', ') || 'none';
+    const rules = (r.rulesLoaded || []).map(x => esc(x.rule) + ' ' + fmt(x.tokens)).join(', ');
+    const l = r.limit;
+    let limitText = 'not recorded (no plan-usage reading in the session)';
+    if (l && isNum(l.unitsPerPct)) {
+      limitText = fmt(l.startPct) + ' % → ' + fmt(l.endPct) + ' %, ' + fmt(l.usedPct) + ' % used; ' + fmt(l.limitCost) + ' units counted between the readings from '
+        + esc(l.startAt) + ' on, ' + fmt(l.unitsPerPct) + ' units per 1 % (' + limitRange(l.limitCost, l.usedPct) + ')';
+    } else if (l) {
+      limitText = 'start ' + fmt(l.startPct) + ' %' + (isNum(l.endPct) ? ', end ' + fmt(l.endPct) + ' %' : '') + '; not related to the cost' + (l.reason ? ' (' + esc(l.reason) + ')' : '');
+    }
+    h += '<h3>Details</h3><ul>'
+      + '<li><b>Cost per call:</b> ' + k(r.mainPerCall) + ' per main-thread call over the session' + (isNum(r.unitsPerCall.first40) ? ', ' + k(r.unitsPerCall.first40) + ' over its first 40 calls' : '')
+      + (isNum(r.unitsPerCall.first70) ? ', ' + k(r.unitsPerCall.first70) + ' over its first 70' : '') + '.</li>'
+      + '<li><b>Duration:</b> ' + (r.duration ? dur(r.duration.active) + ' active of ' + dur(r.duration.wall) + ' from the first human turn; ' + dur(r.duration.waiting)
+        + ' waiting for the user in ' + r.duration.waits + ' wait' + (r.duration.waits === 1 ? '' : 's') : 'unknown') + '.</li>'
+      + '<li><b>Context:</b> first ' + k(r.context.first) + ', max ' + k(r.context.max) + ', last ' + k(r.context.last)
+      + (isNum(r.context.first40) ? '; at call 40 ' + k(r.context.first40) : '') + (isNum(r.context.first70) ? ', at call 70 ' + k(r.context.first70) : '') + '.</li>'
+      + '<li><b>Carrying cost</b> of what the session added to its context: ' + fmt(r.carryCost) + ' units (' + share(r.carryCost) + ' of the total). Largest carriers: ' + carriers + '.</li>'
+      + '<li><b>Idle cache rebuilds:</b> ' + r.idleRebuilds.count + ', costing ' + fmt(r.idleRebuilds.cost) + ' units' + (r.cacheTtl ? ' (cache lifetime ' + esc(r.cacheTtl) + ')' : '')
+      + '. <b>Compactions:</b> ' + r.compactions + '. <b>Cache hit:</b> ' + fix1(r.cacheHit) + ' %; cache read is ' + fix1(r.cacheReadShare) + ' % of the cost.</li>'
+      + '<li><b>Rules loaded during the session:</b> ' + (rules ? rules + ' (about ' + fmt(r.rulesTokens) + ' tokens)' : 'none') + '.</li>'
+      + '<li><b>Change size:</b> ' + (r.diff && r.diff.lines ? fmt(r.diff.files) + ' files, ' + fmt(r.diff.lines) + ' lines against the base branch' : 'unknown (no branch or no base branch found when profiled)') + '.</li>'
+      + '<li><b>Weekly limit:</b> ' + limitText + '.</li>'
+      + '<li><b>Tokens:</b> input ' + fmt(r.tokens.input) + ', cache read ' + fmt(r.tokens.cacheRead) + ', cache write ' + fmt(r.tokens.cacheWrite) + ', output ' + fmt(r.tokens.output)
+      + ' (weights ' + r.weights.input + ' / ' + r.weights.cacheRead + ' / ' + r.weights.cacheWrite + ' / ' + r.weights.output + ').</li>'
+      + '<li><b>Profiled</b> ' + esc(r.profiled) + ' UTC by ' + esc(r.author) + ' with ' + esc(r.profiler) + '.</li></ul>';
+    $('breakdown').innerHTML = h;
+  }
+
+  // ---- chart: units per main-thread call, oldest first; a missing first-40 value breaks its line
+  const series = [{ key: 'first40', label: 'first 40 calls', color: 'var(--series-1)', val: r => r.unitsPerCall.first40 },
+    { key: 'whole', label: 'whole session', color: 'var(--series-2)', val: r => r.mainPerCall }];
+  $('legend').innerHTML = series.map(s => '<span><i style="background:' + s.color + '"></i>' + esc(s.label) + '</span>').join('');
+  function renderChart(rows) {
+    const svg = $('chart'), W = 900, H = 280, m = { l: 56, r: 104, t: 12, b: 36 };
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    if (!rows.length) { svg.innerHTML = '<text x="' + W / 2 + '" y="' + H / 2 + '" text-anchor="middle">No session matches the filters.</text>'; return; }
+    const vals = rows.flatMap(r => series.map(s => s.val(r))).filter(isNum);
+    const rawMax = Math.max(1, ...vals);
+    const step = Math.pow(10, Math.floor(Math.log10(rawMax / 4)));
+    const tick = [1, 2, 2.5, 5, 10].map(x => x * step).find(x => rawMax / x <= 4);
+    const yMax = Math.ceil(rawMax / tick) * tick;
+    const x = i => m.l + (rows.length === 1 ? pw / 2 : i * pw / (rows.length - 1));
+    const y = v => m.t + ph - v / yMax * ph;
+    let g = '';
+    for (let v = 0; v <= yMax + 1e-9; v += tick) {
+      g += '<line x1="' + m.l + '" x2="' + (m.l + pw) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--grid)" stroke-width="1"/>'
+        + '<text x="' + (m.l - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v ? k(v) : '0') + '</text>';
+    }
+    const every = Math.max(1, Math.ceil(rows.length / 8));
+    rows.forEach((r, i) => { if (i % every === 0 || i === rows.length - 1) g += '<text x="' + x(i) + '" y="' + (H - m.b + 18) + '" text-anchor="middle">' + esc(r.date.substring(5)) + '</text>'; });
+    const ends = [];
+    series.forEach(s => {
+      let seg = [];
+      const flush = () => { if (seg.length > 1) g += '<polyline fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round" points="' + seg.join(' ') + '"/>'; seg = []; };
+      rows.forEach((r, i) => { const v = s.val(r); if (isNum(v)) seg.push(x(i) + ',' + y(v)); else flush(); });
+      flush();
+      rows.forEach((r, i) => { const v = s.val(r); if (isNum(v)) g += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="4" fill="' + s.color + '" stroke="var(--surface-1)" stroke-width="2"/>'; });
+      const lastI = rows.map(s.val).map((v, i) => isNum(v) ? i : -1).filter(i => i >= 0).pop();
+      if (lastI != null) ends.push({ x: x(lastI) + 10, y: y(s.val(rows[lastI])) + 4, label: s.label });
+    });
+    // end labels of close values are pushed apart so that they never overlap
+    ends.sort((a, b) => a.y - b.y).forEach((e, i, a) => { if (i && e.y - a[i - 1].y < 14) e.y = a[i - 1].y + 14; });
+    ends.forEach(e => { g += '<text x="' + e.x + '" y="' + e.y + '">' + esc(e.label) + '</text>'; });
+    g += '<line id="cross" x1="0" x2="0" y1="' + m.t + '" y2="' + (m.t + ph) + '" stroke="var(--text-muted)" stroke-width="1" visibility="hidden"/>'
+      + '<rect id="hit" x="' + m.l + '" y="' + m.t + '" width="' + pw + '" height="' + ph + '" fill="transparent"/>';
+    svg.innerHTML = g;
+    const tip = $('tip'), cross = $('cross');
+    $('hit').addEventListener('mousemove', e => {
+      const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const i = rows.length === 1 ? 0 : Math.max(0, Math.min(rows.length - 1, Math.round((p.x - m.l) / pw * (rows.length - 1))));
+      const r = rows[i];
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+      tip.innerHTML = '<b>' + esc(r.started) + '</b> ' + esc(r.wiLabel) + '<br>' + series.map(s => '<i style="display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px;background:' + s.color + '"></i>'
+        + esc(s.label) + ': ' + (isNum(s.val(r)) ? k(s.val(r)) : '-')).join('<br>') + '<br>' + fmt(r.calls) + ' calls';
+      tip.style.display = 'block';
+      const wrap = $('chart-wrap').getBoundingClientRect(), box = svg.getBoundingClientRect();
+      const px = (x(i) / W) * box.width + box.left - wrap.left;
+      tip.style.left = Math.min(px + 12, wrap.width - tip.offsetWidth - 4) + 'px';
+      tip.style.top = (box.top - wrap.top + 16) + 'px';
+    });
+    $('hit').addEventListener('mouseleave', () => { tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden'); });
+    $('hit').addEventListener('click', e => {
+      const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const i = rows.length === 1 ? 0 : Math.max(0, Math.min(rows.length - 1, Math.round((p.x - m.l) / pw * (rows.length - 1))));
+      openSession(rows[i].session);
+    });
+  }
+
+  // ---- breakdown tab: one session, with previous / next through the trend table it was opened from
+  const plain = html => html.replace(/<br>/g, ' ').replace(/<[^>]*>/g, '');
+  $('bd-full').href = location.href.split('#')[0];
+  function renderSessionView(session) {
+    const list = sorted(filtered());
+    const i = list.findIndex(r => r.session === session);
+    const r = i >= 0 ? list[i] : all.find(x => x.session === session);
+    const step = d => { const n = list[i + d]; return n ? () => { location.hash = hrefFor(n.session); } : null; };
+    const prev = i >= 0 ? step(-1) : null, next = i >= 0 ? step(1) : null;
+    $('bd-prev').disabled = !prev; $('bd-prev').onclick = prev;
+    $('bd-next').disabled = !next; $('bd-next').onclick = next;
+    $('bd-pos').textContent = i >= 0 ? (i + 1) + ' of ' + list.length : '';
+    const filters = Object.keys(state.f).filter(key => state.f[key]).map(key => key + ' ' + state.f[key]);
+    $('bd-order').textContent = (i >= 0
+      ? 'Previous / next follow the trend table this tab was opened from: '
+      : r ? 'This session is not in the trend table the tab was opened from, so previous / next are off. That table: ' : '')
+      + (r ? (filters.length ? 'filtered by ' + filters.join(', ') : 'no filter') + ', sorted by ' + plain(colByKey[state.sort].label) + (state.dir > 0 ? ' ascending' : ' descending') + '.' : '');
+    if (!r) {
+      document.title = 'Session not found';
+      $('breakdown-title').textContent = 'Session not found';
+      $('breakdown').innerHTML = '<p>No record has the session <code>' + esc(session) + '</code>.</p>';
+      return;
+    }
+    const label = r.started + (r.wiLabel ? ' · ' + r.wiLabel : '');
+    document.title = label;
+    $('breakdown-title').textContent = 'Session breakdown: ' + label;
+    renderBreakdown(r);
+    window.scrollTo(0, 0);
+  }
+
+  function render() {
+    const session = readRoute();
+    $('breakdown-view').hidden = !session;
+    $('report-view').hidden = !!session;
+    if (session) { renderSessionView(session); return; }
+    document.title = 'Work session profiles';
+    // the filters may come from a breakdown address the tab was on before
+    filterInputs.forEach(([id, key]) => { $(id).value = state.f[key]; });
+    const rows = filtered();
+    const pages = Math.max(1, Math.ceil(rows.length / state.size));
+    state.page = Math.max(0, Math.min(state.page, pages - 1));
+    const view = sorted(rows).slice(state.page * state.size, (state.page + 1) * state.size);
+    renderTable('t-trend', trendCols, view);
+    const from = rows.length ? state.page * state.size + 1 : 0;
+    $('page-info').textContent = from + '–' + (state.page * state.size + view.length) + ' of ' + rows.length;
+    $('page-prev').disabled = state.page === 0;
+    $('page-next').disabled = state.page >= pages - 1;
+    renderMedians(rows);
+    renderChart(rows);
+  }
+
+  $('lead').textContent = all.length + ' profiled work session' + (all.length === 1 ? '' : 's') + ', built from the session records by the profile-session skill. '
+    + 'The table shows the newest first; the medians and chart follow the filters. A click on a row opens the breakdown of that session in a new tab. The "i" icon next to a work item shows the note of the session and what changed against the previous one; the "M" icon shows its marker. "How to read this report" at the end defines every figure.';
+  window.addEventListener('hashchange', render);
+  render();
+})();
+</script>
+</body>
+</html>

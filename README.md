@@ -8,6 +8,7 @@ or straight from GitHub.
 
 | Plugin | What it is | Documentation |
 |---|---|---|
+| `harness-kit` | Tools that measure and check the Claude Code harness of any repository; skill `profile-session` profiles finished work sessions | `plugins/harness-kit/README.md` |
 | `jobsearch-kit` | Job search workflow: vacancy analysis, tailored CVs, cover letters, application records, call transcripts | `plugins/jobsearch-kit/README.md` |
 
 ## Requirements

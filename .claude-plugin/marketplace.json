@@ -4,6 +4,11 @@
   "description": "Personal Claude Code plugin marketplace.",
   "plugins": [
     {
+      "name": "harness-kit",
+      "source": "./plugins/harness-kit",
+      "description": "Tools that measure and check the Claude Code harness: profile-session profiles finished work sessions (model calls, weighted cost, context growth, cache behaviour and the share of the plan limit used)."
+    },
+    {
       "name": "jobsearch-kit",
       "source": "./plugins/jobsearch-kit",
       "description": "Job search workflow: vacancy analysis, CVs tailored from one master file, cover letters, application records and call transcripts, built as Word and PDF documents."
