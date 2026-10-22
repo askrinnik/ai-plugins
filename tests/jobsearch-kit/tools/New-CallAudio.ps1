@@ -1,19 +1,20 @@
 <#
 .SYNOPSIS
-  Synthesizes a two-speaker call recording (WAV) from a dialogue file, with Windows speech voices.
+  Synthesizes a two-speaker call recording (MP3 or WAV) from a dialogue file, with Windows speech voices.
 
 .DESCRIPTION
-  Requires Windows PowerShell 5.1 (powershell.exe): it uses the WinRT Windows.Media.SpeechSynthesis API, which
-  PowerShell 7 cannot load. The OneCore voices of that API include a male and a female voice for English and
-  Russian.
+  Requires Windows PowerShell 5.1 (powershell.exe): it uses the WinRT Windows.Media.SpeechSynthesis and
+  Windows.Media.Transcoding APIs, which PowerShell 7 cannot load. The OneCore voices of that API include a male and
+  a female voice for English and Russian. No other tool (ffmpeg and the like) is needed.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\jobsearch-kit\tools\New-CallAudio.ps1 `
-      -Dialogue tests\jobsearch-kit\materials\call\dialogue.tsv -Out <file.wav>
+      -Dialogue tests\jobsearch-kit\materials\call\dialogue.tsv -Out <file.mp3>
 
   Dialogue format: one line per utterance, tab-separated: speaker, language (en or ru), text.
   -Voices maps "<speaker>:<language>" to a voice name; the default fits the fixture call (Anna female, Jordan male).
-  Output: one mono 16-bit PCM WAV with a pause between utterances. Every utterance must come out in the same audio
-  format; the script stops if it does not.
+  Output: the utterances with a pause between them. The extension of -Out picks the format: .mp3 (mono, encoded by
+  the Windows MP3 encoder at -Mp3BitrateKbps, default 48) or .wav (mono 16-bit PCM). Every utterance must come out in
+  the same audio format; the script stops if it does not.
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Dialogue,
@@ -24,7 +25,8 @@ param(
     'Jordan:en' = 'Microsoft David'
     'Jordan:ru' = 'Microsoft Pavel'
   },
-  [int]$PauseMs = 450
+  [int]$PauseMs = 450,
+  [int]$Mp3BitrateKbps = 48
 )
 $ErrorActionPreference = 'Stop'
 
@@ -93,12 +95,47 @@ foreach ($line in $lines) {
 
 $data = $pcm.ToArray()
 $outFull = [IO.Path]::GetFullPath($Out)
-$fs = [IO.File]::Create($outFull)
+$ext = [IO.Path]::GetExtension($outFull).ToLowerInvariant()
+if ($ext -notin '.mp3', '.wav') { throw "-Out must end in .mp3 or .wav: $Out" }
+# For MP3 the WAV is written to a temporary file first and then encoded.
+$wavPath = if ($ext -eq '.wav') { $outFull } else { Join-Path ([IO.Path]::GetTempPath()) ("call-audio-{0}.wav" -f [guid]::NewGuid()) }
+
+$fs = [IO.File]::Create($wavPath)
 $w = New-Object IO.BinaryWriter($fs)
 $w.Write([Text.Encoding]::ASCII.GetBytes('RIFF')); $w.Write([int](4 + 8 + $fmt.Length + 8 + $data.Length))
 $w.Write([Text.Encoding]::ASCII.GetBytes('WAVE'))
 $w.Write([Text.Encoding]::ASCII.GetBytes('fmt ')); $w.Write([int]$fmt.Length); $w.Write($fmt)
 $w.Write([Text.Encoding]::ASCII.GetBytes('data')); $w.Write([int]$data.Length); $w.Write($data)
 $w.Close()
+
+if ($ext -eq '.mp3') {
+  $null = [Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime]
+  $null = [Windows.Media.Transcoding.MediaTranscoder, Windows.Media.Transcoding, ContentType = WindowsRuntime]
+  $null = [Windows.Media.MediaProperties.MediaEncodingProfile, Windows.Media.MediaProperties, ContentType = WindowsRuntime]
+  $asTaskProgress = [System.WindowsRuntimeSystemExtensions].GetMethods() |
+    Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncActionWithProgress`1' } |
+    Select-Object -First 1
+  try {
+    $outDir = Split-Path $outFull -Parent
+    New-Item -ItemType Directory -Force $outDir | Out-Null
+    $src = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($wavPath)) ([Windows.Storage.StorageFile])
+    $folder = Await ([Windows.Storage.StorageFolder]::GetFolderFromPathAsync($outDir)) ([Windows.Storage.StorageFolder])
+    $dst = Await ($folder.CreateFileAsync([IO.Path]::GetFileName($outFull), [Windows.Storage.CreationCollisionOption]::ReplaceExisting)) ([Windows.Storage.StorageFile])
+    # Speech needs no stereo and no high bitrate. The Windows MP3 encoder takes 32, 44.1 or 48 kHz input.
+    $profile = [Windows.Media.MediaProperties.MediaEncodingProfile]::CreateMp3([Windows.Media.MediaProperties.AudioEncodingQuality]::Low)
+    $profile.Audio.ChannelCount = 1
+    $profile.Audio.SampleRate = 32000
+    $profile.Audio.Bitrate = [uint32]($Mp3BitrateKbps * 1000)
+    $transcoder = New-Object Windows.Media.Transcoding.MediaTranscoder
+    $prepared = Await ($transcoder.PrepareFileTranscodeAsync($src, $dst, $profile)) ([Windows.Media.Transcoding.PrepareTranscodeResult])
+    if (-not $prepared.CanTranscode) { throw "MP3 encoding is not available: $($prepared.FailureReason)" }
+    $asTaskProgress.MakeGenericMethod([double]).Invoke($null, @($prepared.TranscodeAsync())).Wait()
+  }
+  finally {
+    Remove-Item -LiteralPath $wavPath -ErrorAction SilentlyContinue
+  }
+}
+
 $seconds = [math]::Round($data.Length / [BitConverter]::ToInt32($fmt, 8), 1)
-Write-Output "Wrote $outFull ($($lines.Count) utterances, $seconds s, $([BitConverter]::ToInt32($fmt, 4)) Hz)"
+$size = [math]::Round((Get-Item -LiteralPath $outFull).Length / 1KB)
+Write-Output "Wrote $outFull ($($lines.Count) utterances, $seconds s, $size KB)"

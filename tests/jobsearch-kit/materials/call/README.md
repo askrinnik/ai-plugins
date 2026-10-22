@@ -6,14 +6,17 @@ female voice) and Jordan (candidate, male voice).
 | File | What it is |
 |---|---|
 | `dialogue.tsv` | The script: one utterance per line, `speaker<TAB>language<TAB>text`. Source of the synthetic audio |
-| `call-synthetic-en-ru.wav` | Generated from `dialogue.tsv` by `../../tools/New-CallAudio.ps1` with Windows voices: Anna = Zira (en) and Irina (ru), Jordan = David (en) and Pavel (ru). Mono 16 kHz, 152 s |
+| `call-synthetic-en-ru.mp3` | Generated from `dialogue.tsv` by `../../tools/New-CallAudio.ps1` with Windows voices: Anna = Zira (en) and Irina (ru), Jordan = David (en) and Pavel (ru). Mono MP3, 48 kbps, 152 s, about 0.9 MB |
 | `call-live-voice-en-ru.mp3` | The same script read aloud by one person who changed the voice for each speaker. Recorded for the live check of 2026-10-22 |
 
 Regenerate the synthetic audio (Windows PowerShell 5.1):
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\jobsearch-kit\tools\New-CallAudio.ps1 -Dialogue tests\jobsearch-kit\materials\call\dialogue.tsv -Out tests\jobsearch-kit\materials\call\call-synthetic-en-ru.wav
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\jobsearch-kit\tools\New-CallAudio.ps1 -Dialogue tests\jobsearch-kit\materials\call\dialogue.tsv -Out tests\jobsearch-kit\materials\call\call-synthetic-en-ru.mp3
 ```
+
+The script needs no other tool: it encodes the MP3 with the encoder built into Windows. With `-Out <file>.wav` it
+writes uncompressed audio instead (about 5 MB).
 
 ## What the process-call skill must notice (ground truth)
 
