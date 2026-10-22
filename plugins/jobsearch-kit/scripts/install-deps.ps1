@@ -10,13 +10,15 @@
 
   The default DepsDir is the JOBSEARCH_DEPS environment variable, else %LOCALAPPDATA%\ai-plugins\jobsearch-kit.
   Copies package.json and package-lock.json to DepsDir and runs "npm ci" there. The scripts load packages from
-  DepsDir\node_modules (see workspace.js). If you choose another DepsDir, set JOBSEARCH_DEPS to it.
+  DepsDir\node_modules (see workspace.js). If DepsDir is not the default folder, the script sets the user
+  environment variable JOBSEARCH_DEPS to it, so that the other scripts find the packages.
   Run it on a new computer and after a plugin update that changes package.json.
 #>
 param(
   [string]$DepsDir = $(if ($env:JOBSEARCH_DEPS) { $env:JOBSEARCH_DEPS } else { Join-Path $env:LOCALAPPDATA 'ai-plugins\jobsearch-kit' })
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'folder-variable.ps1')
 
 New-Item -ItemType Directory -Force $DepsDir | Out-Null
 Copy-Item (Join-Path $PSScriptRoot 'package.json'), (Join-Path $PSScriptRoot 'package-lock.json') $DepsDir -Force
@@ -29,3 +31,4 @@ finally {
   Pop-Location
 }
 Write-Output "Packages installed in $(Join-Path $DepsDir 'node_modules')"
+Sync-FolderVariable -Name 'JOBSEARCH_DEPS' -Folder $DepsDir -Default (Join-Path $env:LOCALAPPDATA 'ai-plugins\jobsearch-kit')

@@ -71,8 +71,8 @@ The skills never submit forms, send messages or commit on their own.
    pwsh -File plugins/jobsearch-kit/scripts/install-deps.ps1
    ```
 
-   The packages go to `%LOCALAPPDATA%\ai-plugins\jobsearch-kit`. To use another folder, pass `-DepsDir <folder>` and
-   set the `JOBSEARCH_DEPS` environment variable to the same folder.
+   The packages go to `%LOCALAPPDATA%\ai-plugins\jobsearch-kit`. To use another folder, pass `-DepsDir <folder>`:
+   the script then sets the user environment variable `JOBSEARCH_DEPS` to that folder and says so in its output.
 
 4. Optional, for call transcripts:
 
@@ -81,7 +81,12 @@ The skills never submit forms, send messages or commit on their own.
    ```
 
    The venv goes to `%LOCALAPPDATA%\ai-plugins\jobsearch-kit\whisper`; the model (about 3 GB) downloads on the first
-   run. Override the folder with `JOBSEARCH_WHISPER`.
+   run. To use another folder, or to reuse a whisper environment that already exists, pass `-WhisperDir <folder>`:
+   the script keeps what is there, and sets the user environment variable `JOBSEARCH_WHISPER` to that folder.
+
+   An environment variable set by these scripts reaches only new terminals and new Claude Code sessions. To check
+   or remove one: `[Environment]::GetEnvironmentVariable('<name>', 'User')`,
+   `[Environment]::SetEnvironmentVariable('<name>', $null, 'User')`.
 
 ## Start a workspace
 

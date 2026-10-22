@@ -39,6 +39,8 @@ the current directory. If `cv.js` prints "no wording rules", it did not find the
 - If a script reports a missing npm package, run `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/install-deps.ps1"`.
 - If the whisper venv does not exist, run `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/install-whisper.ps1"`.
 - The whisper Python is `<whisper folder>\.venv\Scripts\python.exe`.
+- If an install script gets a folder other than the default (`-DepsDir`, `-WhisperDir`), it sets the matching user
+  environment variable itself and prints it. Tell the user that only new terminals and sessions see the variable.
 
 ## Environment
 
