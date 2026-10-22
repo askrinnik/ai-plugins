@@ -2,5 +2,11 @@
   "name": "ai-plugins",
   "owner": { "name": "askrinnik" },
   "description": "Personal Claude Code plugin marketplace.",
-  "plugins": []
+  "plugins": [
+    {
+      "name": "jobsearch-kit",
+      "source": "./plugins/jobsearch-kit",
+      "description": "Job search workflow: vacancy analysis, CVs tailored from one master file, cover letters, application records and call transcripts, built as Word and PDF documents."
+    }
+  ]
 }

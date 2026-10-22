@@ -1,0 +1,8 @@
+{
+  "name": "jobsearch-kit",
+  "description": "Job search workflow: vacancy analysis, CVs tailored from one master file, cover letters, application records and call transcripts, built as Word and PDF documents.",
+  "version": "0.1.0",
+  "author": {
+    "name": "askrinnik"
+  }
+}

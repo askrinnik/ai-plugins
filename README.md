@@ -8,6 +8,7 @@ or straight from GitHub.
 
 | Plugin | What it is | Documentation |
 |---|---|---|
+| `jobsearch-kit` | Job search workflow: vacancy analysis, tailored CVs, cover letters, application records, call transcripts | `plugins/jobsearch-kit/README.md` |
 
 ## Requirements
 
