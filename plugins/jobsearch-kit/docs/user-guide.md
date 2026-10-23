@@ -128,6 +128,17 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   the build.
 - **Problems:** if Word has the `.docx` open, close it when the skill asks.
 
+**Example.**
+
+> **You:** Adapt my CV for this vacancy: Senior Backend Engineer, ExampleBank ... (text)
+>
+> **Claude:** Go ❌, Kubernetes 🟡, Redis ❓, mentoring 🟡 (your facts name code reviews and onboarding, not
+> mentoring). Proposals: lead with the payment API (about 2 million requests per day), put the settlement bullet
+> second, add the keywords Spring Boot, Kafka, PostgreSQL. Questions: any Redis experience? Is "mentoring" true for
+> you? Nothing is built yet.
+>
+> **You:** No Redis. No mentoring. Build it.
+
 ### cover-letter
 
 - **Use it** when a vacancy or a form asks for a letter or a motivation text.
@@ -139,6 +150,14 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   (start date, referrer, recruiter's name).
 - **Problems:** without company research the skill uses only the vacancy text and tells you so; run
   `analyze-vacancy` first for a better "why this company".
+
+**Example.**
+
+> **You:** Make a cover letter for Nordwind Pay.
+>
+> **Claude:** The letter is ready: 290 words, one page, PDF attached. It names the gaps honestly ("I have not worked
+> with PCI DSS or Go") and does not mention your start date or the referrer. Check the sentence about the settlement
+> project.
 
 ### submit-application
 
@@ -155,6 +174,20 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
     entry.
 - **It never:** clicks, ticks, submits or sends anything.
 
+**Example.**
+
+> **You:** I am filling in the ExampleBank form. Questions: salary, start date, work permit, how did you hear about
+> us?
+>
+> **Claude:** The PDFs are current and keep your links. Answers: 5000 EUR gross per month; one month after an offer;
+> no work permit needed (EU citizen). "How did you hear about us?" — what should I write? Upload the CV PDF as the
+> resume and the letter PDF as the cover letter. The data processing box is required; the talent pool box is your
+> choice.
+>
+> **You:** (later) I submitted it. Here is the confirmation screenshot.
+>
+> **Claude:** Saved as `Confirmation_2026_10_23.png`; `applications.md` shows "sent 2026-10-23".
+
 ### process-call
 
 - **Use it** after a recruiter call, an interview or a talk with a former client, when you have a recording.
@@ -170,6 +203,16 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 - **Problems:** transcription needs the whisper environment (`install-whisper.ps1`). If the language switch is wrong,
   tell the skill the time.
 
+**Example.**
+
+> **You:** Transcribe the call call.mp3: Anna, recruiter of Nordwind Pay, English then Russian, today.
+>
+> **Claude:** The call passed; next is a technical interview with Marek, invitation by Friday. Main risk: you said
+> you set up the clusters yourself, but your facts say Kubernetes working knowledge only. You named 5,500 EUR; your
+> facts say 5000. Which is right? Your facts are unchanged until you answer.
+>
+> **You:** The Kubernetes claim was an exaggeration. The salary stays 5000.
+
 ### update-cv-facts
 
 - **Use it** whenever you learn or correct something about yourself: a new skill, a result, a limit, a new salary
@@ -180,6 +223,15 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   answers; it rebuilds the full CV (`.md` and `.docx`) and shows the change; it checks your unsent tailored CVs and
   offers to rebuild them.
 - **It never:** makes your verb stronger; rebuilds the CV of an application that you already submitted.
+
+**Example.**
+
+> **You:** Add this to my facts: at Example Payments I have used Redis in production since 2022 as a cache for the
+> payment API; p95 fell from 300 ms to 120 ms. It may go into CVs.
+>
+> **Claude:** Recorded with today's date. New CV bullet: "Use Redis in production as a cache for the payment API; p95
+> response time fell from 300 ms to 120 ms." The full CV is rebuilt (`.md` and `.docx`). Your unsent CV for Sample
+> Logistics would get the bullet too: rebuild it? The submitted ExampleBank One CV stays as it was sent.
 
 ## Situations
 
