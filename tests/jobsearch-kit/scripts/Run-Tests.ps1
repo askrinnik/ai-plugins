@@ -81,9 +81,11 @@ $run = [pscustomobject]@{
 }
 $run | ConvertTo-Json | Set-Content (Join-Path $runDir 'run.json') -Encoding UTF8
 
+$limitHit = $false
 foreach ($f in $selected) {
+  if ($limitHit) { break }
   $reps = if ($Repetitions -gt 0) { $Repetitions } else { $f.Repetitions }
-  for ($rep = 1; $rep -le $reps; $rep++) {
+  for ($rep = 1; $rep -le $reps -and -not $limitHit; $rep++) {
     $outDir = Join-Path $runDir "$($f.Name)\r$rep"
     New-Item -ItemType Directory -Force $outDir | Out-Null
     $resultFile = Join-Path $outDir 'result.json'
@@ -137,6 +139,7 @@ foreach ($f in $selected) {
       $res.turns += [pscustomobject]$turn
       if ($turn.exitCode -ne 0 -or $turn.isError -or -not $sessionId) {
         Write-Output "      FAIL  session of turn $($t.N): $($turn.error)"
+        if ("$($turn.error) $answer" -match 'usage_limit_reached|hit your (session|usage|weekly) limit') { $limitHit = $true }
         break
       }
     }
@@ -160,3 +163,7 @@ foreach ($f in $selected) {
 & (Join-Path $PSScriptRoot 'Collect-Tests.ps1') -Run $runDir
 $runTemp = Join-Path $script:TempRoot $runId
 if ((Test-Path $runTemp) -and -not (Get-ChildItem $runTemp -Force)) { Remove-Item $runTemp -Force }
+if ($limitHit) {
+  Write-Output 'STOPPED: the Claude usage limit is reached. Remove this run from the history, wait for the reset and run again.'
+  exit 2
+}

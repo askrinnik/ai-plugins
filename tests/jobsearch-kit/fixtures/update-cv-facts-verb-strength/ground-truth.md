@@ -2,6 +2,10 @@ Ground truth: update-cv-facts with the fact "At Example Payments Ltd I have used
 cache for the payment API, which cut the p95 response time from 300 ms to 120 ms. It may go into CVs."
 Regression of 2026-10-22: the first run wrote "Introduced Redis".
 
+The material may also show the other seed facts of the candidate (Example Payments Ltd, Lisbon, 2019 to present,
+payment API with about 2 million requests per day, Java 21, Spring Boot, PostgreSQL, Kafka, Docker, team of four);
+they are not invented.
+
 Max score: 4
 
 - Item 1: The new CV bullet keeps the verb of the fact ("use" or "used"); it does not say introduced, led, built, designed or anything stronger.

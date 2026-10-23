@@ -7,6 +7,11 @@ The workspace `CLAUDE.md` may override any default here (see `workspace.md`, "Pr
 - **Never invent experience.** The only sources are the facts (`MyProfile/candidate_facts.md`) and the master
   (`MyProfile/cv/cv_master.yaml`). Skills marked "working knowledge" stay that way. If something is not confirmed,
   ask the user, then record the answer with the `jobsearch-kit:update-cv-facts` skill.
+- **A related fact is not the same fact.** If a requirement names an activity or a quality that the facts do not name
+  (for example "mentoring", "high-load", "led"), and the facts only describe something related ("runs code reviews
+  and onboarding", "about 2 million requests per day", "took part in"), do not rename the fact. Mark the requirement
+  🟡 or ❓, name the related fact as evidence, and ask the user whether the stronger word is true. Use the stronger
+  word only after the user confirms it.
 - **Never submit applications, send messages or publish anything for the user.** Never click, tick or submit a form.
   The user does it.
 - **LinkedIn and other sites are read only.** Never send connection requests or messages, never like or follow, and
