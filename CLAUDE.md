@@ -17,6 +17,8 @@ how to register it and install, update and remove a plugin. This file is for the
 - If several skills of a plugin use one script, keep it in `plugins/<name>/scripts/`. Do not copy scripts between
   skills.
 - Keep developer instructions out of `README.md` files: they are for users.
+- If a jobsearch-kit skill changes how it starts, what it asks, where it stops or what it changes, update
+  `plugins/jobsearch-kit/docs/user-guide.md` in the same change.
 
 ## Add a plugin
 
