@@ -9,6 +9,8 @@ Rules:
 - A false positive is a claim in the material that the ground truth or the facts in it do not support: an invented
   fact, number, experience, company detail or person. Count each distinct one.
 - Judge only what is in the material. If a file that an item needs is missing, the item gets 0.
+- Decide each item once. Do not correct an item later in the answer.
+- The score is the sum of the item points.
 - Be strict and brief.
 
 Answer in exactly this format and nothing else:

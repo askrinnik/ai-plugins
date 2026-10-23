@@ -55,6 +55,7 @@ function Read-Fixture {
     SeedRemove     = @($cfg.seedRemove | Where-Object { $_ })
     SeedCommands   = @($cfg.seedCommands | Where-Object { $_ })
     SeedDiffs      = @($cfg.seedDiffs | Where-Object { $_ })
+    EmptySeed      = [bool]$cfg.emptySeed
     JudgeFiles     = @($judge.files | Where-Object { $_ })
     MinScore       = $judge.minScore
     Turns          = @($turns)
@@ -113,8 +114,8 @@ function New-TestWorkspace {
   param([Parameter(Mandatory)]$Fixture, [Parameter(Mandatory)][string]$Path)
   if (Test-Path $Path) { Remove-Item $Path -Recurse -Force }
   New-Item -ItemType Directory -Force $Path | Out-Null
-  Copy-Item (Join-Path $script:SeedDir '*') $Path -Recurse -Force
-  Copy-Item (Join-Path $script:SeedDir '.gitignore') $Path -Force -ErrorAction SilentlyContinue
+  if (-not $Fixture.EmptySeed) { Copy-Item (Join-Path $script:SeedDir '*') $Path -Recurse -Force }
+  if (-not $Fixture.EmptySeed) { Copy-Item (Join-Path $script:SeedDir '.gitignore') $Path -Force -ErrorAction SilentlyContinue }
   foreach ($r in $Fixture.SeedRemove) { Remove-Item (Join-Path $Path $r) -Recurse -Force -ErrorAction SilentlyContinue }
   foreach ($c in $Fixture.SeedCopy) {
     $from = Join-Path $script:Repo $c.from
@@ -131,6 +132,8 @@ function New-TestWorkspace {
   }
   $seed = Join-Path $Fixture.Dir 'seed'
   if (Test-Path $seed) { Copy-Item (Join-Path $seed '*') $Path -Recurse -Force }
+  # An empty seed starts as a plain folder without git: the skill under test (init-workspace) makes the repository.
+  if ($Fixture.EmptySeed) { return }
   $null = git -C $Path init -q -b main 2>&1
   # --ignore-whitespace: the diffs are stored with LF, the seed files may have CRLF (core.autocrlf).
   $diffs = @($Fixture.SeedDiffs | ForEach-Object { Join-Path $script:Repo $_ }) + @(Join-Path $Fixture.Dir 'seed.diff' | Where-Object { Test-Path $_ })

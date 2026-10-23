@@ -106,8 +106,16 @@ fixtures/<name>/
   seed.diff               a diff applied to the seed workspace with git apply (optional)
 ```
 
-A new test is a new folder; no script change is needed. Placeholders in prompts and in `seedCopy` targets:
-`{{today}}` (`yyyy-MM-dd`), `{{date}}` (`yyyy_MM_dd`), `{{workspace}}` (the workspace path with forward slashes).
+A new test is a new folder; no script change is needed. Placeholders in prompts, check paths and patterns, and
+`seedCopy` targets: `{{today}}` (`yyyy-MM-dd`), `{{date}}` (`yyyy_MM_dd`), `{{workspace}}` (the workspace path with
+forward slashes), `{{include:<path in the repository>#<n>}}` (the n-th fenced code block of that file, so that a
+prompt uses a vacancy text or the user answers of `materials/` without a copy). In `seedCommands`, `{{plugin}}` is the
+plugin folder.
+
+Shared seeds are in `materials/seeds/`: an application folder with its tailored CV for Nordwind Pay and for
+ExampleBank, the Nordwind Pay answers as a diff of the facts and rules (`nordwind-pay.diff`), and a fictional
+confirmation screenshot. Fixtures take them with `seedCopy` and `seedDiffs`, and build the documents with
+`seedCommands`, so that a seed always matches the current seed master.
 
 `fixture.json`:
 
@@ -122,6 +130,9 @@ A new test is a new folder; no script change is needed. Placeholders in prompts 
 | `timeoutMinutes` | Time limit of one turn | 20 |
 | `seedCopy` | `[{ "from": <path in the repository>, "to": <path in the workspace> }]`, files or folders | |
 | `seedRemove` | Paths removed from the seed workspace | |
+| `emptySeed` | Start from an empty folder without git: no seed workspace, no seed commit; only `seedCopy` and `seed/` files (for `init-workspace`) | false |
+| `seedDiffs` | Diffs (paths in the repository) applied with `git apply` after the seed files | |
+| `seedCommands` | pwsh commands run in the workspace before the seed commit (for example a CV build) | |
 | `judge.files` | Workspace globs whose content the judge gets with the answer | |
 | `judge.minScore` | Minimum judge score of a turn (summed over the judged turns) | the maximum |
 
@@ -140,7 +151,12 @@ matches `/`. Every check may have a `name`; patterns are .NET regular expression
 | `lint` | `path` | `cv.js --lint` passes for the matching files with the workspace rules |
 | `pages` | `path`, `max` | every matching `.docx` has at most `max` pages (Word; skipped without Word) |
 | `ignored` | `path` | every matching file is ignored by git |
-| `script` | `file` | `pwsh -File <fixture>/<file> -Workspace <ws> -AnswerFile <file>` exits with 0 |
+| `tool-input` / `no-tool-input` | `pattern` | an input of the session's tool calls so far matches / none matches. Each input reads `<tool>: <input JSON>`, for example `Skill: {"skill":"jobsearch-kit:adapt-cv"}` |
+| `script` | `file`, `args` | `pwsh -File <file> -Workspace <ws> -AnswerFile <file> <args>` exits with 0. `file` is relative to the fixture folder or to the repository |
+
+Shared check scripts are in `scripts/checks/`: `Test-Letter.ps1` (front matter, one line per paragraph, 250–350
+body words, no number derived from dates) and `Test-Pdfs.ps1` (every `.docx` has a PDF that is not older; the CV PDF
+keeps every contact link).
 
 Ground truth (`ground-truth/NN.md`): a list of scored items and a line `Max score: N`. The judge gives 1 point per item
 and counts false positives (claims that the material does not back). Base ground truths on `materials/`.
@@ -149,8 +165,24 @@ and counts false positives (claims that the material does not back). Base ground
 
 | Fixture | What it proves |
 |---|---|
-| `smoke` | The plugin loads, the six skills are visible, `${CLAUDE_SKILL_DIR}` resolves |
+| `smoke` | The plugin loads, the seven skills are visible, `${CLAUDE_SKILL_DIR}` resolves |
 | `selftest-stop` | Framework self-test: a check after turn 1 proves that the session stopped; the judge pipeline works |
+| `analyze-vacancy-text` | Fit table and company research for a vacancy given as text; the skill stops before the CV; the answers reach the facts and the rules |
+| `analyze-vacancy-defer` | The user defers: the reason is recorded, no CV |
+| `analyze-vacancy-earlier-application` | An earlier application to the same company is mentioned; the company notes are kept |
+| `update-cv-facts-verb-strength` | The verb of a fact is kept ("used", not "introduced"); the full CV is rebuilt with `.md` and `.docx` |
+| `update-cv-facts-limit` | A "no experience with X" fact becomes a rule that lets honest negations through |
+| `update-cv-facts-unsent-cvs` | The unsent tailored CV is checked; the submitted one stays as sent |
+| `adapt-cv-text` | Proposals first, no build until the user agrees; then a one-page CV and a "not submitted" row |
+| `adapt-cv-first-profile` | Without an earlier application, the profile starts from `profile_full.yaml` |
+| `cover-letter-basic` | Letter format, length, one page, no derived numbers, no start date, referrer or recruiter |
+| `cover-letter-no-research` | Without company research the letter uses the vacancy only, and the skill says so |
+| `submit-application-prepare` | PDFs with links, form answers from the defaults, the "ask" question left to the user, nothing submitted |
+| `submit-application-record` | The confirmation is saved, the row gets the date, a work log entry is written |
+| `init-workspace-docx` | A workspace from zero with a fictional base CV (`materials/base-cv/`): settings, confirmed facts, rules, form answers, a full CV that builds, no template data |
+| `process-call-two-languages` | A two-language call (synthetic audio): stage folder, four files, recording out of git, the planted items found, facts unchanged |
+| `process-call-live-voice` | The same with the live-voice recording, to compare the scores |
+| `end-to-end` (slow) | The whole path from an empty folder to the processed call in one workspace |
 
 ### Rules for skill tests
 

@@ -33,6 +33,8 @@ function Invoke-Check {
     Runs one check object against the workspace and the turn's answer; returns a result with expected and actual.
   #>
   param([Parameter(Mandatory)]$Check, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript)
+  $Check = $Check | Select-Object *
+  if ($Check.pattern) { $Check.pattern = Expand-Placeholders $Check.pattern $Workspace }
   $type = $Check.type
   $path = [string]$Check.path
   $name = if ($Check.name) { $Check.name } else { "$type $path$(if ($Check.pattern) { " /$($Check.pattern)/" })".Trim() }

@@ -26,7 +26,12 @@ function Invoke-Judge {
   $r = Invoke-Claude -Arguments $args_ -Prompt $prompt -WorkingDirectory $ScratchDir -TimeoutMinutes 10
   $text = try { ($r.Out | ConvertFrom-Json).result } catch { $r.Out }
   $cost = try { [double]($r.Out | ConvertFrom-Json).total_cost_usd } catch { 0 }
-  $score = if ($text -match 'Score:\s*(\d+)\s*/\s*(\d+)') { [int]$Matches[1] } else { $null }
+  # The score is the sum of the items; if the judge corrects an item, its last line counts. The "Score:" line is the
+  # fallback, because a judge sometimes corrects an item without changing the total.
+  $items = @{}
+  foreach ($m in [regex]::Matches($text, '(?m)^(?:Correction to )?Item (\d+):\s*([01])\b')) { $items[$m.Groups[1].Value] = [int]$m.Groups[2].Value }
+  $score = if ($items.Count) { ($items.Values | Measure-Object -Sum).Sum }
+  elseif ($text -match 'Score:\s*(\d+)\s*/\s*(\d+)') { [int]$Matches[1] } else { $null }
   $fp = if ($text -match 'False positives:\s*(\d+)') { [int]$Matches[1] } elseif ($text -match 'False positives:\s*none') { 0 } else { $null }
   [pscustomobject]@{ Score = $score; Max = $max; FalsePositives = $fp; Text = [string]$text; CostUsd = $cost }
 }

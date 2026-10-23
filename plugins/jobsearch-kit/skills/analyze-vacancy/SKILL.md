@@ -35,6 +35,8 @@ The skill has two stages with one stop between them:
   - separate tables for required items, nice-to-have items and hidden requirements (found in step 3);
   - columns: requirement, status (✅ confirmed / 🟡 partial / ❌ missing / ❓ not in the facts, question to the
     user), evidence or comment; after the user answers, replace each ❓ with one of the other statuses;
+  - if a requirement joins a skill and a domain (for example "REST APIs for merchant onboarding and payouts"), rate
+    the skill and the domain in separate rows: the facts may cover one and not the other;
   - a summary: fit estimate in percent, the strongest matches, the main risks and gaps, eligibility risks.
 - Show all the tables and the summary in the chat.
 - Ask targeted questions **only** about requirements that `candidate_facts.md` does not cover. Never fill a gap by
