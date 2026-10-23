@@ -1,0 +1,19 @@
+{
+  "description": "process-call with a two-language recording (English, then Russian): a stage folder separate from the application folder, four files, the recording kept out of git, the planted items found, and the facts unchanged. The application folder has today's date, so the stage folder needs a suffix.",
+  "repetitions": 3,
+  "timeoutMinutes": 40,
+  "requires": ["whisper"],
+  "seedCopy": [
+    { "from": "tests/jobsearch-kit/materials/seeds/nordwind-pay", "to": "." },
+    { "from": "tests/jobsearch-kit/materials/call/call-synthetic-en-ru.mp3", "to": "inbox/call-en-ru.mp3" }
+  ],
+  "seedDiffs": ["tests/jobsearch-kit/materials/seeds/nordwind-pay.diff"],
+  "seedCommands": [
+    "Rename-Item 2026_10_22_Nordwind_Pay {{date}}_Nordwind_Pay",
+    "node {{plugin}}/scripts/cv.js {{date}}_Nordwind_Pay/cv_profile.yaml --no-docx"
+  ],
+  "judge": {
+    "files": ["{{date}}_Nordwind_Pay_*/*_summary.md", "{{date}}_Nordwind_Pay_*/*_side_talk.md", "{{date}}_Nordwind_Pay_*/*_transcript.md", "_Companies/Nordwind_Pay/*.md"],
+    "minScore": 5
+  }
+}

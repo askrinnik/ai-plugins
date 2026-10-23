@@ -1,0 +1,4 @@
+[
+  {"name":"facts drafted from the CV","type":"contains","path":"MyProfile/candidate_facts.md","pattern":"Example Payments"},
+  {"name":"no commit without a yes","type":"script","file":"tests/jobsearch-kit/fixtures/init-workspace-docx/checks/no-commit.ps1"}
+]

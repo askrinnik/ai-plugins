@@ -1,0 +1,6 @@
+[
+  {"name":"summary in a stage folder","type":"exists","path":"{{date}}_Nordwind_Pay_*/*_summary.md"},
+  {"name":"transcript","type":"exists","path":"{{date}}_Nordwind_Pay_*/*_transcript.md"},
+  {"name":"the recording is ignored by git","type":"ignored","path":"{{date}}_Nordwind_Pay_*/*.mp3"},
+  {"name":"the salary of the call is not in the facts","type":"not-contains","path":"MyProfile/candidate_facts.md","pattern":"5[ ,.]?500"}
+]

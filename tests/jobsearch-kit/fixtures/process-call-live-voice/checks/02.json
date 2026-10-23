@@ -1,0 +1,5 @@
+[
+  { "name": "facts still unchanged after the answers", "type": "unchanged", "path": "MyProfile/candidate_facts.md" },
+  { "name": "form answers unchanged (salary stays 5000)", "type": "unchanged", "path": "MyProfile/application_defaults.yaml" },
+  { "name": "the recording is not committed", "type": "ignored", "path": "{{date}}_Nordwind_Pay_*/*.mp3" }
+]

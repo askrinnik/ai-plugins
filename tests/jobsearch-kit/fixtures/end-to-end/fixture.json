@@ -1,0 +1,12 @@
+{
+  "description": "The whole path in one workspace, from an empty folder: init-workspace with a base CV, analyze-vacancy (Nordwind Pay), answers, adapt-cv, cover-letter, submit-application part 1, process-call, answers. Long: run on demand.",
+  "slow": true,
+  "repetitions": 1,
+  "timeoutMinutes": 40,
+  "requires": ["word", "whisper"],
+  "emptySeed": true,
+  "seedCopy": [
+    { "from": "tests/jobsearch-kit/materials/base-cv/base-cv-jordan-sample.docx", "to": "base-cv.docx" },
+    { "from": "tests/jobsearch-kit/materials/call/call-synthetic-en-ru.mp3", "to": "inbox/call-en-ru.mp3" }
+  ]
+}

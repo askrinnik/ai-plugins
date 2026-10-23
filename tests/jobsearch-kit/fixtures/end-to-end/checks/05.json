@@ -1,0 +1,7 @@
+[
+  { "name": "tailored CV .docx", "type": "exists", "path": "{{date}}_Nordwind*/*CV*.docx" },
+  { "name": "tailored CV passes the rules", "type": "lint", "path": "{{date}}_Nordwind*/*CV*.md" },
+  { "name": "cover letter format and length", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Letter.ps1", "args": ["-Letter", "{{date}}_Nordwind*/cover-letter.md"] },
+  { "name": "letter passes the rules", "type": "lint", "path": "{{date}}_Nordwind*/cover-letter.md" },
+  { "name": "not submitted row", "type": "contains", "path": "applications.md", "pattern": "Nordwind[^\\n]*not submitted" }
+]

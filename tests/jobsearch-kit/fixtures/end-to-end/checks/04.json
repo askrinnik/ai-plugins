@@ -1,0 +1,5 @@
+[
+  { "name": "PCI DSS limit in the facts", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "PCI[^\\n]*20\\d\\d-\\d\\d-\\d\\d" },
+  { "name": "PCI DSS rule", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "PCI" },
+  { "name": "adapt-cv waits for the proposals", "type": "absent", "path": "{{date}}_Nordwind*/*CV*.docx" }
+]

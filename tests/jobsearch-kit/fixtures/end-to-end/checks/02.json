@@ -1,0 +1,6 @@
+[
+  { "name": "every fact with a source and a date, no placeholder", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-NewWorkspace.ps1", "args": ["-AllowSeedCandidate"] },
+  { "name": "full CV .docx", "type": "exists", "path": "MyProfile/cv/CV_*_full.docx" },
+  { "name": "the full CV passes the rules", "type": "lint", "path": "MyProfile/cv/CV_*_full.md" },
+  { "name": "Go rule", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "\\bGo" }
+]

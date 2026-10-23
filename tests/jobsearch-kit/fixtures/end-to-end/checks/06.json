@@ -1,0 +1,4 @@
+[
+  {"name":"the answer gives the salary 5000","type":"answer-contains","pattern":"5[ ,.]?000"},
+  {"name":"no confirmation file","type":"absent","path":"{{date}}_Nordwind*/Confirmation_*"}
+]

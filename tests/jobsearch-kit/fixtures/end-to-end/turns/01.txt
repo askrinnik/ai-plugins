@@ -1,0 +1,11 @@
+Set up my job search workspace in this folder. My current CV is base-cv.docx.
+
+My settings: English for the conversation, the notes and the documents; recruiter messages in the language that the recruiter uses; cover letters must not name the start date, the referrer or the recruiter; the default writing style; no archived files.
+
+What my CV does not say:
+- Skill levels: Java, Spring Boot, PostgreSQL, REST API design, MySQL, RabbitMQ, Docker and Kafka are production (Kafka since 2021); Kubernetes is working knowledge only (I deploy services with existing Helm charts, I never set up a cluster); Go: none.
+- Salary expectation: 5000 EUR gross per month for an employee contract.
+- Earliest start: one month after an offer.
+- Right to work: EU citizen, no sponsorship needed.
+- Languages: English fluent, Portuguese native.
+- Do not claim: Go, and Kubernetes beyond working knowledge.

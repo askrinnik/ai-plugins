@@ -1,0 +1,34 @@
+{
+  "description": "The same as process-call-two-languages with the live-voice recording (one person reading both parts). Compare its scores with the synthetic audio.",
+  "repetitions": 1,
+  "timeoutMinutes": 40,
+  "requires": [
+    "whisper"
+  ],
+  "seedCopy": [
+    {
+      "from": "tests/jobsearch-kit/materials/seeds/nordwind-pay",
+      "to": "."
+    },
+    {
+      "from": "tests/jobsearch-kit/materials/call/call-live-voice-en-ru.mp3",
+      "to": "inbox/call-en-ru.mp3"
+    }
+  ],
+  "seedDiffs": [
+    "tests/jobsearch-kit/materials/seeds/nordwind-pay.diff"
+  ],
+  "seedCommands": [
+    "Rename-Item 2026_10_22_Nordwind_Pay {{date}}_Nordwind_Pay",
+    "node {{plugin}}/scripts/cv.js {{date}}_Nordwind_Pay/cv_profile.yaml --no-docx"
+  ],
+  "judge": {
+    "files": [
+      "{{date}}_Nordwind_Pay_*/*_summary.md",
+      "{{date}}_Nordwind_Pay_*/*_side_talk.md",
+      "{{date}}_Nordwind_Pay_*/*_transcript.md",
+      "_Companies/Nordwind_Pay/*.md"
+    ],
+    "minScore": 5
+  }
+}

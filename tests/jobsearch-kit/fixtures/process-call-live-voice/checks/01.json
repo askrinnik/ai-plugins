@@ -1,0 +1,12 @@
+[
+  { "name": "raw transcript in a stage folder", "type": "exists", "path": "{{date}}_Nordwind_Pay_*/*_raw_whisper.txt" },
+  { "name": "cleaned transcript", "type": "exists", "path": "{{date}}_Nordwind_Pay_*/*_transcript.md" },
+  { "name": "summary", "type": "exists", "path": "{{date}}_Nordwind_Pay_*/*_summary.md" },
+  { "name": "side notes", "type": "exists", "path": "{{date}}_Nordwind_Pay_*/*_side_talk.md" },
+  { "name": "the recording moved into the stage folder", "type": "exists", "path": "{{date}}_Nordwind_Pay_*/*.mp3" },
+  { "name": "no recording left in inbox", "type": "absent", "path": "inbox/*.mp3" },
+  { "name": "the recording is ignored by git", "type": "ignored", "path": "{{date}}_Nordwind_Pay_*/*.mp3" },
+  { "name": "no stage files in the application folder", "type": "absent", "path": "{{date}}_Nordwind_Pay/*_transcript.md" },
+  { "name": "the Russian part stays in Russian", "type": "contains", "path": "{{date}}_Nordwind_Pay_*/*_transcript.md", "pattern": "[А-Яа-яЁё]{4,}(\\s+[А-Яа-яЁё]{2,}){3,}" },
+  { "name": "facts unchanged by the call", "type": "unchanged", "path": "MyProfile/candidate_facts.md" }
+]

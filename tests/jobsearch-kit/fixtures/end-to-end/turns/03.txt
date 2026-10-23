@@ -1,0 +1,3 @@
+Yes, make the first commit. Then analyze this vacancy. I only have the text, there is no link.
+
+{{include:tests/jobsearch-kit/materials/vacancies/nordwind-pay.md#1}}
