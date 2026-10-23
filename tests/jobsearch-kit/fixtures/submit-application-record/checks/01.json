@@ -1,0 +1,8 @@
+[
+  { "name": "the screenshot saved as Confirmation_<date>.png", "type": "exists", "path": "2026_10_20_ExampleBank/Confirmation_{{date}}.png" },
+  { "name": "the applications.md row has today's date", "type": "contains", "path": "applications.md", "pattern": "ExampleBank[^\\n]*{{today}}" },
+  { "name": "the row is no longer \"not submitted\"", "type": "not-contains", "path": "applications.md", "pattern": "ExampleBank[^\\n]*not submitted" },
+  { "name": "work log entry", "type": "contains", "path": "README.md", "pattern": "ExampleBank" },
+  { "name": "the salary of the form in the record", "type": "contains", "path": "applications.md", "pattern": "ExampleBank[^\\n]*5[ ,.]?000" },
+  { "name": "facts unchanged", "type": "unchanged", "path": "MyProfile/candidate_facts.md" }
+]

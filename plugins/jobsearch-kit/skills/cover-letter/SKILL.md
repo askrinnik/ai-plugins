@@ -65,6 +65,8 @@ rendered pages, then show the PDF to the user.
    - the gaps from `fit-analysis.md`, said honestly ("I have not worked with X yet"), with the nearest real
      experience and the readiness to learn;
    - why this company and team: one or two points from the company research that connect to the user's experience;
+     state only what the research or the vacancy says, and do not attribute values, priorities or culture to the
+     company ("you put reliability first") that no source states;
    - a short closing and thanks;
    - a sign-off block: "Kind regards," and the name and the contacts (phone · e-mail) on separate lines of one block.
 4. Keep the body to 250–350 words. Count the words without the front matter, the date, the greeting and the sign-off
@@ -77,6 +79,9 @@ rendered pages, then show the PDF to the user.
 7. Do not derive new numbers or periods from dates or other facts (for example "the last seven years in payments"
    from a job's start year, or "since 2015" from the dates of a job). Use only the numbers that the facts state. If a
    derived number would help, ask the user to confirm it as a fact first.
+   Before you lint, list every number, year and period of the letter. For each one, find the same statement in
+   `candidate_facts.md` or the vacancy. A job's start year is a date, not a fact about a period: "since 2019" is
+   derived. Remove or rephrase every item that you cannot find.
 8. Check the text against the "Cover letters" section of `rules.md` and the cover letter preferences of the
    workspace.
 

@@ -30,6 +30,7 @@ function Invoke-Judge {
   # fallback, because a judge sometimes corrects an item without changing the total.
   $items = @{}
   foreach ($m in [regex]::Matches($text, '(?m)^(?:Correction to )?Item (\d+):\s*([01])\b')) { $items[$m.Groups[1].Value] = [int]$m.Groups[2].Value }
+  foreach ($m in [regex]::Matches($text, '(?m)^Item (\d+):.*->\s*\**([01])\**\s*$')) { $items[$m.Groups[1].Value] = [int]$m.Groups[2].Value }
   $score = if ($items.Count) { ($items.Values | Measure-Object -Sum).Sum }
   elseif ($text -match 'Score:\s*(\d+)\s*/\s*(\d+)') { [int]$Matches[1] } else { $null }
   $fp = if ($text -match 'False positives:\s*(\d+)') { [int]$Matches[1] } elseif ($text -match 'False positives:\s*none') { 0 } else { $null }

@@ -1,0 +1,7 @@
+[
+  { "name": "cover-letter.md", "type": "exists", "path": "2026_10_22_Nordwind_Pay/cover-letter.md" },
+  { "name": "front matter, one line per paragraph, 250-350 words, no derived numbers", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Letter.ps1", "args": ["-Letter", "2026_10_22_Nordwind_Pay/cover-letter.md"] },
+  { "name": "the letter passes the wording rules", "type": "lint", "path": "2026_10_22_Nordwind_Pay/cover-letter.md" },
+  { "name": "letter PDF", "type": "exists", "path": "2026_10_22_Nordwind_Pay/*Cover_Letter*.pdf" },
+  { "name": "the answer says that no company research was done", "type": "answer-contains", "pattern": "(no|without|not done|missing|has not been done|did not do)[^.\\n]{0,40}(company )?research|research[^.\\n]{0,40}(not|no|missing)|analyze-vacancy" }
+]

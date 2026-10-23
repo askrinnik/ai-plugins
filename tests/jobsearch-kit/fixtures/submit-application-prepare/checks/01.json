@@ -1,0 +1,7 @@
+[
+  { "name": "PDFs exist, not older than the .docx, CV links kept", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Pdfs.ps1", "args": ["-Folder", "2026_10_20_ExampleBank"] },
+  { "name": "form-answers.md (if written) passes the wording rules", "type": "script", "file": "checks/lint-form-answers.ps1" },
+  { "name": "the answer gives the salary 5000", "type": "answer-contains", "pattern": "5[ ,.]?000" },
+  { "name": "the application is not recorded as sent", "type": "not-contains", "path": "applications.md", "pattern": "ExampleBank[^\\n]*\\|\\s*(submitted|sent)\\s*\\|" },
+  { "name": "no confirmation file", "type": "absent", "path": "2026_10_20_ExampleBank/Confirmation_*" }
+]

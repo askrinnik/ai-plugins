@@ -1,0 +1,12 @@
+[
+  { "name": "cover-letter.md", "type": "exists", "path": "2026_10_22_Nordwind_Pay/cover-letter.md" },
+  { "name": "front matter, one line per paragraph, 250-350 words, no derived numbers", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Letter.ps1", "args": ["-Letter", "2026_10_22_Nordwind_Pay/cover-letter.md"] },
+  { "name": "the letter passes the wording rules", "type": "lint", "path": "2026_10_22_Nordwind_Pay/cover-letter.md" },
+  { "name": "letter .docx", "type": "exists", "path": "2026_10_22_Nordwind_Pay/*Cover_Letter*.docx" },
+  { "name": "letter PDF", "type": "exists", "path": "2026_10_22_Nordwind_Pay/*Cover_Letter*.pdf" },
+  { "name": "one page", "type": "pages", "path": "2026_10_22_Nordwind_Pay/*Cover_Letter*.docx", "max": 1 },
+  { "name": "no start date or availability", "type": "not-contains", "path": "2026_10_22_Nordwind_Pay/cover-letter.md", "pattern": "\\b(start date|available (from|to start)|availability|notice period|one month after|(can|could) start (in|from|within|immediately|right away))\\b" },
+  { "name": "no referrer", "type": "not-contains", "path": "2026_10_22_Nordwind_Pay/cover-letter.md", "pattern": "\\b(referr\\w*|referred|recommended by)\\b" },
+  { "name": "no recruiter or team lead name", "type": "not-contains", "path": "2026_10_22_Nordwind_Pay/cover-letter.md", "pattern": "\\b(Anna|Marek)\\b" },
+  { "name": "facts unchanged", "type": "unchanged", "path": "MyProfile/candidate_facts.md" }
+]

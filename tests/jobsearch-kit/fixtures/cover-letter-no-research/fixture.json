@@ -1,0 +1,29 @@
+{
+  "description": "cover-letter without company research and without fit-analysis.md: the letter takes \"why this company\" from the vacancy only, and the skill tells the user that no research was done.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "requires": [
+    "word"
+  ],
+  "seedCopy": [
+    {
+      "from": "tests/jobsearch-kit/materials/seeds/nordwind-pay",
+      "to": "."
+    }
+  ],
+  "seedRemove": [],
+  "seedDiffs": [
+    "tests/jobsearch-kit/materials/seeds/nordwind-pay.diff"
+  ],
+  "seedCommands": [
+    "Remove-Item -Recurse -Force _Companies, 2026_10_22_Nordwind_Pay/fit-analysis.md",
+    "node {{plugin}}/scripts/cv.js 2026_10_22_Nordwind_Pay/cv_profile.yaml"
+  ],
+  "judge": {
+    "files": [
+      "2026_10_22_Nordwind_Pay/vacancy.md",
+      "2026_10_22_Nordwind_Pay/cover-letter.md"
+    ],
+    "minScore": 3
+  }
+}

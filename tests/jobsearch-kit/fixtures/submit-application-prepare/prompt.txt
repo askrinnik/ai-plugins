@@ -1,0 +1,9 @@
+I am filling in the ExampleBank application form now (application folder 2026_10_20_ExampleBank). Check my files before I upload them, and help me with the form questions:
+
+- Salary expectations (EUR, monthly gross)
+- Earliest start date
+- Do you need a work permit?
+- Why do you want to join ExampleBank? (free text, up to 100 words)
+- How did you hear about us?
+
+The form also has two boxes: "I agree to the processing of my personal data" (required) and "Keep me in the talent pool" (optional). Do not commit.

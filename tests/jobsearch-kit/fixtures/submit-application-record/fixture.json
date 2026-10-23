@@ -1,0 +1,15 @@
+{
+  "description": "submit-application part 2 for ExampleBank: the confirmation screenshot is saved as Confirmation_<date>.png, the applications.md row gets the date, and a work log entry is written.",
+  "repetitions": 3,
+  "timeoutMinutes": 20,
+  "requires": ["word"],
+  "seedCopy": [
+    { "from": "tests/jobsearch-kit/materials/seeds/examplebank", "to": "." },
+    { "from": "tests/jobsearch-kit/materials/seeds/examplebank-confirmation.png", "to": "inbox/confirmation.png" }
+  ],
+  "seedCommands": [
+    "node {{plugin}}/scripts/cv.js 2026_10_20_ExampleBank/cv_profile.yaml",
+    "node {{plugin}}/scripts/build-letter.js 2026_10_20_ExampleBank/cover-letter.md",
+    "Get-ChildItem 2026_10_20_ExampleBank -Filter *.docx | ForEach-Object { pwsh -NoProfile -File {{plugin}}/scripts/export-pdf.ps1 -Docx $_.FullName; if ($LASTEXITCODE) { exit 1 } }"
+  ]
+}

@@ -32,10 +32,11 @@ $words = @{ one = 1; two = 2; three = 3; four = 4; five = 5; six = 6; seven = 7;
 function ConvertTo-Number([string]$t) { if ($words.ContainsKey($t.ToLower())) { $words[$t.ToLower()] } else { [int]$t } }
 $num = '(\d+|' + ($words.Keys -join '|') + ')'
 
-# Normalized number phrases of a text: "10 years", "last 7", "since 2015".
+# Normalized number phrases of a text: "10 years", "7+ years" (a requirement), "last 7" (a period without a unit,
+# "the last seven are in payments"), "since 2015". "The past ten years" counts as "10 years".
 function Get-NumberPhrases([string]$text) {
-  foreach ($m in [regex]::Matches($text, "\b$num\s*\+?\s*(?:years?|yrs)\b", 'IgnoreCase')) { "$(ConvertTo-Number $m.Groups[1].Value) years" }
-  foreach ($m in [regex]::Matches($text, "\b(?:the\s+)?(?:last|past)\s+$num\b", 'IgnoreCase')) { "last $(ConvertTo-Number $m.Groups[1].Value)" }
+  foreach ($m in [regex]::Matches($text, "\b$num\s*(\+)?\s*(?:years?|yrs)\b", 'IgnoreCase')) { "$(ConvertTo-Number $m.Groups[1].Value)$($m.Groups[2].Value) years" }
+  foreach ($m in [regex]::Matches($text, "\b(?:the\s+)?(?:last|past)\s+$num\b(?!\s*\+?\s*(?:years?|yrs)\b)", 'IgnoreCase')) { "last $(ConvertTo-Number $m.Groups[1].Value)" }
   foreach ($m in [regex]::Matches($text, '\bsince\s+((?:19|20)\d\d)\b', 'IgnoreCase')) { "since $($m.Groups[1].Value)" }
 }
 
@@ -61,8 +62,11 @@ foreach ($f in $files) {
   if ($signOff -le 1) { $body = '' }
   $count = @([regex]::Matches($body, "[\p{L}\p{N}][\p{L}\p{N}'’.,%+-]*")).Count
   if ($count -lt $MinWords -or $count -gt $MaxWords) { $problems.Add("${rel}: body has $count words, expected $MinWords-$MaxWords") }
+  # A requirement quoted from the vacancy ("you ask for 7+ years") is not derived; "seven years" is.
+  $vacancy = Join-Path $f.DirectoryName 'vacancy.md'
+  $quoted = if (Test-Path $vacancy) { @(Get-NumberPhrases (Get-Content $vacancy -Raw) | Where-Object { $_ -like '*+ years' }) } else { @() }
   foreach ($p in @(Get-NumberPhrases $body | Sort-Object -Unique)) {
-    if ($p -notin $backed) { $problems.Add("${rel}: '$p' is not stated in candidate_facts.md (derived number?)") }
+    if ($p -notin $backed -and $p -notin $quoted) { $problems.Add("${rel}: '$p' is stated neither in candidate_facts.md nor as a vacancy requirement (derived number?)") }
   }
   Write-Output "${rel}: $count body words, $signOff paragraph(s) before the sign-off"
 }

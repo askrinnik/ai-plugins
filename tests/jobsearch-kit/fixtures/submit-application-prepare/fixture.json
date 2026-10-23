@@ -1,0 +1,15 @@
+{
+  "description": "submit-application part 1 for ExampleBank: PDFs exported with their links, form answers from the confirmed defaults, the \"ask\" question left to the user, nothing submitted.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "requires": ["word"],
+  "seedCopy": [{ "from": "tests/jobsearch-kit/materials/seeds/examplebank", "to": "." }],
+  "seedCommands": [
+    "node {{plugin}}/scripts/cv.js 2026_10_20_ExampleBank/cv_profile.yaml",
+    "node {{plugin}}/scripts/build-letter.js 2026_10_20_ExampleBank/cover-letter.md"
+  ],
+  "judge": {
+    "files": ["2026_10_20_ExampleBank/form-answers.md"],
+    "minScore": 4
+  }
+}

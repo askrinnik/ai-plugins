@@ -1,0 +1,28 @@
+{
+  "description": "cover-letter for Nordwind Pay with the fit analysis and the company research: front matter, one line per paragraph, 250-350 words, one page, no derived numbers, no start date, referrer or recruiter.",
+  "repetitions": 3,
+  "timeoutMinutes": 25,
+  "requires": [
+    "word"
+  ],
+  "seedCopy": [
+    {
+      "from": "tests/jobsearch-kit/materials/seeds/nordwind-pay",
+      "to": "."
+    }
+  ],
+  "seedDiffs": [
+    "tests/jobsearch-kit/materials/seeds/nordwind-pay.diff"
+  ],
+  "seedCommands": [
+    "node {{plugin}}/scripts/cv.js 2026_10_22_Nordwind_Pay/cv_profile.yaml"
+  ],
+  "judge": {
+    "files": [
+      "2026_10_22_Nordwind_Pay/vacancy.md",
+      "2026_10_22_Nordwind_Pay/cover-letter.md",
+      "_Companies/Nordwind_Pay/README.md"
+    ],
+    "minScore": 3
+  }
+}
