@@ -1,0 +1,37 @@
+{
+  "header": {
+    "name": "Riley Example",
+    "title": "Backend Developer (Python)",
+    "contacts": [
+      { "label": "T", "text": "+000 1111 2222" },
+      { "label": "E", "text": "riley.example@example.org", "url": "mailto:riley.example@example.org" },
+      { "label": "LinkedIn", "text": "linkedin.com/in/riley-example", "url": "https://www.linkedin.com/in/riley-example" },
+      { "label": "Location", "text": "Berlin, Germany" }
+    ]
+  },
+  "sections": [
+    { "heading": "Summary", "blocks": [
+      { "type": "para", "text": "Backend developer with 6 years of Python experience. I build REST APIs and background jobs with FastAPI, Django, PostgreSQL and Celery, and I care about tests and clear code." }
+    ] },
+    { "heading": "Experience", "blocks": [
+      { "type": "job", "title": "Backend Developer", "dates": "2021 to present", "company": "Sample Logistics GmbH, Berlin" },
+      { "type": "bullet", "text": "Built the shipment tracking API with Python, FastAPI and PostgreSQL; it serves about 300,000 requests per day." },
+      { "type": "bullet", "text": "Moved the nightly reports to Celery tasks; report time fell from 2 hours to 15 minutes." },
+      { "type": "bullet", "text": "Took part in the migration of our services to AWS (ECS, S3)." },
+      { "type": "job", "title": "Junior Python Developer", "dates": "2019 to 2021", "company": "Example Media AG, Hamburg" },
+      { "type": "bullet", "text": "Maintained the Django content services of the news site." },
+      { "type": "bullet", "text": "Wrote integration tests for the publishing workflow." }
+    ] },
+    { "heading": "Skills", "blocks": [
+      { "type": "labeled", "label": "Languages and frameworks", "text": "Python, FastAPI, Django, Celery" },
+      { "type": "labeled", "label": "Data", "text": "PostgreSQL, Redis" },
+      { "type": "labeled", "label": "Infrastructure", "text": "Docker, AWS (ECS, S3), Git" }
+    ] },
+    { "heading": "Education", "blocks": [
+      { "type": "para", "text": "BSc in Business Informatics, Example University of Applied Sciences, 2019." }
+    ] },
+    { "heading": "Languages", "blocks": [
+      { "type": "para", "text": "German (native), English (C1)." }
+    ] }
+  ]
+}

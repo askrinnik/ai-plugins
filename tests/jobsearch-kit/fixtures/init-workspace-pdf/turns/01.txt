@@ -1,0 +1,11 @@
+Set up my job search workspace in this folder. My current CV is base-cv.pdf.
+
+My settings: English for the conversation, the notes and the documents; recruiter messages in the language that the recruiter uses; cover letters must not name the start date or the referrer; the default writing style; no archived files.
+
+What my CV does not say:
+- Skill levels: Python, FastAPI, Django, PostgreSQL and Celery are production; Redis and Docker are production; AWS is working knowledge only (I took part in the migration, I did not lead it).
+- Salary expectation: 65000 EUR gross per year for an employee contract.
+- Earliest start: three months after an offer (my notice period).
+- Right to work: German citizen, no sponsorship needed.
+- Languages: German native, English C1.
+- Do not claim: Kubernetes (no experience), Java (no experience), and never say that I led the AWS migration.

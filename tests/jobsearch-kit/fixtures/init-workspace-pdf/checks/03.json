@@ -1,0 +1,15 @@
+[
+  { "name": "no template data, no placeholder, every fact with a source and a date", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-NewWorkspace.ps1" },
+  { "name": "the confirmed facts are marked confirmed", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "Sample Logistics[^\\n]*confirmed" },
+  { "name": "full CV .md", "type": "exists", "path": "MyProfile/cv/CV_*_full.md" },
+  { "name": "full CV .docx", "type": "exists", "path": "MyProfile/cv/CV_*_full.docx" },
+  { "name": "the full CV passes the wording rules", "type": "lint", "path": "MyProfile/cv/CV_*_full.md" },
+  { "name": "Kubernetes rule with honest negations", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "Kubernetes[^\\n]*\\n(\\s+\\w+:[^\\n]*\\n)*?\\s+allow:\\s*\\*negation" },
+  { "name": "Java rule", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "Java" },
+  { "name": "AWS migration rule", "type": "contains", "path": "MyProfile/cv/cv_rules.yaml", "pattern": "(led|lead)" },
+  { "name": "salary answer confirmed", "type": "contains", "path": "MyProfile/application_defaults.yaml", "pattern": "65[ ,.]?000[\\s\\S]{0,400}?status:\\s*confirmed" },
+  { "name": "referral answer stays ask", "type": "contains", "path": "MyProfile/application_defaults.yaml", "pattern": "referral:[\\s\\S]{0,400}?status:\\s*ask" },
+  { "name": "the CV keeps the verb \"took part\" for the AWS migration", "type": "not-contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "\\b(led|leading|drove|spearheaded|owned)\\b[^\\n]*AWS" },
+  { "name": "recordings ignored by git", "type": "contains", "path": ".gitignore", "pattern": "\\*\\.mp3" },
+  { "name": "a commit after the yes", "type": "script", "file": "checks/one-commit.ps1" }
+]

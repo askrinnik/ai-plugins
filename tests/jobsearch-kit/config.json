@@ -1,4 +1,4 @@
 {
-  "seed": "plugins/jobsearch-kit/templates/workspace",
+  "seed": "tests/jobsearch-kit/materials/workspace-jordan",
   "plugin": "plugins/jobsearch-kit"
 }

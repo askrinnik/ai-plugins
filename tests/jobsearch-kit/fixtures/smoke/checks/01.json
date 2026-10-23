@@ -5,6 +5,7 @@
   { "type": "answer-contains", "pattern": "jobsearch-kit:submit-application" },
   { "type": "answer-contains", "pattern": "jobsearch-kit:process-call" },
   { "type": "answer-contains", "pattern": "jobsearch-kit:update-cv-facts" },
+  { "type": "answer-contains", "pattern": "jobsearch-kit:init-workspace" },
   { "name": "SKILL_DIR resolved to the plugin folder", "type": "answer-contains", "pattern": "SKILL_DIR:.*jobsearch-kit[\\\\/]+skills[\\\\/]+update-cv-facts" },
   { "name": "no unresolved CLAUDE_SKILL_DIR", "type": "answer-not-contains", "pattern": "SKILL_DIR:.*CLAUDE_SKILL_DIR" },
   { "name": "reference/scripts.md was read", "type": "answer-contains", "pattern": "HEADING:\\s*#?\\s*Scripts" },

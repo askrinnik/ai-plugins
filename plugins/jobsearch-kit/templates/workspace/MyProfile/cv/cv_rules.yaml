@@ -11,16 +11,15 @@
 #             joined by "and" inside the cut part ("I have not used X and Y is my strength") is not caught.
 #   message   (required) why, with the date of the fact
 # When a fact in candidate_facts.md changes, change the rule here in the same commit.
-# The rules below are examples for the fictional candidate; replace them.
+# Examples (replace "rules: []" below with your own limits):
+#   - pattern: \bGo(lang)?\b(?! to)       # no experience with Go
+#     allow: *negation
+#     message: "No experience with Go (facts, <date>)."
+#   - pattern: \bKubernetes\b             # working knowledge only
+#     unless: working knowledge
+#     message: "Kubernetes is working knowledge only (facts, <date>)."
 
 # Honest negations: from "I have not ..." up to the next comma, full stop or semicolon.
 negation: &negation \b(I have not|I haven't|I have never|I never|I did not|I didn't|I do not have|I don't have)\b[^.;,]*
 
-rules:
-  - pattern: \bGo(lang)?\b(?! to)
-    allow: *negation
-    message: "No experience with Go (facts, 2026-01-10)."
-
-  - pattern: \bKubernetes\b
-    unless: working knowledge
-    message: "Kubernetes is working knowledge only (facts, 2026-01-10)."
+rules: []

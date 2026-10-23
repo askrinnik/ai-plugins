@@ -19,6 +19,7 @@ Invoke a skill by its name or as `/jobsearch-kit:<skill>`.
 | `submit-application` | Before you submit (PDFs, links, form answers) and after (confirmation, records) |
 | `update-cv-facts` | You confirm or correct a fact: facts, master CV, rules, form answers, full CV |
 | `process-call` | A recording of a call or interview: transcript, summary, company notes |
+| `init-workspace` | You start with the plugin: a new workspace from your CV, settings and confirmed facts |
 
 ```mermaid
 flowchart LR
@@ -27,6 +28,7 @@ flowchart LR
   CL --> SA[submit-application]
   AC --> SA
   SA -.later stages.-> PC[process-call]
+  IW[init-workspace] --> AV
   U[update-cv-facts] -.facts for.-> AV
   PC -.new facts.-> U
 ```
@@ -40,10 +42,11 @@ The skills never submit forms, send messages or commit on their own.
 
 | Folder | Content |
 |---|---|
-| `skills/` | The six skills |
+| `skills/` | The seven skills |
 | `reference/` | Read by every skill: `workspace.md` (layout, settings, precedence), `rules.md` (rules, documents, style), `scripts.md` (commands, dependencies, environment) |
 | `scripts/` | CV and letter build, wording lint, PDF export, page preview, transcription, dependency setup |
-| `templates/workspace/` | A starter workspace with a fictional candidate |
+| `templates/workspace/` | An empty workspace: the files and formats with placeholders, used by `init-workspace` |
+| `docs/user-guide.md` | The user guide: situations, skills, where they stop, the facts model |
 
 ## Requirements
 
@@ -88,16 +91,29 @@ The skills never submit forms, send messages or commit on their own.
    or remove one: `[Environment]::GetEnvironmentVariable('<name>', 'User')`,
    `[Environment]::SetEnvironmentVariable('<name>', [NullString]::Value, 'User')`.
 
-## Start a workspace
+## Getting started
 
-1. Copy the template into a new folder and make it a git repository:
+1. Create an empty folder for your workspace and start Claude Code in it.
+2. Say: "Set up my job search workspace. My CV is <file>." (a `.docx`, a `.pdf`, text or a LinkedIn export). The
+   `init-workspace` skill asks for your settings, drafts your facts and master CV from the CV, asks you to confirm
+   every fact and your limits, checks the tools, builds your full CV and offers the first commit.
+3. Share a vacancy link and ask Claude to analyze it.
+
+The [user guide](docs/user-guide.md) tells you which skill to use in which situation, what each skill asks and where
+it stops.
+
+### Set up a workspace by hand
+
+If you prefer not to use `init-workspace`:
+
+1. Copy the empty template into a new folder and make it a git repository:
 
    ```powershell
    Copy-Item -Recurse plugins\jobsearch-kit\templates\workspace <your workspace>
    git -C <your workspace> init
    ```
 
-2. Replace the fictional candidate with your own data:
+2. Replace every `<...>` placeholder with your own data:
    - `CLAUDE.md`: your languages, cover letter preferences and personal rules (see `reference/workspace.md`,
      "Workspace settings").
    - `MyProfile/candidate_facts.md`: your facts, with dates. This is the only source of truth.

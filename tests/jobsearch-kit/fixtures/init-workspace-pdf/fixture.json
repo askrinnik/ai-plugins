@@ -1,0 +1,15 @@
+{
+  "description": "init-workspace from zero with a fictional base CV (.pdf): the settings, the facts drafted from the CV and confirmed by the user, the limits as wording rules, the form answers, and a full CV that builds; no template data left.",
+  "repetitions": 1,
+  "timeoutMinutes": 30,
+  "requires": [
+    "word"
+  ],
+  "emptySeed": true,
+  "seedCopy": [
+    {
+      "from": "tests/jobsearch-kit/materials/base-cv/base-cv-riley-example.pdf",
+      "to": "base-cv.pdf"
+    }
+  ]
+}

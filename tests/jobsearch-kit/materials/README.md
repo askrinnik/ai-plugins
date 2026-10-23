@@ -1,13 +1,15 @@
 # Test materials for jobsearch-kit
 
 Fictional inputs and reference outputs for the jobsearch-kit tests. All people and companies are invented; the
-candidate is Jordan Sample from `plugins/jobsearch-kit/templates/workspace/`.
+candidate is Jordan Sample from `workspace-jordan/`, the seed workspace of every test (`../config.json`).
 
 | Path | Content |
 |---|---|
 | `vacancies/` | Vacancy texts, the user answers and the form questions used in the checks |
 | `call/` | A two-language recruiter call: script, synthetic and live-voice audio, and what the skill must notice |
 | `reference-run-2026-10-22/` | What the skills produced in the live check: application and stage folders, company research, `applications.md`, and `workspace-changes.diff` (changes to the tracked workspace files: facts, rules, work log) |
+| `workspace-jordan/` | The fictional candidate Jordan Sample: the seed workspace of the tests (facts, master CV, rules, form answers) |
+| `base-cv/` | Fictional base CVs for `init-workspace`: Riley Example (`.docx`, `.pdf`, and the content it was built from) and Jordan Sample (`.docx`, for the end-to-end fixture) |
 | `seeds/` | Seed files of the skill fixtures: application folders for Nordwind Pay and ExampleBank (their documents are built by the fixtures), the Nordwind Pay answers as a diff, a fictional confirmation screenshot |
 | `manual-check-2026-10-22.md` | The manual check step by step, its results and the regressions found |
 

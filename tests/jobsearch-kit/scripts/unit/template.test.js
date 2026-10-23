@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const { SEED, YAML } = require('./helpers');
+const { SEED, PLUGIN, YAML, tempDir, runScript } = require('./helpers');
 
 const CLAIMS_FILE = path.join(__dirname, 'template-claims.yaml');
 
@@ -32,7 +32,27 @@ function masterUnits(master) {
   return units;
 }
 
-const loose = (t) => String(t).replace(/\s+/g, ' ').toLowerCase();
+// The empty workspace template of the plugin (used by init-workspace): no person's data, every file parses, and the
+// full CV builds from the placeholders.
+test('the plugin template is an empty skeleton that builds', () => {
+  const skeleton = path.join(PLUGIN, 'templates', 'workspace');
+  const problems = [];
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
+  for (const file of walk(skeleton)) {
+    const text = fs.readFileSync(file, 'utf8');
+    for (const mark of ['Jordan', 'Example Payments', 'Sample Retail', 'Lisbon']) {
+      if (text.includes(mark)) problems.push(`${path.relative(skeleton, file)}: "${mark}"`);
+    }
+    if (/\.ya?ml$/.test(file)) YAML.parse(text);
+  }
+  assert.deepEqual(problems, [], `the empty template holds data of a person:\n  ${problems.join('\n  ')}`);
+  const ws = tempDir('skeleton');
+  fs.cpSync(skeleton, ws, { recursive: true });
+  const r = runScript('cv.js', ['MyProfile/cv/profile_full.yaml', '--no-docx'], { cwd: ws });
+  assert.equal(r.code, 0, `the skeleton full CV does not build:\n${r.all}`);
+});
+
+const loose =(t) => String(t).replace(/\s+/g, ' ').toLowerCase();
 
 test('every CV claim of the template master is backed by the template facts', () => {
   const master = YAML.parse(fs.readFileSync(path.join(SEED, 'MyProfile/cv/cv_master.yaml'), 'utf8'));

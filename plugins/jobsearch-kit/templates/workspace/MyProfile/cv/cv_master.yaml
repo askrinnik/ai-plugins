@@ -1,30 +1,25 @@
-# CV master content: the single source of CV text. Jordan Sample is a fictional example; replace everything.
+# CV master content: the single source of CV text. Replace every <...>.
 # Every claim here must follow MyProfile/candidate_facts.md. The build checks MyProfile/cv/cv_rules.yaml.
 # Format: see the top of the plugin's scripts/cv.js. Each section has a "kind": text, list, groups, jobs, projects
 # or paras. Profiles select sections, items, groups, jobs and bullets by "id".
 
 header:
-  name: Jordan Sample
+  name: <Your Name>
   # photo: MyProfile/photo.jpg      # optional, relative to the workspace root
   contacts:
     - id: phone
       label: T
-      text: "+000 0000 0000"
+      text: "<phone>"
     - id: email
       label: E
-      text: jordan.sample@example.com
-      url: mailto:jordan.sample@example.com
-    - id: github
-      label: GitHub
-      text: github.com/example
-      url: https://github.com/example
+      text: <e-mail>
+      url: mailto:<e-mail>
     - id: location
       label: Location
-      text: Lisbon, Portugal (open to hybrid work)
+      text: <city, country>
 
 titles:
-  backend: Senior Backend Engineer (Java)
-  lead: Backend Team Lead (Java)
+  main: <your job title>
 
 sections:
   - id: summary
@@ -32,89 +27,31 @@ sections:
     kind: text
     variants:
       default: >-
-        Senior Backend Engineer with 10 years of Java experience, building payment APIs and event-driven services
-        with Spring Boot, PostgreSQL and Kafka. Leads a team of four engineers.
-      lead: >-
-        Backend team lead of four engineers, shipping payment services in production with Java, Spring Boot,
-        PostgreSQL and Kafka.
-
-  - id: soft-skills
-    heading: Skills
-    kind: list
-    items:
-      - id: leadership
-        text: Team leadership
-      - id: reviews
-        text: Code reviews
-      - id: ownership
-        text: Production ownership
+        <two or three sentences: who you are, your main stack, your strongest result>
 
   - id: key-skills
     heading: Key Skills
     kind: groups
     groups:
-      - id: backend
-        label: Backend
-        text: Java 21, Spring Boot, REST API design
-      - id: data
-        label: Data
-        text: PostgreSQL (schema design, query tuning), MySQL
-      - id: messaging
-        label: Messaging
-        text: Kafka, RabbitMQ
-      - id: cloud
-        label: Cloud
-        text: Docker; working knowledge of Kubernetes
+      - id: main
+        label: <group, for example Backend>
+        text: <skills of this group>
 
   - id: work
     heading: Work History
     kind: jobs
     jobs:
-      - id: example-payments
-        title: Senior Backend Engineer
-        dates: 2019 to present
-        company: Example Payments Ltd, Lisbon
+      - id: job1
+        title: <title>
+        dates: <start> to <end>
+        company: <company, city>
         bullets:
-          - id: api
-            tags: [api]
-            text: Develop the payment API that handles **about 2 million requests per day**.
-          - id: settlement
-            tags: [events]
-            text: Moved settlement batch jobs to event-driven processing with Kafka; settlement time fell from 6 hours to 40 minutes.
-          - id: lead
-            tags: [lead]
-            text: Lead a team of four engineers; run code reviews and onboarding.
-      - id: sample-retail
-        title: Backend Developer
-        dates: 2015 to 2019
-        company: Sample Retail SA, Porto
-        bullets:
-          - id: orders
-            tags: [api]
-            text: Built order and stock services with Java and Spring on MySQL.
-          - id: queues
-            tags: [events]
-            text: Connected the stores and the warehouse through RabbitMQ.
-
-  - id: projects
-    heading: Projects
-    kind: projects
-    projects:
-      - id: ledger
-        title: Ledger demo
-        paras:
-          - A small double-entry ledger service, written to try new Java features.
-        features:
-          - text: Features
-            items:
-              - Idempotent postings
-              - Balance snapshots
-        stack: [Java 21, Spring Boot, PostgreSQL]
-        role: Sole developer
-        link: { text: github.com/example/ledger, url: https://github.com/example/ledger }
+          - id: b1
+            tags: [<topic>]
+            text: <what you did, with a number if the facts give one>
 
   - id: education
     heading: Education
     kind: paras
     paras:
-      - BSc in Computer Science, Example University, 2015.
+      - <degree, school, year>

@@ -1,6 +1,6 @@
 # Standard answers for job application web forms. Used by the submit-application skill.
 # Every answer has its source fact and date. When a fact in candidate_facts.md changes, change the answer here too
-# (the update-cv-facts skill does this). Jordan Sample is a fictional example; replace everything.
+# (the update-cv-facts skill does this). Fill in the answers from your confirmed facts.
 #
 # Fields of an answer:
 #   question  typical wording of the form question
@@ -13,24 +13,22 @@
 
 answers:
   right_to_work:
-    question: "Do you have the right to work in the EU? Do you need visa sponsorship?"
-    answer: "Yes. I am an EU citizen. I do not need sponsorship."
-    source: "candidate_facts.md, Contacts and status: Right to work (confirmed 2026-01-10)"
-    status: confirmed
+    question: "Do you have the right to work in the country of the job? Do you need visa sponsorship?"
+    answer: ""
+    source: "candidate_facts.md, Contacts and status: Right to work"
+    status: ask
 
   salary:
     question: "What are your salary expectations?"
-    answer: "5000 EUR gross per month"
-    options: "If the form asks for a yearly figure: 60000 EUR gross per year."
-    source: "candidate_facts.md, Contacts and status: Salary expectation (confirmed 2026-01-10)"
-    status: confirmed
-    note: "For an employee contract. For a contractor or B2B offer, ask the user."
+    answer: ""
+    source: "candidate_facts.md, Contacts and status: Salary expectation"
+    status: ask
 
   start_date:
     question: "When can you start?"
-    answer: "One month after an offer"
-    source: "candidate_facts.md, Contacts and status: Earliest start date (confirmed 2026-01-10)"
-    status: confirmed
+    answer: ""
+    source: "candidate_facts.md, Contacts and status: Earliest start date"
+    status: ask
 
   referral:
     question: "How did you hear about this job? / Were you referred?"

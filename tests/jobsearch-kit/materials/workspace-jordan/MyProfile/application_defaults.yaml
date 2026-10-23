@@ -1,0 +1,40 @@
+# Standard answers for job application web forms. Used by the submit-application skill.
+# Every answer has its source fact and date. When a fact in candidate_facts.md changes, change the answer here too
+# (the update-cv-facts skill does this). Jordan Sample is a fictional test candidate.
+#
+# Fields of an answer:
+#   question  typical wording of the form question
+#   answer    the text or the option to choose
+#   options   how to pick when the form has a fixed list of options (optional)
+#   source    the fact behind the answer: a file and a section, or "user" with the date
+#   used      earlier forms that used this answer (optional)
+#   status    confirmed | ask   ("ask": not confirmed; ask the user before you give this answer)
+#   note      limits and cases where the answer is different (optional)
+
+answers:
+  right_to_work:
+    question: "Do you have the right to work in the EU? Do you need visa sponsorship?"
+    answer: "Yes. I am an EU citizen. I do not need sponsorship."
+    source: "candidate_facts.md, Contacts and status: Right to work (confirmed 2026-01-10)"
+    status: confirmed
+
+  salary:
+    question: "What are your salary expectations?"
+    answer: "5000 EUR gross per month"
+    options: "If the form asks for a yearly figure: 60000 EUR gross per year."
+    source: "candidate_facts.md, Contacts and status: Salary expectation (confirmed 2026-01-10)"
+    status: confirmed
+    note: "For an employee contract. For a contractor or B2B offer, ask the user."
+
+  start_date:
+    question: "When can you start?"
+    answer: "One month after an offer"
+    source: "candidate_facts.md, Contacts and status: Earliest start date (confirmed 2026-01-10)"
+    status: confirmed
+
+  referral:
+    question: "How did you hear about this job? / Were you referred?"
+    answer: ""
+    source: "user"
+    status: ask
+    note: "Depends on the vacancy; ask the user every time."

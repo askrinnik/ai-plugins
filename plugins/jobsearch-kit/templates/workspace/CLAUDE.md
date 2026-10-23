@@ -1,23 +1,22 @@
 # Job search workspace
 
-Job search materials of Jordan Sample (fictional example candidate). The procedures come from the `jobsearch-kit`
-plugin: run its skills (`/jobsearch-kit:analyze-vacancy` and others). This file holds the settings and personal rules
-of this workspace; they override the plugin defaults.
+Job search materials of <your name>. The procedures come from the `jobsearch-kit` plugin: run its skills
+(`/jobsearch-kit:analyze-vacancy` and others). This file holds the settings and personal rules of this workspace;
+they override the plugin defaults. The `init-workspace` skill fills in the settings below.
 
 ## Workspace settings
 
-<!-- Change the values below. The plugin reference "workspace.md" lists every setting and its default. -->
+<!-- Replace each <...>. The plugin reference "workspace.md" lists every setting and its default. -->
 
-- **Conversation language:** English.
-- **Notes language:** English (`README.md`, `applications.md`, vacancy notes, fit analyses, company research, call
+- **Conversation language:** <language>.
+- **Notes language:** <language> (`README.md`, `applications.md`, vacancy notes, fit analyses, company research, call
   summaries).
-- **Documents language:** English (CVs, the master CV, profiles, cover letters, form answers, interview Q&A).
-- **Recruiter messages:** the language that the recruiter uses.
-- **Cover letter preferences:**
-  - Do not write the start date or availability.
-  - Do not name the referrer or the recruiter.
-- **Writing style:** the plugin default (`rules.md`, "Writing style").
-- **Archived files:** none.
+- **Documents language:** <language> (CVs, the master CV, profiles, cover letters, form answers, interview Q&A).
+- **Recruiter messages:** <the language that the recruiter uses, or a fixed language>.
+- **Cover letter preferences:** <what a letter must not contain, for example the start date, the referrer or the
+  recruiter's name; or "none">.
+- **Writing style:** <the plugin default (`rules.md`, "Writing style"), or your own rules>.
+- **Archived files:** <files that must never change, or "none">.
 
 ## Personal rules
 
