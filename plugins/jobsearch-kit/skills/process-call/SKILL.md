@@ -95,8 +95,8 @@ Write the notes by the style rules for notes (`rules.md`, "Writing style", unles
 
 1. If the user stated a new fact on the call (salary named, start date, a skill), ask the user to confirm it. Then
    run `jobsearch-kit:update-cv-facts`.
-2. For each new person mentioned on the call, look them up on LinkedIn in the built-in browser. If LinkedIn needs a
-   sign-in, ask the user to sign in and wait. Read only: never connect, message, like or follow.
+2. For each new person mentioned on the call, look them up on LinkedIn in the built-in browser. Follow
+   `rules.md`, "Signed-in sites": ask first with its warnings, let the user sign in, read only, no exception.
 3. Add what you found to `_Companies/<Company>/` (`people.md` or `README.md`), with the source and the date. Add the
    call's facts about the company (process, team, salary policy, benefits) to the company notes with the call date.
 

@@ -1,0 +1,4 @@
+[
+  { "name": "letter PDF after the yes", "type": "exists", "path": "2026_10_22_Nordwind_Pay/*Cover_Letter*.pdf" },
+  { "name": "the PDF is not older than the .docx", "type": "script", "file": "checks/pdf-not-older.ps1" }
+]

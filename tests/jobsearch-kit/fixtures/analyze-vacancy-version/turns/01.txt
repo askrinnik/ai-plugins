@@ -1,0 +1,15 @@
+Analyze this vacancy. I only have the text, there is no link. I found it myself on a job board; it is not a referral.
+
+Backend Engineer (Java), Ledger team
+Company: Fjordline Systems AS (fictional), Oslo, Norway; remote within the EU
+Salary: 5200–6000 EUR gross per month
+
+Responsibilities:
+- Build and run the REST APIs of the ledger service
+- Keep the services healthy in production
+
+Requirements:
+- 5+ years of commercial Java experience, currently on Java 17
+- Spring Boot, PostgreSQL
+- Docker
+- English at B2 level or higher

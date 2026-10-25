@@ -1,0 +1,40 @@
+# Wording rules for every CV built by the plugin's scripts/cv.js and for any Markdown file checked with
+# "cv.js --lint <file.md>" (a cover letter, a form answer). Source: MyProfile/candidate_facts.md.
+# Patterns are JavaScript regular expressions. A rule is tested against one text unit (a bullet, a paragraph, a skill
+# line, a contact line). Fields:
+#   pattern   (required) the wording that is not allowed
+#   flags     regular expression flags for "pattern" and "unless", for example i
+#   unless    if this matches the same unit, the whole unit passes
+#   allow     a pattern or a list of patterns for honest negations, for example "I have not worked with Go".
+#             Every match of an allow pattern is cut out of the unit first (case-insensitive); then "pattern" is
+#             tested against the rest. So a claim elsewhere in the same paragraph still fails. Limit: a claim
+#             joined by "and" inside the cut part ("I have not used X and Y is my strength") is not caught.
+#   message   (required) why, with the date of the fact
+# When a fact in candidate_facts.md changes, change the rule here in the same commit.
+# Examples (replace "rules: []" below with your own limits):
+#   - pattern: \bGo(lang)?\b(?! to)       # no experience with Go
+#     allow: *negation
+#     message: "No experience with Go (facts, <date>)."
+#   - pattern: \bKubernetes\b             # working knowledge only
+#     unless: working knowledge
+#     message: "Kubernetes is working knowledge only (facts, <date>)."
+
+# Honest negations: from "I have not ..." up to the next comma, full stop or semicolon.
+negation: &negation \b(I have not|I haven't|I have never|I never|I did not|I didn't|I do not have|I don't have)\b[^.;,]*
+
+rules:
+  - pattern: \b(Kubernetes|k8s)\b
+    flags: i
+    allow: *negation
+    message: "No experience with Kubernetes (facts, 2026-10-24)."
+  - pattern: \bJava\b
+    allow: *negation
+    message: "No experience with Java (facts, 2026-10-24)."
+  - pattern: \bAWS\b
+    flags: i
+    unless: working knowledge|took part
+    message: "AWS is working knowledge only; the candidate took part in the migration (facts, 2026-10-24)."
+  - pattern: \b(led|leading|lead|owned|drove|headed|spearheaded|managed)\b[^.;]*\b(AWS|migration)\b|\b(AWS|migration)\b[^.;]*\b(led by me|I led)\b
+    flags: i
+    allow: *negation
+    message: "Never say that the candidate led the AWS migration; the candidate took part in it (facts, 2026-10-24)."

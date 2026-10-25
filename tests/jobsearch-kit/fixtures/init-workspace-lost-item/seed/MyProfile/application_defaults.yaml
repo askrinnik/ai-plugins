@@ -1,0 +1,45 @@
+# Standard answers for job application web forms. Used by the submit-application skill.
+# Every answer has its source fact and date. When a fact in candidate_facts.md changes, change the answer here too
+# (the update-cv-facts skill does this).
+#
+# Fields of an answer:
+#   question  typical wording of the form question
+#   answer    the text or the option to choose
+#   options   how to pick when the form has a fixed list of options (optional)
+#   source    the fact behind the answer: a file and a section, or "user" with the date
+#   used      earlier forms that used this answer (optional)
+#   status    confirmed | ask   ("ask": not confirmed; ask the user before you give this answer)
+#   note      limits and cases where the answer is different (optional)
+
+answers:
+  right_to_work:
+    question: "Do you have the right to work in the country of the job? Do you need visa sponsorship?"
+    answer: "German citizen. No visa sponsorship needed."
+    source: "candidate_facts.md, Contacts and status: Right to work (confirmed 2026-10-24)"
+    status: confirmed
+
+  salary:
+    question: "What are your salary expectations?"
+    answer: "65000 EUR gross per year (employee contract)."
+    source: "candidate_facts.md, Contacts and status: Salary expectation (confirmed 2026-10-24)"
+    status: confirmed
+
+  start_date:
+    question: "When can you start?"
+    answer: "Three months after an offer (notice period)."
+    source: "candidate_facts.md, Contacts and status: Earliest start date (confirmed 2026-10-24)"
+    status: confirmed
+    note: "Do not name the start date in cover letters."
+
+  languages:
+    question: "Which languages do you speak, and at what level?"
+    answer: "German native, English C1."
+    source: "candidate_facts.md, Contacts and status: Languages (confirmed 2026-10-24)"
+    status: confirmed
+
+  referral:
+    question: "How did you hear about this job? / Were you referred?"
+    answer: ""
+    source: "user"
+    status: ask
+    note: "Depends on the vacancy; ask the user every time. Do not name the referrer in cover letters."

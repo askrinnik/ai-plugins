@@ -1,0 +1,7 @@
+# Call recordings stay local
+*.mp3
+*.m4a
+*.wav
+
+# Office lock files
+~$*

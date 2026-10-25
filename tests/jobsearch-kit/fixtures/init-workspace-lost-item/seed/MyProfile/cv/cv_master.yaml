@@ -1,0 +1,87 @@
+# CV master content: the single source of CV text.
+# Every claim here must follow MyProfile/candidate_facts.md. The build checks MyProfile/cv/cv_rules.yaml.
+# Format: see the top of the plugin's scripts/cv.js. Each section has a "kind": text, list, groups, jobs, projects
+# or paras. Profiles select sections, items, groups, jobs and bullets by "id".
+
+header:
+  name: Riley Example
+  contacts:
+    - id: phone
+      label: T
+      text: "+000 1111 2222"
+    - id: email
+      label: E
+      text: riley.example@example.org
+      url: mailto:riley.example@example.org
+    - id: linkedin
+      label: LinkedIn
+      text: linkedin.com/in/riley-example
+      url: https://linkedin.com/in/riley-example
+    - id: location
+      label: Location
+      text: Berlin, Germany
+
+titles:
+  main: Backend Developer (Python)
+
+sections:
+  - id: summary
+    heading: Summary
+    kind: text
+    variants:
+      default: >-
+        Backend developer with 6 years of Python experience. I build REST APIs and background jobs with FastAPI,
+        Django, PostgreSQL and Celery, and I care about tests and clear code.
+
+  - id: key-skills
+    heading: Skills
+    kind: groups
+    groups:
+      - id: lang
+        label: Languages and frameworks
+        text: Python, FastAPI, Django, Celery
+      - id: data
+        label: Data
+        text: PostgreSQL, Redis
+      - id: infra
+        label: Infrastructure
+        text: Docker, AWS (ECS, S3; working knowledge), Git
+
+  - id: work
+    heading: Experience
+    kind: jobs
+    jobs:
+      - id: sample
+        title: Backend Developer
+        dates: 2021 to present
+        company: Sample Logistics GmbH, Berlin
+        bullets:
+          - id: tracking-api
+            tags: [api]
+            text: Built the shipment tracking API with Python, FastAPI and PostgreSQL; it serves about 300,000 requests per day.
+          - id: reports
+            tags: [data]
+            text: Moved the nightly reports to Celery tasks; report time fell from 2 hours to 15 minutes.
+          - id: aws
+            tags: [cloud]
+            text: Took part in the migration of our services to AWS (ECS, S3).
+      - id: media
+        title: Junior Python Developer
+        dates: 2019 to 2021
+        company: Example Media AG, Hamburg
+        bullets:
+          - id: django
+            tags: [api]
+            text: Maintained the Django content services of the news site.
+
+  - id: education
+    heading: Education
+    kind: paras
+    paras:
+      - BSc in Business Informatics, Example University of Applied Sciences, 2019.
+
+  - id: languages
+    heading: Languages
+    kind: paras
+    paras:
+      - German (native), English (C1).

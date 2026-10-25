@@ -1,6 +1,6 @@
 ---
 name: cover-letter
-description: Write a cover letter for a vacancy from the confirmed facts and the company research, then build it as Markdown → .docx → PDF and check the layout. Use when the user asks for a cover letter or motivation letter, when a vacancy or application form asks for one, or when analyze-vacancy or adapt-cv hands over to it. Also use to change and rebuild an existing cover-letter.md.
+description: Write a cover letter for a vacancy from the confirmed facts and the company research, then build it as Markdown → .docx, check the layout, and make the PDF after the user confirms the letter. Use when the user asks for a cover letter or motivation letter, when a vacancy or application form asks for one, or when analyze-vacancy or adapt-cv hands over to it. Also use to change and rebuild an existing cover-letter.md.
 ---
 
 # Write and build a cover letter
@@ -18,13 +18,13 @@ flowchart LR
   I[Inputs: vacancy, fit, company, facts] --> W[cover-letter.md]
   W --> L[--lint]
   L --> B[.docx]
-  B --> P[PDF]
-  P --> V[PNG check]
-  V --> S[SendUserFile]
+  B --> V[PNG check]
+  V --> U[User checks the .docx]
+  U --> P[PDF]
 ```
 
-Summary of the flow: write `cover-letter.md` from the inputs, lint it, build the `.docx` and the PDF, look at the
-rendered pages, then show the PDF to the user.
+Summary of the flow: write `cover-letter.md` from the inputs, lint it, build the `.docx`, look at the rendered
+pages, let the user check the letter, and make the PDF only after the user confirms it.
 
 ## 1. Read the inputs
 
@@ -96,20 +96,25 @@ rendered pages, then show the PDF to the user.
 ## 4. Build and check
 
 1. Build the `.docx`: `node "${CLAUDE_SKILL_DIR}/../../scripts/build-letter.js" <folder>/cover-letter.md`.
-2. Build the PDF in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/export-pdf.ps1" -Docx <folder>/<output>.docx`. If Word locks the file,
-   ask the user to close it. Do not close Word yourself.
-3. Render the PDF to PNG in Windows PowerShell 5.1:
-   `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_SKILL_DIR}/../../scripts/pdf-to-png.ps1" -Pdf <pdf> -OutDir %TEMP%\jobsearch\letter`.
-4. Read the PNG files. The letter must fit on one page. Check the date, the greeting, the sign-off and the contacts.
-5. If the page check fails, shorten the text and repeat steps 3–4 of this section and section 3.
-6. After every text change, rebuild both the `.docx` and the PDF. Never edit the `.docx` or the PDF by hand.
+2. Render the preview in pwsh: `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/render-preview.ps1" -Docx
+   <folder>/<output>.docx -OutDir %TEMP%\jobsearch\letter`. If Word locks the file, ask the user to close it. Do not
+   close Word yourself.
+3. Read the PNG files. The letter must fit on one page. Check the date, the greeting, the sign-off and the contacts.
+4. If the page check fails, shorten the text and repeat section 3 and steps 1–3 of this section.
+5. After every text change, rebuild the `.docx` (and the PDF, if it exists). Never edit the `.docx` or the PDF by
+   hand.
 
 ## 5. Show it
 
-1. Send the PDF with `SendUserFile` (`display: render`). If that tool is not available, give the user the path of the
-   PDF.
+1. Send the `.docx` with `SendUserFile` (`display: attach`). If that tool is not available, give the user its path.
 2. Tell the user the word count, which gaps the letter names and any sentence they should check.
-3. If the form has a cover letter text field, tell the user that `cover-letter.md` can be pasted as it is (without
+3. Ask whether the letter is correct and whether to make the PDF. Wait for the answer. Do not make the PDF before
+   the user confirms the letter.
+   - If the user asks for changes, change `cover-letter.md`, and repeat sections 3 and 4 and this step.
+   - If the user confirms the letter, export the PDF in pwsh:
+     `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/export-pdf.ps1" -Docx <folder>/<output>.docx`. Check that it
+     has one page. Send it with `SendUserFile` (`display: render`), or give its path.
+4. If the form has a cover letter text field, tell the user that `cover-letter.md` can be pasted as it is (without
    the front matter).
-4. If the calling skill (`jobsearch-kit:analyze-vacancy`, `jobsearch-kit:adapt-cv`) writes the log, stop here. Otherwise add a work log entry to
+5. If the calling skill (`jobsearch-kit:analyze-vacancy`, `jobsearch-kit:adapt-cv`) writes the log, stop here. Otherwise add a work log entry to
    `README.md` and offer a commit. Commit only when the user says so.

@@ -1,0 +1,9 @@
+[
+  { "name": "the fact is back", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "integration tests[^\\n]*publishing" },
+  { "name": "the master bullet is back", "type": "contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "integration tests[^\\n]*publishing" },
+  { "name": "the full CV has the bullet", "type": "contains", "path": "MyProfile/cv/CV_*_full.md", "pattern": "integration tests[^\\n]*publishing" },
+  { "name": "full CV .docx", "type": "exists", "path": "MyProfile/cv/CV_*_full.docx" },
+  { "name": "the full CV passes the wording rules", "type": "lint", "path": "MyProfile/cv/CV_*_full.md" },
+  { "name": "a commit after the yes, with the work log", "type": "script", "file": "tests/jobsearch-kit/fixtures/init-workspace-docx/checks/one-commit.ps1" },
+  { "name": "the final message says that the workspace is ready", "type": "answer-contains", "pattern": "workspace is ready" }
+]

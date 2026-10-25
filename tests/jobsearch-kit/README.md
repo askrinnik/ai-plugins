@@ -32,8 +32,9 @@ pwsh -File tests\jobsearch-kit\scripts\Test-Scripts.ps1 [-SkipWord] [-SkipAudio]
 ```
 
 - Node tests (`node --test`, `scripts/unit/*.test.js`): the workspace root search, the CV build and every section
-  kind, the wording rules, the error messages, `build-cv.js`, `build-letter.js`, the consistency check of the seed
-  (every CV claim backed by a fact), and the check that the plugin template is an empty skeleton that builds.
+  kind, the wording rules, the error messages, `build-cv.js`, `build-letter.js`, `compare-cv.js`, the consistency
+  check of the seed (every CV claim backed by a fact), and the check that the plugin template is an empty skeleton
+  that builds.
 - PowerShell tests (`scripts/unit/scripts.Tests.ps1`): `folder-variable.ps1` (on a throwaway user variable that the
   test removes), `New-CallAudio.ps1`, and the Word scripts `export-pdf.ps1` and `render-preview.ps1`.
 - Without the Word tests the run takes a few seconds. If Word is not installed, the Word tests are skipped with a
@@ -170,18 +171,20 @@ and counts false positives (claims that the material does not back). Base ground
 | `selftest-stop` | Framework self-test: a check after turn 1 proves that the session stopped; the judge pipeline works |
 | `analyze-vacancy-text` | Fit table and company research for a vacancy given as text; the skill stops before the CV; the answers reach the facts and the rules |
 | `analyze-vacancy-defer` | The user defers: the reason is recorded, no CV |
+| `analyze-vacancy-version` | A vacancy names an older version (Java 17) than the facts (Java 21): 🟡 with a question, never ❌; the confirmed range reaches the facts |
 | `analyze-vacancy-earlier-application` | An earlier application to the same company is mentioned; the company notes are kept |
 | `update-cv-facts-verb-strength` | The verb of a fact is kept ("used", not "introduced"); the full CV is rebuilt with `.md` and `.docx` |
 | `update-cv-facts-limit` | A "no experience with X" fact becomes a rule that lets honest negations through |
 | `update-cv-facts-unsent-cvs` | The unsent tailored CV is checked; the submitted one stays as sent |
-| `adapt-cv-text` | Proposals first, no build until the user agrees; then a one-page CV and a "not submitted" row |
+| `adapt-cv-text` | Proposals first, no build until the user agrees; then a one-page CV and a "not submitted" row; the PDF only after the user checks the CV |
 | `adapt-cv-first-profile` | Without an earlier application, the profile starts from `profile_full.yaml` |
-| `cover-letter-basic` | Letter format, length, one page, no derived numbers, no start date, referrer or recruiter |
+| `cover-letter-basic` | Letter format, length, one page, no derived numbers, no start date, referrer or recruiter; the PDF only after the user confirms the letter |
 | `cover-letter-no-research` | Without company research the letter uses the vacancy only, and the skill says so |
 | `submit-application-prepare` | PDFs with links, form answers from the defaults, the "ask" question left to the user, nothing submitted |
 | `submit-application-record` | The confirmation is saved, the row gets the date, a work log entry is written |
 | `init-workspace-docx` | A workspace from zero with a fictional base CV (`materials/base-cv/`): settings, confirmed facts, rules, form answers, a full CV that builds, no template data |
 | `init-workspace-pdf` | The same from a `.pdf` base CV |
+| `init-workspace-lost-item` | An unfinished setup is continued; the comparison with the base CV names a bullet that the facts and the master lost; it comes back after the user's yes |
 | `process-call-two-languages` | A two-language call (synthetic audio): stage folder, four files, recording out of git, the planted items found, facts unchanged |
 | `process-call-live-voice` | The same with the live-voice recording, to compare the scores |
 | `end-to-end` (slow) | The whole path from an empty folder to the processed call in one workspace |

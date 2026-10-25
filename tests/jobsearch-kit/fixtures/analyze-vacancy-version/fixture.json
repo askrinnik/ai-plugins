@@ -1,0 +1,5 @@
+{
+  "description": "analyze-vacancy with a vacancy that names an older version (Java 17) than the facts (Java 21): the requirement is partial with a question, never missing; after the user confirms the range, it reaches the facts.",
+  "repetitions": 3,
+  "timeoutMinutes": 25
+}

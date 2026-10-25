@@ -1,0 +1,8 @@
+{
+  "description": "init-workspace continues a setup that an earlier run did not finish (no built CV, no git): it compares the base CV with the built CV, names the bullet of the base CV that the facts and the master lost, adds it back after the user confirms it, and ends with the ready message.",
+  "repetitions": 1,
+  "timeoutMinutes": 30,
+  "requires": ["word"],
+  "emptySeed": true,
+  "seedCopy": [{ "from": "tests/jobsearch-kit/materials/base-cv/base-cv-riley-example.docx", "to": "base-cv.docx" }]
+}

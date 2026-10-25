@@ -7,6 +7,7 @@ and run them from the workspace root.
 |---|---|---|
 | `cv.js <profile.yaml> [--no-docx]` | `node` | Builds a CV from the master and a profile: checks the wording rules, writes `<output>.md` and `<output>.docx` next to the profile. The profile and master formats are documented at the top of the script |
 | `cv.js --lint <file.md> ...` | `node` | Checks Markdown text against `cv_rules.yaml`; builds nothing |
+| `compare-cv.js <base.docx\|base.txt> <cv.md> [--json]` | `node` | Compares the base CV of a workspace with a built CV: lines kept, changed, lost and added, and numbers that only one of them has. Reports only; see the top of the script |
 | `build-cv.js <content.json> <out.docx>` | `node` | Renders a CV from an older `cv_content.json` |
 | `build-letter.js <letter.md>` | `node` | Builds a letter `.docx` from Markdown with front matter (`output`, `date`) |
 | `export-pdf.ps1 -Docx <file.docx>` | `pwsh -File` | Exports a PDF next to the `.docx` with Word and keeps the hyperlinks; prints the page count and the links |

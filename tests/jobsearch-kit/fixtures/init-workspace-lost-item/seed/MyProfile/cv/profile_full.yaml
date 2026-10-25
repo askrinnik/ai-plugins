@@ -1,0 +1,11 @@
+# Profile of the full CV: everything from the master.
+# Build from the workspace root: node "<plugin>/scripts/cv.js" MyProfile/cv/profile_full.yaml
+# Output: MyProfile/cv/<output>.md (compare with git diff) and .docx.
+output: CV_Riley_Example_full
+title: main
+sections:
+  - id: summary
+  - id: key-skills
+  - id: work
+  - id: education
+  - id: languages

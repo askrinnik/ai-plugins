@@ -1,0 +1,3 @@
+[
+  { "name": "CV PDF not older than the .docx, contact links kept", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Pdfs.ps1", "args": ["-Folder", "{{date}}_Example*Bank*"] }
+]

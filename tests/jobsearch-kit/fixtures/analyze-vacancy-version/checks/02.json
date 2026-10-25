@@ -1,0 +1,5 @@
+[
+  { "name": "the version range reaches the facts", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "Java[^\\n]*17[^\\n]*confirmed" },
+  { "name": "Java 17 is confirmed in the fit table", "type": "contains", "path": "{{date}}_Fjordline*/fit-analysis.md", "pattern": "Java 17[^\\n]*✅" },
+  { "name": "no CV yet", "type": "absent", "path": "{{date}}_Fjordline*/*.docx" }
+]

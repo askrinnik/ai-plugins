@@ -1,0 +1,8 @@
+[
+  { "name": "application folder with fit-analysis.md", "type": "exists", "path": "{{date}}_Fjordline*/fit-analysis.md" },
+  { "name": "Java 17 is partial, with the newer version as evidence", "type": "contains", "path": "{{date}}_Fjordline*/fit-analysis.md", "pattern": "Java 17[^\\n]*🟡[^\\n]*21" },
+  { "name": "Java 17 is not missing", "type": "not-contains", "path": "{{date}}_Fjordline*/fit-analysis.md", "pattern": "Java 17[^\\n]*❌" },
+  { "name": "the user is asked about Java 17", "type": "answer-contains", "pattern": "Java 17[^\\n]*\\?" },
+  { "name": "facts unchanged before the user answers", "type": "unchanged", "path": "MyProfile/candidate_facts.md" },
+  { "name": "the skill stopped before the CV step", "type": "no-tool-input", "pattern": "^Skill: .*adapt-cv" }
+]

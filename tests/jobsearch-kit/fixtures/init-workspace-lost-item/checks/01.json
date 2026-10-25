@@ -1,0 +1,7 @@
+[
+  { "name": "the comparison script ran", "type": "tool-input", "pattern": "compare-cv\\.js" },
+  { "name": "the lost bullet is named", "type": "answer-contains", "pattern": "integration tests" },
+  { "name": "the lost bullet is not added back without a yes", "type": "not-contains", "path": "MyProfile/cv/cv_master.yaml", "pattern": "integration tests" },
+  { "name": "no commit without a yes", "type": "script", "file": "tests/jobsearch-kit/fixtures/init-workspace-docx/checks/no-commit.ps1" },
+  { "name": "the setup is not reported as ready", "type": "answer-not-contains", "pattern": "workspace is ready" }
+]

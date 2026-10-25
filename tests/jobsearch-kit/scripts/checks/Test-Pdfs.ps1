@@ -13,7 +13,9 @@ param(
   [string]$CvPattern = '*_CV_*'
 )
 $ErrorActionPreference = 'Stop'
-$dir = Join-Path $Workspace $Folder
+# The folder may be a mask ({{date}}_Example*Bank*): take the first folder that matches.
+$dir = @(Resolve-Path (Join-Path $Workspace $Folder) -ErrorAction SilentlyContinue | Select-Object -First 1)[0].Path
+if (-not $dir) { Write-Output "PROBLEM: no folder matches $Folder"; exit 1 }
 $problems = New-Object System.Collections.Generic.List[string]
 $docxs = @(Get-ChildItem $dir -Filter '*.docx' -File | Where-Object Name -notlike '~$*')
 if (-not $docxs.Count) { $problems.Add("no .docx in $Folder") }

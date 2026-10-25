@@ -21,7 +21,14 @@ The skill has two stages with one stop between them:
 ## 1. Read the vacancy
 
 - Open the link in the built-in browser (`navigate`, then `get_page_text`). If the page needs a sign-in (LinkedIn
-  Jobs and the like), ask the user to sign in in the built-in browser and wait; never type credentials yourself.
+  Jobs and the like), follow `rules.md`, "Signed-in sites": ask, open the sign-in page, let the user sign in, wait.
+- LinkedIn: decide it before the research, so that the research does not stop later.
+  - If the session has a browser tool and the user has not said yet whether to use LinkedIn, ask whether to research
+    the people and the company on LinkedIn, with the warnings of `rules.md`, "Signed-in sites", step 1. Ask in the
+    same message who found the vacancy, if that is unknown. Wait for the answers. If the user wants LinkedIn, do the
+    sign-in now (`rules.md`, "Signed-in sites", step 2).
+  - If the session has no browser tool, do not ask about LinkedIn and do not stop: say that LinkedIn is not
+    researched because no browser is available, and continue. Ask who found the vacancy in step 4.
 - Check `applications.md` and the existing folders for earlier applications to the same company and mention them.
 - Create `YYYY_MM_DD_<Company>/` (today's date) and write `vacancy.md` in the notes language: source link and date
   read, who found the vacancy (ask if unknown), company and legal entity, title, location, work model, salary,
@@ -35,6 +42,8 @@ The skill has two stages with one stop between them:
   - separate tables for required items, nice-to-have items and hidden requirements (found in step 3);
   - columns: requirement, status (✅ confirmed / 🟡 partial / ❌ missing / ❓ not in the facts, question to the
     user), evidence or comment; after the user answers, replace each ❓ with one of the other statuses;
+  - if a requirement names a version and the facts name another version of the same product, follow `rules.md`,
+    "Versions of one product": a newer version in the facts makes the requirement 🟡 with a question, never ❌;
   - if a requirement joins a skill and a domain (for example "REST APIs for merchant onboarding and payouts"), rate
     the skill and the domain in separate rows: the facts may cover one and not the other;
   - a summary: fit estimate in percent, the strongest matches, the main risks and gaps, eligibility risks.
@@ -64,10 +73,10 @@ people, LinkedIn, news and reviews, questions worth asking, sources.
   - leadership: CEO, CTO, VP or Head of Engineering;
   - the future team: engineers and team leads in the relevant office or team, their background and languages;
   - mutual connections: former colleagues or contacts of the user who work there (possible referral).
-- **LinkedIn:** people and the company page are much easier to research when signed in. When you need it, ask the
-  user to sign in to LinkedIn in the built-in browser and wait. Read only: never send connection requests, messages,
-  likes or follows, and never change anything in the account. Mark the section as gathered with sign-in, read only,
-  with the date.
+- **LinkedIn:** only if the user said yes in step 1 and is signed in. Follow `rules.md`, "Signed-in sites": read
+  only, no exception; open only the pages that this research needs. Mark the section as gathered with sign-in, read
+  only, with the date. If the user said no, or no browser is available, write one line with the reason and do not
+  stop the research for it.
 - End with a short list of pros and cons and questions worth asking the company.
 
 ## 4. Stop and report

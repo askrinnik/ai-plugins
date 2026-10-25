@@ -34,7 +34,8 @@ the user has answered the gap questions. In that case:
 2. Skip the table and the questions of step 2. Show only the CV proposals (what to emphasise, rename, cut or
    reorder, ATS keywords).
 3. Wait for the user to confirm the proposals. Then do step 3.
-4. In step 5, do not offer a cover letter and do not write the log. `jobsearch-kit:analyze-vacancy` does these.
+4. In step 5, ask the user to check the CV and make the PDF as usual, but do not offer a cover letter and do not
+   write the log. `jobsearch-kit:analyze-vacancy` does these.
 
 ## 1. Gather inputs
 
@@ -52,7 +53,10 @@ the user has answered the gap questions. In that case:
 
 1. Present a table: requirement, evidence in the CV, status (✅ confirmed / 🟡 partial / ❌ missing /
    ❓ not in the facts, question to the user).
-2. List concrete proposals: what to emphasise, rename, cut or reorder, and which keywords to add for ATS.
+2. List concrete proposals: what to emphasise, rename, cut or reorder, and which keywords to add for ATS. Check
+   every version that the vacancy names (".NET 8", "Java 17"): if the facts cover it by a confirmed range, name it in
+   the CV next to the newer version; if the facts name only a newer version, ask (`rules.md`, "Versions of one
+   product").
 3. Ask targeted questions **only** about requirements that `candidate_facts.md` does not cover. Never fill gaps by
    guessing.
 4. Wait for the answers. If the user confirms a new fact, run `jobsearch-kit:update-cv-facts`.
@@ -96,16 +100,25 @@ the user has answered the gap questions. In that case:
 
 ## 5. Report and hand over
 
-1. Tell the user what changed, which claims they should double-check, and any eligibility risks.
-2. Offer a cover letter. If the user accepts, invoke the `jobsearch-kit:cover-letter` skill with the Skill tool and give it the
-   application folder.
-3. When the user is ready to submit, invoke the `jobsearch-kit:submit-application` skill. It exports the PDFs and drafts the form
-   answers.
-4. Add a work log entry to `README.md` in the notes language: the vacancy link, the status ("CV prepared" until the
-   user says it was submitted), the changes and open follow-ups.
-5. If `applications.md` has no row for this vacancy, add one with the status "not submitted" (in the notes language)
+1. If `applications.md` has no row for this vacancy, add one with the status "not submitted" (in the notes language)
    and a short comment. `jobsearch-kit:submit-application` reads this row later.
-6. Do not commit. Offer the commit to the user and commit only if they say so. Never push.
+2. Tell the user what changed, which claims they should double-check, and any eligibility risks.
+3. Ask the user to check the CV. Send the `.docx` with `SendUserFile` (`display: attach`); if that tool is not
+   available, give its path. Ask whether the CV is correct and whether to make the PDF. Wait for the answer.
+   - If the user asks for changes, change the profile (or the master through `jobsearch-kit:update-cv-facts`), build
+     and check again (step 4), and ask again.
+   - If the user confirms the CV, export the PDF in pwsh:
+     `pwsh -File "${CLAUDE_SKILL_DIR}/../../scripts/export-pdf.ps1" -Docx <folder>/<output>.docx`. Check that the
+     page count is the same as in step 4 and that every contact link of the header is in the printed link list. Send
+     the PDF with `SendUserFile` (`display: render`), or give its path.
+   - If the CV changes after the PDF was made, rebuild the PDF too: a PDF must never be older than its `.docx`.
+4. Offer a cover letter. If the user accepts, invoke the `jobsearch-kit:cover-letter` skill with the Skill tool and give it the
+   application folder.
+5. When the user is ready to submit, invoke the `jobsearch-kit:submit-application` skill. It checks the PDFs and
+   drafts the form answers.
+6. Add a work log entry to `README.md` in the notes language: the vacancy link, the status ("CV prepared" until the
+   user says it was submitted), the changes and open follow-ups.
+7. Do not commit. Offer the commit to the user and commit only if they say so. Never push.
 
 ## Older formats
 

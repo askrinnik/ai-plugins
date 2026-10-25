@@ -1,5 +1,5 @@
 {
-  "description": "adapt-cv with a vacancy given as text: proposals first and no build until the user agrees; then a one-page CV that passes the wording rules and a \"not submitted\" row. The seed has an earlier tailored CV (Nordwind Pay) as the starting profile.",
+  "description": "adapt-cv with a vacancy given as text: proposals first and no build until the user agrees; then a one-page CV that passes the wording rules and a \"not submitted\" row; the PDF only after the user confirms the CV. The seed has an earlier tailored CV (Nordwind Pay) as the starting profile.",
   "repetitions": 3,
   "timeoutMinutes": 25,
   "requires": [
