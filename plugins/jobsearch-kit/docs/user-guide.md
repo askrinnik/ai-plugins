@@ -31,17 +31,8 @@ same workspace folder.
 
 ## The application lifecycle
 
-```mermaid
-flowchart LR
-  W[Set up the workspace<br>init-workspace] --> V[Find a vacancy]
-  V --> A[Analyze<br>analyze-vacancy]
-  A --> C[CV<br>adapt-cv]
-  C --> L[Letter<br>cover-letter]
-  L --> S[Submit<br>submit-application]
-  S --> K[Calls and interviews<br>process-call]
-  K --> F[New facts<br>update-cv-facts]
-  F -.-> A
-```
+You set up the workspace once. Then every vacancy goes the same way: analysis, CV, letter, submission, calls. New
+facts can come at any step. Each skill in "The skills" below has its own workflow.
 
 | Stage | Skill | How it starts | What you decide |
 |---|---|---|---|
@@ -55,7 +46,15 @@ flowchart LR
 | New facts | `update-cv-facts` | "Add this to my facts: ..." | Confirm the wording |
 
 Every skill stops before it does something you must decide. No skill submits a form, sends a message, ticks a box
-or commits to git without your yes.
+or commits to git without your yes. The skills wait for you:
+
+- on a fact: every fact drafted from your CV, every gap question, every fact that a letter or a call brings in; a
+  fact changes only after your answer;
+- on the LinkedIn research: whether to do it, and your own sign-in;
+- on the decision to continue with the CV or defer;
+- on each document: the CV proposals before the build, then the `.docx` of the CV and of the letter before the PDF;
+- on the form: the answers marked "ask"; you fill in, tick and submit the form yourself;
+- before each commit; no skill pushes.
 
 ## The facts model
 
@@ -101,6 +100,15 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 
 ## The skills
 
+Each skill has a workflow: its steps, who does what at each step, and where it waits for you. Legend:
+
+- 💬 — what you say to start the skill (you can say it in your own language);
+- 🧩 — another jobsearch-kit skill that this skill calls;
+- 💻 — Claude in your session: it reads, writes notes and drafts texts;
+- ⚙️ — a plugin script: CV and letter build, page preview, PDF export, transcription;
+- 🌐 — the built-in browser of the session;
+- 🙋 — a point where the skill stops and waits for you.
+
 ### init-workspace
 
 - **Use it** once, when you start: you have no workspace yet, or an old folder that you want to move to the plugin.
@@ -126,6 +134,35 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 - **Problems:** if a fact from your CV is wrong, say so; it stays "from the CV" until you confirm it. If Node, Word
   or `pwsh` is missing, the skill tells you what to install.
 
+**Workflow.**
+
+```
+💬 "Set up my job search workspace. My CV is <file>."
+│
+├─ 1. Folder ────────────────── 🙋 where the workspace goes
+│                               (folder not empty → 🙋 continue?
+│                                · an unfinished setup → continue from the first step that is left)
+│                               💻 copies the empty workspace template
+├─ 2. Settings ──────────────── 🙋 languages · letter preferences · writing style · archived files
+│                               💻 writes them into CLAUDE.md
+├─ 3. Import your CV ────────── 🙋 move your CV file to MyProfile/cv/archive/? (no → a copy goes there)
+│                               💻 candidate_facts.md and the master CV; every fact is "from the CV"
+├─ 4. Confirm the facts ─────── 🙋 confirm or correct the facts · skill levels · version ranges
+│                                  · salary · start date · right to work · languages · "do not claim" limits
+│                               💻 "confirmed <date>" · each limit becomes a wording rule
+├─ 5. Form answers ──────────── 💻 application_defaults.yaml from the confirmed facts
+├─ 6. Photo ─────────────────── 🙋 a photo in the CV? (optional)
+├─ 7. Environment ───────────── ⚙️ checks Node, pwsh, git, Word and the npm packages
+│                               (a tool is missing → it tells you what to install)
+│                               🙋 install the transcription environment? (optional, about 3 GB)
+├─ 8. First build ───────────── ⚙️ full CV .md and .docx · page preview · comparison with your old CV
+│                               🙋 every line that was lost or changed (build again until clean)
+│                               🙋 "yes, commit"
+└─ 9. Finish ────────────────── 💻 "The workspace is ready": what it created, facts still "from the CV",
+                                   the next step
+                                (a step is left → "The workspace setup is not finished")
+```
+
 ### analyze-vacancy
 
 - **Use it** for every vacancy that you consider. Use `adapt-cv` alone only when you already know the fit and want
@@ -148,6 +185,31 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   messages; commits without your yes.
 - **Problems:** if a page needs a sign-in (LinkedIn Jobs), sign in in the built-in browser when the skill asks. If you
   applied to the company before, the skill reminds you.
+
+**Workflow.**
+
+```
+💬 "Analyze this vacancy: <link>" (or the text, or a screenshot)
+│
+├─ 1. Read the vacancy ──────── 🌐 the vacancy page (it needs a sign-in → 🙋 you sign in)
+│                               🙋 research LinkedIn? · who found the vacancy?
+│                               (LinkedIn yes → 🙋 you sign in yourself; the skill only reads)
+│                               (no browser → no stop here; "who found it" comes in step 4)
+│                               💻 YYYY_MM_DD_<Company>/vacancy.md · earlier applications to the company
+├─ 2. Fit table ─────────────── 💻 fit-analysis.md: ✅ 🟡 ❌ ❓ per requirement, fit in percent
+│                               🙋 gap questions (❓ only) → 🧩 update-cv-facts
+├─ 3. Research the company ──── 💻 🌐 registry, finances, salaries, real stack, people, news
+│                               → _Companies/<Company>/README.md
+├─ 4. Report ────────────────── 💻 a "not submitted" row in applications.md
+│                               🙋 "continue with the CV or defer?"
+│                               (defer → the reason in applications.md, step 6)
+├─ 5. Documents ─────────────── 🧩 adapt-cv (its own workflow below)
+│                               🧩 cover-letter: the vacancy asks for a letter → no question;
+│                                  else 🙋 "is a letter needed?"
+│                               🧩 submit-application, when you are ready to submit
+└─ 6. Log ───────────────────── 💻 work log in README.md · applications.md
+                                🙋 "yes, commit" (never pushed)
+```
 
 **Example.**
 
@@ -176,6 +238,27 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   the build.
 - **Problems:** if Word has the `.docx` open, close it when the skill asks.
 
+**Workflow.**
+
+```
+💬 "Adapt my CV for this vacancy: <link or text>" (or analyze-vacancy calls it)
+│
+├─ 1. Inputs ────────────────── 🌐 the vacancy page, or vacancy.md and fit-analysis.md of analyze-vacancy
+│                               💻 starts from your newest tailored CV, or from the full CV
+│                               (the master CV misses a confirmed fact → 🧩 update-cv-facts first)
+├─ 2. Gaps and proposals ────── 💻 requirement table ✅ 🟡 ❌ ❓ (only when called alone)
+│                               🙋 gap questions (only when called alone) → 🧩 update-cv-facts
+│                               🙋 agree with the proposals: what to lead with, reorder, cut; keywords
+│                               (nothing is built before that)
+├─ 3. Profile ───────────────── 💻 cv_profile.yaml in the application folder
+├─ 4. Build and check ───────── ⚙️ CV .md and .docx · wording rules · page preview
+│                               (Word has the .docx open → 🙋 close it)
+└─ 5. Check and PDF ─────────── 🙋 check the .docx (changes → step 4 again)
+                                ⚙️ CV PDF with working links
+                                called alone: 🙋 a cover letter? · work log · 🙋 "yes, commit"
+                                (called by analyze-vacancy → it offers the letter and writes the log)
+```
+
 **Example.**
 
 > **You:** Adapt my CV for this vacancy: Senior Backend Engineer, ExampleBank ... (text)
@@ -200,6 +283,23 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   (start date, referrer, recruiter's name).
 - **Problems:** without company research the skill uses only the vacancy text and tells you so; run
   `analyze-vacancy` first for a better "why this company".
+
+**Workflow.**
+
+```
+💬 "Make a cover letter for <company>" (or analyze-vacancy or adapt-cv calls it)
+│
+├─ 1. Inputs ────────────────── 💻 vacancy.md · fit-analysis.md · _Companies/<Company>/ · facts · tailored CV
+│                               (no company research → only the vacancy text; it tells you so)
+├─ 2. Write ─────────────────── 💻 cover-letter.md: one line per paragraph, 250–350 words
+│                               🙋 a fact that the letter needs and the facts do not have
+│                                  → 🧩 update-cv-facts
+├─ 3. Wording rules ─────────── ⚙️ lint (a rule fails → the text changes, never the rule)
+├─ 4. Build and check ───────── ⚙️ .docx · one-page check
+└─ 5. Check and PDF ─────────── 🙋 check the .docx (changes → steps 3–4 again)
+                                ⚙️ letter PDF
+                                called alone: work log · 🙋 "yes, commit"
+```
 
 **Example.**
 
@@ -227,6 +327,33 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   - **It records:** `Confirmation_<date>.png` in the application folder, the date in `applications.md`, a work log
     entry.
 - **It never:** clicks, ticks, submits or sends anything.
+
+**Workflow.**
+
+```
+Before you submit
+💬 "I am filling in the form now", with the form questions or screenshots
+│
+├─ 1. Find the application ──── 💻 the application folder and its row in applications.md
+├─ 2. Check the files ───────── ⚙️ the CV text is current (it changed → 🙋 accept the change?)
+│                               ⚙️ PDFs not older than the .docx · links kept · pages
+│                               (Word has a file open → 🙋 close it)
+├─ 3. Check the link ────────── 💻 the referral link, if there is one: submit through it only
+├─ 4. Form answers ──────────── 💻 answers from application_defaults.yaml · a motivation text
+│                               🙋 every answer marked "ask" (for example "How did you hear about us?")
+│                               💻 which file goes into which upload field
+├─ 5. Consents ──────────────── 💻 which boxes are required and which are optional
+└─ 🙋 you fill in the form, tick the boxes and submit
+
+After you submit
+💬 "I submitted it", with the confirmation screenshot or e-mail
+│
+├─ 1. Confirmation ──────────── 💻 Confirmation_<date>.png in the application folder
+├─ 2. Records ───────────────── 💻 "sent <date>" in applications.md · work log
+│                               (something is unknown, for example who shared the link → 🙋)
+│                               (a form answer differs from the defaults → 🙋 update the defaults?)
+└─ 3. Commit ────────────────── 🙋 "yes, commit" (never pushed)
+```
 
 **Example.**
 
@@ -257,6 +384,24 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 - **Problems:** transcription needs the whisper environment (`install-whisper.ps1`). If the language switch is wrong,
   tell the skill the time.
 
+**Workflow.**
+
+```
+💬 "Transcribe the call <file>"
+│
+├─ 1. Ask ───────────────────── 🙋 company · who spoke · languages and the switch time · date
+│                               (only what your message and the file name do not say)
+├─ 2. Stage folder ──────────── 💻 YYYY_MM_DD_<Company>_<Stage>/; the recording moves there
+├─ 3. Transcribe ────────────── ⚙️ whisper, in the background
+├─ 4. Write the files ───────── 💻 raw text · transcript with speakers · summary · side notes
+├─ 5. Facts and people ──────── 🙋 the call contradicts your facts → which is right?
+│                                  → 🧩 update-cv-facts
+│                               🌐 new people on LinkedIn (🙋 it asks first; it only reads)
+│                               💻 company notes
+└─ 6. Records ───────────────── 💻 applications.md · work log
+                                🙋 "yes, commit" (the recording stays out of git)
+```
+
 **Example.**
 
 > **You:** Transcribe the call call.mp3: Anna, recruiter of Nordwind Pay, English, then my native language, today.
@@ -277,6 +422,22 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
   answers; it rebuilds the full CV (`.md` and `.docx`) and shows the change; it checks your unsent tailored CVs and
   offers to rebuild them.
 - **It never:** makes your verb stronger; rebuilds the CV of an application that you already submitted.
+
+**Workflow.**
+
+```
+💬 "Add this to my facts: ..." (or another skill calls it)
+│
+├─ 1. Get the fact ──────────── 🙋 only what is missing: period, your role, numbers, CV or not
+├─ 2. Facts ─────────────────── 💻 candidate_facts.md, with the date
+├─ 3. Master CV ─────────────── 💻 the bullet or the skill text (only if the CV text changes)
+├─ 4. Wording rule ──────────── 💻 cv_rules.yaml (only for a limit)
+├─ 5. Full CV ───────────────── ⚙️ full CV .md and .docx · 💻 shows you the change
+├─ 6. Unsent CVs ────────────── ⚙️ checks each unsent tailored CV against the new fact
+│                               🙋 build it again? (a submitted CV never changes)
+├─ 7. Form answers ──────────── 💻 application_defaults.yaml
+└─ 8. Log ───────────────────── 💻 work log · 🙋 "yes, commit"
+```
 
 **Example.**
 
