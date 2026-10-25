@@ -3,5 +3,7 @@
   { "name": "facts from the CV", "type": "contains", "path": "MyProfile/candidate_facts.md", "pattern": "Sample Logistics" },
   { "name": "no fact confirmed before the user confirms the draft", "type": "not-contains", "path": "MyProfile/candidate_facts.md", "pattern": "Sample Logistics[^\\n]*confirmed" },
   { "name": "settings written", "type": "contains", "path": "CLAUDE.md", "pattern": "Documents language:\\*\\*\\s*English" },
-  { "name": "no commit without a yes", "type": "script", "file": "checks/no-commit.ps1" }
+  { "name": "no commit without a yes", "type": "script", "file": "checks/no-commit.ps1" },
+  { "name": "the base CV moved to the archive after the user said so", "type": "absent", "path": "base-cv.docx" },
+  { "name": "the base CV is in the archive", "type": "exists", "path": "MyProfile/cv/archive/base-cv.docx" }
 ]

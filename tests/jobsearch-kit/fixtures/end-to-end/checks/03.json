@@ -1,5 +1,5 @@
 [
-  {"name":"first commit","type":"script","file":"tests/jobsearch-kit/fixtures/init-workspace-docx/checks/one-commit.ps1"},
+  {"name":"first commit","type":"script","file":"tests/jobsearch-kit/fixtures/init-workspace-docx/checks/one-commit.ps1","args":["-LogMayChange"]},
   {"name":"fit analysis","type":"exists","path":"{{date}}_Nordwind*/fit-analysis.md"},
   {"name":"company research","type":"exists","path":"_Companies/Nordwind*/README.md"},
   {"name":"the skill stopped before the CV step","type":"no-tool-input","pattern":"^Skill: .*adapt-cv"}

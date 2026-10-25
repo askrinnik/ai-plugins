@@ -63,22 +63,29 @@ If the user gives all answers up front, do not ask again.
      5.1 refuses the `.docx` extension, so copy the file to `.zip` first).
    - `.pdf`: read the file with the Read tool. If that fails, extract the text with a PDF text tool.
    - Text or CSV: read it as it is.
-   Save the extracted text as `MyProfile/cv/archive/base-cv.txt`, one paragraph per line. If the base CV is a file,
-   copy it to `MyProfile/cv/archive/` too. Add both to "Archived files" in `CLAUDE.md`. Step 8 compares the built CV
-   with this text.
-3. Draft `MyProfile/candidate_facts.md` from the text, in the language the user chooses for it:
+   Save the extracted text as `MyProfile/cv/archive/base-cv.txt`, one paragraph per line. Step 8 compares the built
+   CV with this text.
+3. If the base CV is a file, `MyProfile/cv/archive/` must always hold the file too, moved or copied:
+   - If the file is in the workspace folder (for example in its root), ask whether to move it to
+     `MyProfile/cv/archive/`. Offer the move. Ask it as soon as you know where the file is; if the user already said,
+     do not ask again. Move the file only after a yes. If the user keeps the file where it is, copy it to
+     `MyProfile/cv/archive/`: the original stays, and the archive holds the copy.
+   - If the file is outside the workspace folder, copy it. Never move or delete a file outside the workspace.
+   Add the files of `MyProfile/cv/archive/` to "Archived files" in `CLAUDE.md`. If "Archived files" names the base CV
+   at its old place and the file moved, write its new path instead.
+4. Draft `MyProfile/candidate_facts.md` from the text, in the language the user chooses for it:
    - contacts and status (name, e-mail, phone, location, links);
    - experience (per job: period, title, company, city, stack, responsibilities and results);
    - key metrics (only numbers that the CV states);
    - skills by level (the level stays "not confirmed" until step 4).
    Mark every statement "from the CV, <today>". If the CV has nothing for a section, delete the placeholder line of
    that section; do not write a bullet such as "No projects".
-4. Draft `MyProfile/cv/cv_master.yaml` in the documents language (format at the top of
+5. Draft `MyProfile/cv/cv_master.yaml` in the documents language (format at the top of
    `${CLAUDE_SKILL_DIR}/../../scripts/cv.js`): `header` (name, contacts with `url` for links), `titles`, a summary
    with variants, a skills `list`, skill `groups`, `jobs` with tagged bullets (`tags` by topic, for example `api`,
    `data`, `lead`), `projects`, education. Keep the verbs and numbers of the base CV. Do not add skills or results
    that the base CV does not state.
-5. In `MyProfile/cv/profile_full.yaml`, set `output: CV_<Name>_full` (`<Name>` is `header.name` with underscores for
+6. In `MyProfile/cv/profile_full.yaml`, set `output: CV_<Name>_full` (`<Name>` is `header.name` with underscores for
    spaces) and a `title` id that exists in `titles`.
 
 ## 4. Confirm, do not invent
@@ -141,7 +148,8 @@ If the user gives all answers up front, do not ask again.
    it:
    - Run `node "${CLAUDE_SKILL_DIR}/../../scripts/compare-cv.js" <base> MyProfile/cv/<output>.md`. `<base>` is the
      copy of a `.docx` base CV in `MyProfile/cv/archive/`, or else `MyProfile/cv/archive/base-cv.txt`. If neither
-     exists (an earlier run did not save them), use the base CV that the user gives, and save them now.
+     exists (an earlier run did not save them), use the base CV that the user gives, and save them now as step 3
+     says (move or copy the file).
    - Explain every line of the report "Lost", "Changed", "Added" and "Numbers" with one of these kinds:
      - **your correction:** the user changed it in step 4; name the fact and its date;
      - **regrouped:** the same text in another place or under a label;

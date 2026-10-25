@@ -5,5 +5,7 @@
   { "name": "full CV .docx", "type": "exists", "path": "MyProfile/cv/CV_*_full.docx" },
   { "name": "the full CV passes the wording rules", "type": "lint", "path": "MyProfile/cv/CV_*_full.md" },
   { "name": "a commit after the yes, with the work log", "type": "script", "file": "tests/jobsearch-kit/fixtures/init-workspace-docx/checks/one-commit.ps1" },
-  { "name": "the final message says that the workspace is ready", "type": "answer-contains", "pattern": "workspace is ready" }
+  { "name": "the final message says that the workspace is ready", "type": "answer-contains", "pattern": "workspace is ready" },
+  { "name": "the base CV moved to the archive after the user said so", "type": "absent", "path": "base-cv.docx" },
+  { "name": "the base CV is in the archive", "type": "exists", "path": "MyProfile/cv/archive/base-cv.docx" }
 ]

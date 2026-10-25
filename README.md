@@ -1,6 +1,6 @@
 # ai-plugins
 
-A personal Claude Code plugin marketplace: a repository with `.claude-plugin/marketplace.json` that lists the plugins
+A Claude Code plugin marketplace: a repository with `.claude-plugin/marketplace.json` that lists the plugins
 kept in `plugins/`. Nothing is published to a public catalog; the marketplace is read from a clone of this repository
 or straight from GitHub.
 
@@ -22,7 +22,7 @@ Choose one source. Run the command in any terminal.
 | Source | Command | Notes |
 |---|---|---|
 | Local clone | `claude plugin marketplace add <path to the clone>` | Changes in the clone are read in place. Keep the clone where it is: the marketplace is read from that path |
-| GitHub | `claude plugin marketplace add askrinnik/ai-plugins` | The repository is private: `git` on the machine must have access to it. Refresh with `claude plugin marketplace update ai-plugins` |
+| GitHub | `claude plugin marketplace add askrinnik/ai-plugins` | Refresh with `claude plugin marketplace update ai-plugins` |
 
 The marketplace name is `ai-plugins`. If another marketplace with that name is already registered, Claude Code does
 not add this one. Uninstall the plugins of the other marketplace, remove it with

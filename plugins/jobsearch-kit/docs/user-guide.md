@@ -106,10 +106,11 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 - **Use it** once, when you start: you have no workspace yet, or an old folder that you want to move to the plugin.
 - **Start:** "Set up my job search workspace in <folder>. My CV is <file>." (`.docx`, `.pdf`, text or a LinkedIn
   export).
-- **It asks:** the folder; your settings (languages, letter preferences); then it shows the facts that it took
-  from your CV and asks you to confirm or correct them; your skill levels (and, if your CV names versions, the
-  version range of your main platforms), salary expectation, start date, right to work, languages and "do not
-  claim" limits; an optional photo. After the first build, it shows what differs between your old CV and the new
+- **It asks:** the folder; your settings (languages, letter preferences); if your CV file is in the workspace folder,
+  whether to move it to `MyProfile/cv/archive/` or keep it where it is (a copy goes to the archive); then it shows
+  the facts that it took from your CV and asks you to confirm or correct them; your skill levels (and, if your CV
+  names versions, the version range of your main platforms), salary expectation, start date, right to work,
+  languages and "do not claim" limits; an optional photo. After the first build, it shows what differs between your old CV and the new
   one, and asks you about every line that was lost or changed.
 - **It stops and waits:** after each of these questions, before the first commit, and before it installs the
   optional transcription environment.
@@ -150,11 +151,11 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 
 **Example.**
 
-> **You:** Analyze this vacancy. I only have the text: Senior Java Engineer, Nordwind Pay, Tallinn ...
+> **You:** Analyze this vacancy. I only have the text: Senior Java Engineer, Nordwind Pay, Northport ...
 >
 > **Claude:** Fit about 85%. Go ❌, Kubernetes 🟡 (working knowledge), PCI DSS ❓. Company: nothing found about
 > Nordwind Pay; verify the entity in the register. Questions: 1. Any PCI DSS experience? 2. Merchant onboarding or
-> payouts? 3. Ready to relocate to Tallinn? 4. Who found the vacancy? Continue with the CV or defer?
+> payouts? 3. Ready to relocate to Northport? 4. Who found the vacancy? Continue with the CV or defer?
 >
 > **You:** 1. No. 2. No. 3. Yes, at my own cost. 4. Myself. Continue with the CV.
 
@@ -233,7 +234,7 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 > us?
 >
 > **Claude:** The PDFs are current and keep your links. Answers: 5000 EUR gross per month; one month after an offer;
-> no work permit needed (EU citizen). "How did you hear about us?" — what should I write? Upload the CV PDF as the
+> no work permit needed (citizen). "How did you hear about us?" — what should I write? Upload the CV PDF as the
 > resume and the letter PDF as the cover letter. The data processing box is required; the talent pool box is your
 > choice.
 >
@@ -258,7 +259,7 @@ defaults. The full list is in `reference/workspace.md`, "Workspace settings".
 
 **Example.**
 
-> **You:** Transcribe the call call.mp3: Anna, recruiter of Nordwind Pay, English then Russian, today.
+> **You:** Transcribe the call call.mp3: Anna, recruiter of Nordwind Pay, English, then my native language, today.
 >
 > **Claude:** The call passed; next is a technical interview with Marek, invitation by Friday. Main risk: you said
 > you set up the clusters yourself, but your facts say Kubernetes working knowledge only. You named 5,500 EUR; your

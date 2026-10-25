@@ -1,4 +1,4 @@
-Set up my job search workspace in this folder. My current CV is base-cv.docx.
+Set up my job search workspace in this folder. My current CV is base-cv.docx: move it to the archive folder, do not keep it in the root.
 
 My settings: English for the conversation, the notes and the documents; recruiter messages in the language that the recruiter uses; cover letters must not name the start date or the referrer; the default writing style; no archived files.
 

@@ -16,9 +16,9 @@ Research date: 2026-10-22. Status: **not verified**. Two web searches found no p
 ## Registry and finances
 
 - Search "Nordwind Pay OÜ Tallinn merchant acquiring" found no entry (web search, 2026-10-22).
-- Search "Nordwind Pay Estonia registry code OÜ" found no entry. Hits were Northwind OÜ (11866276), Nordwel OÜ, Nordwin OÜ and others. None is a payment business (web search, 2026-10-22).
-- Not checked: the Estonian business register ([ariregister.rik.ee](https://ariregister.rik.ee)) by exact name. The search engine does not query it directly.
-- Not checked: the Finantsinspektsioon register of payment institutions. Card acquiring in the EU normally needs a licence or a licensed partner.
+- Search "Nordwind Pay Estonia registry code OÜ" found no entry. Hits were companies with similar names. None is a payment business (web search, 2026-10-22).
+- Not checked: the national business register by exact name. The search engine does not query it directly.
+- Not checked: the register of payment institutions of the financial supervisor. Card acquiring in the EU normally needs a licence or a licensed partner.
 - Next step: search `Nordwind Pay` and `Nordwind Pay OÜ` in the register by hand, then take registration code, capital, board, revenue and headcount.
 
 ## Salaries
@@ -56,4 +56,4 @@ Research date: 2026-10-22. Status: **not verified**. Two web searches found no p
 ## Sources
 
 - Vacancy text from the user, 2026-10-22.
-- Web searches, 2026-10-22: no Nordwind Pay result. Related pages seen: [Northwind OÜ](https://ariregister.rik.ee/eng/company/11866276), [Paywerk AS](https://uzraudziba.bank.lv/en//market/payment-service-providers/payment-institutions/service-providers-from-the-eea/freedom-to-provide-services/paywerk-as). Neither is shown to be related.
+- Web searches, 2026-10-22: no Nordwind Pay result. Register pages of companies with similar names were seen; none is shown to be related.
