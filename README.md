@@ -45,3 +45,7 @@ not add this one. Uninstall the plugins of the other marketplace, remove it with
 
 `install` copies the plugin into the plugin cache of the Claude config folder, and sessions run that copy. A change
 in the clone therefore reaches a session only after a new install. Each plugin README gives the details.
+
+## License
+
+MIT. See `LICENSE`.
