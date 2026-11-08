@@ -3,6 +3,10 @@
 The scripts live in the plugin's `scripts/` folder. In a skill, call them as `${CLAUDE_SKILL_DIR}/../../scripts/<name>`
 and run them from the workspace root.
 
+`${CLAUDE_SKILL_DIR}` is the folder of the `SKILL.md` that you follow. Claude Code fills it in by itself. In GitHub
+Copilot nothing fills it in: before you read a file or run a command, replace it with the absolute path of that
+skill's folder (the plugin folder is two levels above it).
+
 | Script | Run with | What it does |
 |---|---|---|
 | `cv.js <profile.yaml> [--no-docx]` | `node` | Builds a CV from the master and a profile: checks the wording rules, writes `<output>.md` and `<output>.docx` next to the profile. The profile and master formats are documented at the top of the script |
@@ -19,10 +23,10 @@ and run them from the workspace root.
 
 ## Shells
 
-- Write paths in commands with forward slashes (`<folder>/<file>.docx`). The scripts accept them, and the Bash tool
+- Write paths in commands with forward slashes (`<folder>/<file>.docx`). The scripts accept them, and a Bash shell
   treats a backslash as an escape character.
-- Run the `.ps1` scripts with `pwsh -File` (or `powershell.exe -File` where the table says so). This works from the
-  PowerShell tool and from the Bash tool.
+- Run the `.ps1` scripts with `pwsh -File` (or `powershell.exe -File` where the table says so). This works from a
+  PowerShell terminal and from a Bash shell.
 
 ## Workspace root
 

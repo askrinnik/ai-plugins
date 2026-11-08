@@ -2,6 +2,21 @@
 
 The workspace `CLAUDE.md` may override any default here (see `workspace.md`, "Precedence").
 
+## Session tools
+
+The skills run in Claude Code and in GitHub Copilot (VS Code, Copilot CLI). They name a tool by its job. Use the tool
+of your session that does the job:
+
+| Job | Claude Code | GitHub Copilot |
+|---|---|---|
+| Read a web page or a page that needs a sign-in | built-in browser: `navigate`, then `get_page_text` | VS Code: browser tools (`open_browser_page`, then `read_page`), or `fetch_webpage` for a public page. Copilot CLI: `web_fetch` for a public page only |
+| Run a command | Bash or PowerShell tool | terminal tool |
+| Read a PDF or an image | Read tool | file-read tool; image-view tool for page images |
+| Give a file to the user | `SendUserFile` | give its path |
+| Run another skill of this plugin | Skill tool, name `jobsearch-kit:<skill>` | load the skill `<skill>` of this plugin (slash command `/<skill>`) |
+
+If the session has no tool for a job, say so and use the fallback of the step (usually: ask the user, or give a path).
+
 ## Core rules
 
 - **Never invent experience.** The only sources are the facts (`MyProfile/candidate_facts.md`) and the master
@@ -47,9 +62,8 @@ exception.
    If the user says no, do not open the site, and write in the notes that it was not researched because the user
    declined.
 2. **Sign-in by the user.** If the user says yes, open the sign-in page (`https://www.linkedin.com/login`) in the
-   browser tool of the session (the built-in browser of the desktop app, or Claude in Chrome). Ask the user to sign
-   in there and to say when it is done. Wait. Never type a login, a password or a code. If the session has no browser
-   tool, say so and skip the site.
+   browser tool of the session (see "Session tools"). Ask the user to sign in there and to say when it is done.
+   Wait. Never type a login, a password or a code. If the session has no browser tool, say so and skip the site.
 3. **Allowed:** open a page by its link, use the site search, scroll, read the page text, open a profile, a company
    page, a post or a job.
 4. **Forbidden:** every control that changes something or that other people see: Connect, Follow, Message, InMail,
@@ -122,4 +136,4 @@ Do not rewrite older documents only for style. Apply the rules to new text and t
 - Never put diagrams into CVs or cover letters.
 - For a one-off overview that the user reads on screen (for example a cheat sheet before a call), make one
   self-contained `.html` file in the related folder: inline CSS and SVG, no external scripts, fonts or CDNs. Use the
-  same facts as the Markdown notes and link to them. Show it with `SendUserFile`.
+  same facts as the Markdown notes and link to them. Show it with `SendUserFile`, or give its path.

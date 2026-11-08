@@ -1,8 +1,9 @@
 # Job search workspace
 
 Job search materials of <your name>. The procedures come from the `jobsearch-kit` plugin: run its skills
-(`/jobsearch-kit:analyze-vacancy` and others). This file holds the settings and personal rules of this workspace;
-they override the plugin defaults. The `init-workspace` skill fills in the settings below.
+(`/jobsearch-kit:analyze-vacancy` in Claude Code, `/analyze-vacancy` in GitHub Copilot, and others). This file holds
+the settings and personal rules of this workspace; they override the plugin defaults. The `init-workspace` skill
+fills in the settings below.
 
 ## Workspace settings
 

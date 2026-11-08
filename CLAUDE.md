@@ -19,6 +19,9 @@ how to register it and install, update and remove a plugin. This file is for the
 - Keep developer instructions out of `README.md` files: they are for users.
 - If a jobsearch-kit skill changes how it starts, what it asks, where it stops or what it changes, update
   `plugins/jobsearch-kit/docs/user-guide.md` in the same change.
+- Keep jobsearch-kit skills and reference files host-neutral: they run in Claude Code and in GitHub Copilot. Name a
+  tool by its job and use the table `Session tools` in `plugins/jobsearch-kit/reference/rules.md`. Do not add a tool
+  name or a Claude-only variable without a Copilot equivalent there.
 
 ## Add a plugin
 

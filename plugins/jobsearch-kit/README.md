@@ -1,15 +1,16 @@
 # jobsearch-kit plugin
 
-A job search workflow for Claude Code: vacancy analysis with company research, CVs tailored from one master file,
-cover letters, application records and call transcripts. Documents are built as Word and PDF files by scripts, and
-every CV is checked against the candidate's own wording rules.
+A job search workflow for Claude Code and GitHub Copilot (VS Code and Copilot CLI): vacancy analysis with company
+research, CVs tailored from one master file, cover letters, application records and call transcripts. Documents are
+built as Word and PDF files by scripts, and every CV is checked against the candidate's own wording rules.
 
 The plugin holds procedures, scripts and a template. All personal data stays in your **workspace**: a folder (best a
 git repository) with your facts, master CV, applications and notes.
 
 ## Skills
 
-Invoke a skill by its name or as `/jobsearch-kit:<skill>`.
+Invoke a skill by its name, or as a slash command: `/jobsearch-kit:<skill>` in Claude Code, `/<skill>` in GitHub
+Copilot.
 
 | Skill | When to use it |
 |---|---|
@@ -56,15 +57,30 @@ The skills never submit forms, send messages or commit on their own.
 - `git` (the skills compare CV text with `git diff`).
 - For `process-call` only: [`uv`](https://docs.astral.sh/uv/) and an NVIDIA GPU with CUDA 12. Without a GPU, pass
   `--device cpu` to `transcribe.py` (much slower).
-- The built-in browser of the Claude desktop app (or another browser tool) to read vacancy pages.
+- A browser tool in the session to read vacancy pages: the built-in browser of the Claude desktop app, or the browser
+  tools of VS Code (or `fetch_webpage` for public pages). Without one, paste the vacancy text.
 
 ## Install
 
 1. Register the marketplace: see `../../README.md`.
-2. Install the plugin, then start a new session:
+2. Install the plugin, then start a new session.
+
+   Claude Code:
 
    ```bash
    claude plugin install jobsearch-kit@ai-plugins
+   ```
+
+   GitHub Copilot in VS Code: add `"askrinnik/ai-plugins"` to the setting `chat.plugins.marketplaces` (or the
+   `file:///` path of a local clone), run **Chat: Open Customizations**, select **Plugins**, browse the marketplace
+   and install `jobsearch-kit`. To use a clone without a marketplace, run **Chat: Install Plugin from Source** and
+   enter the folder `plugins/jobsearch-kit`.
+
+   GitHub Copilot CLI:
+
+   ```bash
+   copilot plugin marketplace add askrinnik/ai-plugins
+   copilot plugin install jobsearch-kit@ai-plugins
    ```
 
 3. Install the npm packages (once per machine, and after an update that changes `scripts/package.json`). Run it from
@@ -87,17 +103,19 @@ The skills never submit forms, send messages or commit on their own.
    run. To use another folder, or to reuse a whisper environment that already exists, pass `-WhisperDir <folder>`:
    the script keeps what is there, and sets the user environment variable `JOBSEARCH_WHISPER` to that folder.
 
-   An environment variable set by these scripts reaches only new terminals and new Claude Code sessions. To check
+   An environment variable set by these scripts reaches only new terminals and new agent sessions (Claude Code or
+   Copilot). To check
    or remove one: `[Environment]::GetEnvironmentVariable('<name>', 'User')`,
    `[Environment]::SetEnvironmentVariable('<name>', [NullString]::Value, 'User')`.
 
 ## Getting started
 
-1. Create an empty folder for your workspace and start Claude Code in it.
+1. Create an empty folder for your workspace and start Claude Code in it, or open it in VS Code (Copilot Chat, agent
+   mode).
 2. Say: "Set up my job search workspace. My CV is <file>." (a `.docx`, a `.pdf`, text or a LinkedIn export). The
    `init-workspace` skill asks for your settings, drafts your facts and master CV from the CV, asks you to confirm
    every fact and your limits, checks the tools, builds your full CV and offers the first commit.
-3. Share a vacancy link and ask Claude to analyze it.
+3. Share a vacancy link and ask the agent to analyze it.
 
 The [user guide](docs/user-guide.md) tells you which skill to use in which situation, what each skill asks and where
 it stops.
@@ -121,7 +139,7 @@ If you prefer not to use `init-workspace`:
    - `MyProfile/cv/cv_rules.yaml`: patterns for claims you must not make.
    - `MyProfile/application_defaults.yaml`: your standard form answers.
    - `MyProfile/cv/profile_full.yaml`: set `output` to your name.
-3. Open the workspace in Claude Code and check the build: ask Claude to rebuild the full CV, or run from the
+3. Open the workspace in Claude Code or VS Code and check the build: ask the agent to rebuild the full CV, or run from the
    workspace root:
 
    ```bash
@@ -130,7 +148,7 @@ If you prefer not to use `init-workspace`:
 
 4. Commit the workspace. The skills compare CV text with `git diff`, which shows nothing for files that git does
    not track yet.
-5. Share a vacancy link and ask Claude to analyze it.
+5. Share a vacancy link and ask the agent to analyze it.
 
 The scripts find the workspace root by looking upwards for `MyProfile/cv/cv_master.yaml`; `--root <folder>` or the
 `JOBSEARCH_ROOT` environment variable override it.
@@ -138,12 +156,14 @@ The scripts find the workspace root by looking upwards for `MyProfile/cv/cv_mast
 ## Update
 
 `install` copies the plugin into the plugin cache, and sessions run that copy. After a change in the clone (your own
-or a pull):
+or a pull), in Claude Code:
 
 ```bash
 claude plugin uninstall jobsearch-kit@ai-plugins
 claude plugin install jobsearch-kit@ai-plugins
 ```
+
+In Copilot: run **Chat: Update Plugins** in VS Code, or `copilot plugin update jobsearch-kit` in the CLI.
 
 Then start a new session. If `scripts/package.json` changed, run `install-deps.ps1` again. Your workspace and the
 dependency folders are not touched.
@@ -153,6 +173,9 @@ dependency folders are not touched.
 ```bash
 claude plugin uninstall jobsearch-kit@ai-plugins
 ```
+
+In Copilot: select **Uninstall** on the plugin page of the Agent Customizations editor, or run
+`copilot plugin uninstall jobsearch-kit`.
 
 Delete `%LOCALAPPDATA%\ai-plugins\jobsearch-kit` to remove the npm packages, the whisper venv and the model.
 
@@ -168,4 +191,7 @@ Delete `%LOCALAPPDATA%\ai-plugins\jobsearch-kit` to remove the npm packages, the
 | The PDF has no links | It was printed with "Microsoft Print to PDF": use `export-pdf.ps1` |
 | `transcribe.py` cannot find CUDA DLLs | Run `install-whisper.ps1` again, or pass `--device cpu` |
 | A skill is not found or plugin changes do not appear | Reinstall as in "Update", then start a new session |
+| Copilot does not list the skills | Check that `chat.plugins.enabled` is `true` and that the plugin is enabled for the workspace in the Agent Customizations editor, then start a new chat |
+| Copilot cannot find `${CLAUDE_SKILL_DIR}/...` or a script | Copilot does not fill in that variable. The skills tell it to use the absolute path of the skill folder. If it still fails, give the absolute path of the plugin folder in your message |
+| Copilot asks for approval before every read of a plugin file or every command | The plugin folder is outside your workspace, and the scripts run in a terminal. Approve the requests, or add rules for `node` and `pwsh` to the VS Code setting `chat.tools.terminal.autoApprove`. Do not approve everything |
 | Claude Code asks for permission before every read of a plugin file ("Read outside the working directories") | The skills read their reference files and scripts from the plugin folder, which is outside your workspace. Add a read rule for the plugin folder only to `permissions.allow` in `~/.claude/settings.json`, for example `"Read(//c/path/to/ai-plugins/plugins/**)"` (the path of the marketplace clone, with forward slashes and a leading `//`). Protection for every other path stays on |

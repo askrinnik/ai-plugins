@@ -5,6 +5,9 @@ description: Write a cover letter for a vacancy from the confirmed facts and the
 
 # Write and build a cover letter
 
+`${CLAUDE_SKILL_DIR}` is the folder of this `SKILL.md`. Claude Code fills it in. In GitHub Copilot, replace it with the
+absolute path of this folder before you read a file or run a command.
+
 Before the first step, read `${CLAUDE_SKILL_DIR}/../../reference/workspace.md` (workspace layout, settings and
 precedence) and `${CLAUDE_SKILL_DIR}/../../reference/rules.md` (core rules, documents, style). Then read the
 workspace `CLAUDE.md`: it overrides the plugin defaults. Run every command from the workspace root.
@@ -31,7 +34,7 @@ pages, let the user check the letter, and make the PDF only after the user confi
 1. Get the application folder `YYYY_MM_DD_<Company>/`. If the user did not name it, take the newest folder for the
    company from `applications.md`. If no folder exists, run `jobsearch-kit:analyze-vacancy` first or ask the user.
 2. Read `vacancy.md` and `fit-analysis.md` in the application folder. If `vacancy.md` does not exist, read the
-   vacancy page with the built-in browser (`navigate`, then `get_page_text`). If `fit-analysis.md` does not exist,
+   vacancy page with the browser tool of the session (`rules.md`, "Session tools"). If `fit-analysis.md` does not exist,
    find the gaps yourself: compare the requirements with `candidate_facts.md`.
 3. Read `_Companies/<Company>/` (README and people notes): mission, products, team, what matters to them. If the
    folder does not exist, take the "why this company" points from the vacancy text only, and tell the user that the

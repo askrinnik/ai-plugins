@@ -38,5 +38,5 @@ function Sync-FolderVariable {
   [Environment]::SetEnvironmentVariable($Name, $full, 'User')
   Set-Item -Path "Env:$Name" -Value $full
   $was = if ($current) { " (was $current)" } else { '' }
-  Write-Output "$Name set to $full (user environment)$was. New terminals and Claude Code sessions see it."
+  Write-Output "$Name set to $full (user environment)$was. New terminals and new agent sessions (Claude Code or Copilot) see it."
 }

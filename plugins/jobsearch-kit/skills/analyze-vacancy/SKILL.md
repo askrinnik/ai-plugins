@@ -5,6 +5,9 @@ description: Analyze a job vacancy end to end. Use when the user shares a vacanc
 
 # Analyze a vacancy
 
+`${CLAUDE_SKILL_DIR}` is the folder of this `SKILL.md`. Claude Code fills it in. In GitHub Copilot, replace it with the
+absolute path of this folder before you read a file or run a command.
+
 Before the first step, read `${CLAUDE_SKILL_DIR}/../../reference/workspace.md` (workspace layout, settings and
 precedence) and `${CLAUDE_SKILL_DIR}/../../reference/rules.md` (core rules, documents, style). Then read the
 workspace `CLAUDE.md`: it overrides the plugin defaults. Run every command from the workspace root.
@@ -20,7 +23,7 @@ The skill has two stages with one stop between them:
 
 ## 1. Read the vacancy
 
-- Open the link in the built-in browser (`navigate`, then `get_page_text`). If the page needs a sign-in (LinkedIn
+- Open the link with the browser tool of the session (`rules.md`, "Session tools"). If the page needs a sign-in (LinkedIn
   Jobs and the like), follow `rules.md`, "Signed-in sites": ask, open the sign-in page, let the user sign in, wait.
 - LinkedIn: decide it before the research, so that the research does not stop later.
   - If the session has a browser tool and the user has not said yet whether to use LinkedIn, ask whether to research
@@ -90,12 +93,12 @@ people, LinkedIn, news and reviews, questions worth asking, sources.
 
 ## 5. Application documents
 
-- **CV:** invoke the `jobsearch-kit:adapt-cv` skill with the Skill tool and give it the application folder. The gap analysis is
+- **CV:** invoke the `jobsearch-kit:adapt-cv` skill and give it the application folder. The gap analysis is
   already in `fit-analysis.md`. `jobsearch-kit:adapt-cv` shows only the CV proposals, waits for the user to confirm them, and then
   builds the CV.
 - **Cover letter:** if the vacancy or the application form asks for one (a required field, "send a cover letter",
   a motivation question), make it without asking. Otherwise ask whether one is needed. To make it, invoke the
-  `jobsearch-kit:cover-letter` skill with the Skill tool and give it the application folder. This skill writes the log, so the
+  `jobsearch-kit:cover-letter` skill and give it the application folder. This skill writes the log, so the
   `jobsearch-kit:cover-letter` skill must not write it.
 - **Form questions and submission:** when the user is ready to submit, invoke the `jobsearch-kit:submit-application` skill. It
   drafts the form answers (salary, notice period, motivation) from `MyProfile/application_defaults.yaml` and the

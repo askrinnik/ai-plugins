@@ -5,6 +5,9 @@ description: Record a new or corrected fact about the candidate (experience, ski
 
 # Update the candidate facts and the master CV
 
+`${CLAUDE_SKILL_DIR}` is the folder of this `SKILL.md`. Claude Code fills it in. In GitHub Copilot, replace it with the
+absolute path of this folder before you read a file or run a command.
+
 Before the first step, read `${CLAUDE_SKILL_DIR}/../../reference/workspace.md` (workspace layout, settings and
 precedence) and `${CLAUDE_SKILL_DIR}/../../reference/rules.md` (core rules, documents, style). Then read the
 workspace `CLAUDE.md`: it overrides the plugin defaults. Run every command from the workspace root.

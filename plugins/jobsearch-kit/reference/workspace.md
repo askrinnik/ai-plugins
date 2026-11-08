@@ -11,11 +11,16 @@ never stores user data. Run the skills with the workspace root as the current di
 
 If the workspace `CLAUDE.md` sets a rule, use it instead of the plugin default. If it does not, use the default here.
 
+The settings file is named `CLAUDE.md` for every host. Every skill reads it by name at the start, so it also works in
+GitHub Copilot, which does not load `CLAUDE.md` by itself. For a request outside the skills, Copilot loads
+`AGENTS.md`, which tells it to read `CLAUDE.md`.
+
 ## Layout
 
 | Path | Content |
 |---|---|
 | `CLAUDE.md` | Workspace settings (see below), personal rules and the folder map |
+| `AGENTS.md` | Tells GitHub Copilot to read `CLAUDE.md`. Keep the settings in `CLAUDE.md` only |
 | `README.md` | Folder map and the dated **work log** in the notes language. Add an entry at the end of every session that changes something |
 | `applications.md` | Table of applications in the notes language: company, vacancy link, status, date sent, comment. It also lists analyzed vacancies that are not submitted yet |
 | `MyProfile/candidate_facts.md` | **Source of truth** for facts, metrics, skill levels and "do not claim" limits. Read it before you write any CV text |

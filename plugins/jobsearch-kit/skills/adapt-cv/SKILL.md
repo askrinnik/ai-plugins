@@ -5,6 +5,9 @@ description: Tailor the CV to a specific vacancy. Use when the user asks only to
 
 # Adapt the CV to a vacancy
 
+`${CLAUDE_SKILL_DIR}` is the folder of this `SKILL.md`. Claude Code fills it in. In GitHub Copilot, replace it with the
+absolute path of this folder before you read a file or run a command.
+
 Before the first step, read `${CLAUDE_SKILL_DIR}/../../reference/workspace.md` (workspace layout, settings and
 precedence) and `${CLAUDE_SKILL_DIR}/../../reference/rules.md` (core rules, documents, style). Then read the
 workspace `CLAUDE.md`: it overrides the plugin defaults. Run every command from the workspace root.
@@ -39,7 +42,7 @@ the user has answered the gap questions. In that case:
 
 ## 1. Gather inputs
 
-1. Read the vacancy with the built-in browser (`navigate`, then `get_page_text`). If the user gives the vacancy as
+1. Read the vacancy with the browser tool of the session (`rules.md`, "Session tools"). If the user gives the vacancy as
    text, use the text and record "text from the user, <date>" as the source. Record the company, legal entity,
    title, location, work model, requirements, "nice to have" items, tech stack and eligibility rules (citizenship,
    work permit, language) in `<folder>/vacancy.md` in the notes language.
@@ -112,7 +115,7 @@ the user has answered the gap questions. In that case:
      page count is the same as in step 4 and that every contact link of the header is in the printed link list. Send
      the PDF with `SendUserFile` (`display: render`), or give its path.
    - If the CV changes after the PDF was made, rebuild the PDF too: a PDF must never be older than its `.docx`.
-4. Offer a cover letter. If the user accepts, invoke the `jobsearch-kit:cover-letter` skill with the Skill tool and give it the
+4. Offer a cover letter. If the user accepts, invoke the `jobsearch-kit:cover-letter` skill and give it the
    application folder.
 5. When the user is ready to submit, invoke the `jobsearch-kit:submit-application` skill. It checks the PDFs and
    drafts the form answers.

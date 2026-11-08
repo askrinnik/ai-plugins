@@ -5,6 +5,9 @@ description: Set up a new job search workspace from zero with the user's own dat
 
 # Set up a job search workspace
 
+`${CLAUDE_SKILL_DIR}` is the folder of this `SKILL.md`. Claude Code fills it in. In GitHub Copilot, replace it with the
+absolute path of this folder before you read a file or run a command.
+
 Before the first step, read `${CLAUDE_SKILL_DIR}/../../reference/workspace.md` (workspace layout, settings and
 precedence) and `${CLAUDE_SKILL_DIR}/../../reference/rules.md` (core rules, documents, style).
 
@@ -61,7 +64,7 @@ If the user gives all answers up front, do not ask again.
 2. Extract the text:
    - `.docx`: read `word/document.xml` from the zip and strip the tags (`Expand-Archive` in pwsh; Windows PowerShell
      5.1 refuses the `.docx` extension, so copy the file to `.zip` first).
-   - `.pdf`: read the file with the Read tool. If that fails, extract the text with a PDF text tool.
+   - `.pdf`: read the file with the file-read tool. If that fails, extract the text with a PDF text tool.
    - Text or CSV: read it as it is.
    Save the extracted text as `MyProfile/cv/archive/base-cv.txt`, one paragraph per line. Step 8 compares the built
    CV with this text.

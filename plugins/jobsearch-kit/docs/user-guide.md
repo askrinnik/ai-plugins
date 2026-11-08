@@ -9,11 +9,13 @@ Sample.
 Do these steps once, after you install the plugin and its npm packages (see the plugin `README.md`).
 
 1. Create an empty folder for your workspace, for example `C:\JobSearch`.
-2. Start a new Claude Code session in that folder. In the desktop app, open the Code tab, start a new session and
-   select the folder. In a terminal, go to the folder and run `claude`. Do not use a session of another folder: the
+2. Start a new session in that folder. In Claude Code, use the desktop app (Code tab, new session, select the folder)
+   or a terminal (go to the folder and run `claude`). In GitHub Copilot, open the folder in VS Code and start a new
+   chat in agent mode, or go to the folder and run `copilot`. Do not use a session of another folder: the
    skills work in the folder of the session.
 3. Say: "Set up my job search workspace. My CV is <full path to the file>." You can write in your own language. The
-   `init-workspace` skill starts (you can also call it as `/jobsearch-kit:init-workspace`).
+   `init-workspace` skill starts (you can also call it as `/jobsearch-kit:init-workspace` in Claude Code, or as
+   `/init-workspace` in GitHub Copilot).
 4. Answer its questions. It stops after each question and waits for you.
 5. Wait for the final message. After your last answer, the skill builds your full CV and asks before the first git
    commit. Then it says "The workspace is ready", lists what it created and the facts that are still not confirmed,
@@ -21,10 +23,12 @@ Do these steps once, after you install the plugin and its npm packages (see the 
    setup is not finished: say "Continue the workspace setup" in the same folder.
 
 The skills read their reference files and scripts from the plugin folder, which is outside your workspace. Claude
-Code therefore asks for permission to read them. Allow these reads. If the prompts come too often, add a read rule for
+Code and Copilot therefore ask for permission to read them. Allow these reads. If the prompts come too often in
+Claude Code, add a read rule for
 the plugin folder only to `permissions.allow` in `~/.claude/settings.json`, for example
 `"Read(//c/path/to/plugin/folder/**)"`: use the folder that the prompt names, with forward slashes and a leading
-`//`. Reads of every other path still ask. The plugin `README.md`, "Troubleshooting", has the details.
+`//`. Reads of every other path still ask. The plugin `README.md`, "Troubleshooting", has the details, also for
+Copilot.
 
 When the workspace is ready, share a vacancy link: "Analyze this vacancy: <link>". Start every later session in the
 same workspace folder.

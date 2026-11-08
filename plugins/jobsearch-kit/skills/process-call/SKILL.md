@@ -5,6 +5,9 @@ description: Turn an audio recording of a call or interview (recruiter screening
 
 # Process a call recording
 
+`${CLAUDE_SKILL_DIR}` is the folder of this `SKILL.md`. Claude Code fills it in. In GitHub Copilot, replace it with the
+absolute path of this folder before you read a file or run a command.
+
 Before the first step, read `${CLAUDE_SKILL_DIR}/../../reference/workspace.md` (workspace layout, settings and
 precedence) and `${CLAUDE_SKILL_DIR}/../../reference/rules.md` (core rules, documents, style). Then read the
 workspace `CLAUDE.md`: it overrides the plugin defaults. Run every command from the workspace root.
@@ -95,7 +98,7 @@ Write the notes by the style rules for notes (`rules.md`, "Writing style", unles
 
 1. If the user stated a new fact on the call (salary named, start date, a skill), ask the user to confirm it. Then
    run `jobsearch-kit:update-cv-facts`.
-2. For each new person mentioned on the call, look them up on LinkedIn in the built-in browser. Follow
+2. For each new person mentioned on the call, look them up on LinkedIn with the browser tool of the session. Follow
    `rules.md`, "Signed-in sites": ask first with its warnings, let the user sign in, read only, no exception.
 3. Add what you found to `_Companies/<Company>/` (`people.md` or `README.md`), with the source and the date. Add the
    call's facts about the company (process, team, salary policy, benefits) to the company notes with the call date.
