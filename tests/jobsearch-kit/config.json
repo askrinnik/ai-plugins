@@ -1,4 +1,9 @@
 {
   "seed": "tests/jobsearch-kit/materials/workspace-jordan",
-  "plugin": "plugins/jobsearch-kit"
+  "plugin": "plugins/jobsearch-kit",
+  "copilotModels": {
+    "sonnet": "claude-sonnet-5.5",
+    "opus": "claude-opus-5.5",
+    "haiku": "claude-haiku-5.5"
+  }
 }

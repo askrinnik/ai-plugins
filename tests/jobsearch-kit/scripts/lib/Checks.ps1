@@ -27,6 +27,29 @@ function Get-PageCount {
   throw "render-preview.ps1 gave no page count: $out"
 }
 
+function Get-ToolInputs {
+  <#
+  .SYNOPSIS
+    The inputs of the session's tool calls so far (file paths, commands), not the text the session read, as
+    "<tool>: <input JSON>". A Copilot CLI transcript (events.jsonl) gets the Claude Code tool names
+    ($script:ClaudeToolNames), so that one pattern works for both CLIs.
+  #>
+  param([Parameter(Mandatory)][string]$Transcript)
+  foreach ($line in [IO.File]::ReadLines($Transcript)) {
+    if ($line -match '"tool\.execution_start"') {
+      $o = $line | ConvertFrom-Json -Depth 64
+      if ($o.type -ne 'tool.execution_start') { continue }
+      $tool = $o.data.toolName
+      $name = if ($script:ClaudeToolNames.ContainsKey($tool)) { $script:ClaudeToolNames[$tool] } else { $tool }
+      "${name}: $($o.data.arguments | ConvertTo-Json -Compress -Depth 5)"
+    }
+    elseif ($line -match '"tool_use"') {
+      $o = $line | ConvertFrom-Json
+      foreach ($c in @($o.message.content | Where-Object { $_.type -eq 'tool_use' })) { "$($c.name): $($c.input | ConvertTo-Json -Compress -Depth 5)" }
+    }
+  }
+}
+
 function Invoke-Check {
   <#
   .SYNOPSIS
@@ -101,14 +124,7 @@ function Invoke-Check {
       return New-CheckResult $name ($tracked.Count -eq 0) "every file matching $path ignored by git" "not ignored: $(& $list $tracked)"
     }
     { $_ -in 'tool-input', 'no-tool-input' } {
-      # The inputs of the session's tool calls so far (file paths, commands), not the text the session read.
-      $inputs = if ($Transcript -and (Test-Path $Transcript)) {
-        foreach ($line in [IO.File]::ReadLines($Transcript)) {
-          if ($line -notmatch '"tool_use"') { continue }
-          $o = $line | ConvertFrom-Json
-          foreach ($c in @($o.message.content | Where-Object { $_.type -eq 'tool_use' })) { "$($c.name): $($c.input | ConvertTo-Json -Compress -Depth 5)" }
-        }
-      }
+      $inputs = if ($Transcript -and (Test-Path $Transcript)) { Get-ToolInputs $Transcript }
       $hit = @($inputs | Where-Object { [regex]::IsMatch($_, $Check.pattern, $opts) } | Select-Object -First 1)
       $want = $type -eq 'tool-input'
       $actual = if (-not $Transcript) { 'no transcript' } elseif ($hit.Count) { "found: $($hit[0].Substring(0, [math]::Min(200, $hit[0].Length)))" } else { "not found in $(@($inputs).Count) tool call(s)" }
@@ -129,9 +145,10 @@ function Invoke-Check {
 }
 
 function Invoke-TurnChecks {
-  param([Parameter(Mandatory)]$Turn, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript)
+  param([Parameter(Mandatory)]$Turn, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript, [string]$Cli = 'claude')
   if (-not $Turn.ChecksFile) { return @() }
-  $checks = @(Get-Content $Turn.ChecksFile -Raw | ConvertFrom-Json)
+  # A check with "cli" runs only in the sessions of those CLIs.
+  $checks = @(Get-Content $Turn.ChecksFile -Raw | ConvertFrom-Json | Where-Object { -not $_.cli -or @($_.cli) -contains $Cli })
   foreach ($c in $checks) {
     try { Invoke-Check -Check $c -Workspace $Workspace -Answer $Answer -FixtureDir $FixtureDir -ScratchDir $ScratchDir -Transcript $Transcript }
     catch { New-CheckResult "$($c.type) $($c.path)" $false 'the check runs' "error: $($_.Exception.Message)" }

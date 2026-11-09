@@ -53,6 +53,8 @@ how to register it and install, update and remove a plugin. This file is for the
   -Fixture <names> -Note "<what changed>"`, or use the `jobsearch-kit-tests` skill of this repository. The sessions
   use the Claude usage limit: check the plan with `-DryRun` first.
   - Use model `sonnet` for test sessions and the judge.
+  - If a change touches the Copilot side (the `Session tools` table, the skill folder path, `AGENTS.md`), also run
+    the fixtures in GitHub Copilot CLI with `-Cli copilot`. These sessions use the Copilot AI credits.
   - During development run a fixture with 1 repetition; run its full repetitions once, as the final check before the
     commit.
   - Give every fixture an explicit tool list (`allowedTools` or the default), so that no session waits for a prompt.

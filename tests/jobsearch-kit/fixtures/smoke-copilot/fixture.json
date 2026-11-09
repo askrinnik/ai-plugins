@@ -1,0 +1,5 @@
+{
+  "description": "Copilot CLI: the plugin loads from --plugin-dir, the seven skills are visible as /<skill> commands, the skill folder path replaces ${CLAUDE_SKILL_DIR}, the Session tools table gives the Copilot entry, and the workspace instructions point to CLAUDE.md.",
+  "cli": ["copilot"],
+  "allowedTools": ["Skill", "Read", "Glob", "Grep"]
+}

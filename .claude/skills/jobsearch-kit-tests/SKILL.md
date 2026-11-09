@@ -15,8 +15,11 @@ session. Run every command from the repository root.
 2. If a skill changed, pick the fixtures of that skill (`tests/jobsearch-kit/fixtures/`, the table in the README).
    If nothing is named, ask which fixtures to run.
 3. Show the plan before a skill test run: `pwsh -File tests/jobsearch-kit/scripts/Run-Tests.ps1 -Fixture <names> -DryRun`.
-   Tell the developer the number of sessions and the expected time, and that the sessions use the Claude usage limit.
-   Start the run only after a yes, unless the developer already asked to run these fixtures.
+   Tell the developer the number of sessions and the expected time, and that the sessions use the Claude usage limit
+   (with `-Cli copilot`: the Copilot AI credits). Start the run only after a yes, unless the developer already asked
+   to run these fixtures.
+4. If the change touches the Copilot side (the `Session tools` table, the skill folder path, `AGENTS.md`), or the
+   developer asks for Copilot, run the fixtures also with `-Cli copilot`. The judge stays on Claude by default.
 
 ## Run
 
@@ -30,7 +33,8 @@ session. Run every command from the repository root.
 
 Read `tests/jobsearch-kit/reports/<run id>.md` and tell the developer:
 
-- The result in one sentence: how many repetitions passed, and whether any fixture shows `REGRESSION`.
+- The result in one sentence: how many repetitions passed, and whether any fixture shows `REGRESSION`. Name the CLI
+  of the run: the report compares a run only with earlier runs of the same CLI.
 - For each failed repetition: which turn, which check, expected and actual, in plain words; the judge's reasons from
   `tests/jobsearch-kit/runs/<run id>/<fixture>/r<n>/judge-<turn>.md` for a low score; the kept workspace path.
 - Permission denials: name the denied tools (`deniedTools` in `result.json`) and suggest adding them to the fixture's

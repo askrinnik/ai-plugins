@@ -2,7 +2,7 @@
 
 $script:HistoryFile = Join-Path $script:TestsDir 'run-history.csv'
 $script:ReportsDir = Join-Path $script:TestsDir 'reports'
-$script:HistoryColumns = @('run_id', 'started', 'note', 'fixture', 'rep', 'model', 'effort', 'plugin_version', 'commit', 'status',
+$script:HistoryColumns = @('run_id', 'started', 'note', 'fixture', 'rep', 'cli', 'model', 'effort', 'plugin_version', 'commit', 'status',
   'turns', 'checks_passed', 'checks_total', 'score', 'max_score', 'false_positives', 'permission_denials',
   'duration_s', 'calls', 'output_tokens', 'max_context', 'cost_usd', 'cost_units')
 
@@ -14,18 +14,26 @@ function Invoke-Judge {
   .SYNOPSIS
     Scores one turn's material against a ground truth with a headless session; returns score, max, false positives.
   #>
-  param([Parameter(Mandatory)][string]$GroundTruthFile, [Parameter(Mandatory)][string]$MaterialFile, [string]$Model = 'sonnet', [Parameter(Mandatory)][string]$ScratchDir)
+  param([Parameter(Mandatory)][string]$GroundTruthFile, [Parameter(Mandatory)][string]$MaterialFile, [string]$Model = 'sonnet', [Parameter(Mandatory)][string]$ScratchDir, [string]$Cli = 'claude')
   $gt = Get-Content $GroundTruthFile -Raw
   $max = if ($gt -match 'Max score:\s*(\d+)') { [int]$Matches[1] } else { throw "$GroundTruthFile has no 'Max score: N' line" }
   $prompt = (Get-Content (Join-Path $PSScriptRoot 'judge-prompt.md') -Raw).Replace('{{ground_truth}}', $gt).Replace('{{material}}', (Get-Content $MaterialFile -Raw))
   New-Item -ItemType Directory -Force $ScratchDir | Out-Null
-  $userMd = (Join-Path $HOME '.claude\CLAUDE.md') -replace '\\', '/'
-  $settings = @{ claudeMdExcludes = @($userMd) } | ConvertTo-Json -Compress
-  $args_ = @('-p', '--output-format', 'json', '--model', $Model, '--setting-sources', 'project', '--settings', $settings,
-    '--strict-mcp-config', '--tools', '', '--no-session-persistence')
-  $r = Invoke-Claude -Arguments $args_ -Prompt $prompt -WorkingDirectory $ScratchDir -TimeoutMinutes 10
-  $text = try { ($r.Out | ConvertFrom-Json).result } catch { $r.Out }
-  $cost = try { [double]($r.Out | ConvertFrom-Json).total_cost_usd } catch { 0 }
+  if ($Cli -eq 'copilot') {
+    # A name that is no tool leaves the judge without tools; an empty --available-tools would mean all tools.
+    $args_ = @('--output-format', 'json', '--model', (Get-CliModel $Cli $Model), '--available-tools=no-tool', '--disable-builtin-mcps',
+      '--no-ask-user', '--no-auto-update', '--no-custom-instructions')
+  }
+  else {
+    $userMd = (Join-Path $HOME '.claude\CLAUDE.md') -replace '\\', '/'
+    $settings = @{ claudeMdExcludes = @($userMd) } | ConvertTo-Json -Compress
+    $args_ = @('-p', '--output-format', 'json', '--model', $Model, '--setting-sources', 'project', '--settings', $settings,
+      '--strict-mcp-config', '--tools', '', '--no-session-persistence')
+  }
+  $r = Invoke-Cli -Cli $Cli -Arguments $args_ -Prompt $prompt -WorkingDirectory $ScratchDir -TimeoutMinutes 10
+  $o = ConvertFrom-CliOutput -Cli $Cli -Out $r.Out
+  $text = if ($o.Parsed) { $o.Answer } else { $r.Out }
+  $cost = if ($null -ne $o.CumulativeNanoAiu) { $o.CumulativeNanoAiu / 1e11 } elseif ($o.CostUsd) { $o.CostUsd } else { 0 }
   # The score is the sum of the items; if the judge corrects an item, its last line counts. The "Score:" line is the
   # fallback, because a judge sometimes corrects an item without changing the total.
   $items = @{}
@@ -38,8 +46,31 @@ function Invoke-Judge {
 }
 
 function Get-SessionMetrics {
-  param([string]$Transcript)
+  <#
+  .SYNOPSIS
+    Calls, output tokens, the largest context and the weighted cost (harness-kit units) of a session transcript.
+  .DESCRIPTION
+    A Copilot CLI transcript (events.jsonl) has one "session.usage_record" per model call; its inputTokens include the
+    cache reads and writes, as the context of a Claude Code call does.
+  #>
+  param([string]$Transcript, [string]$Cli = 'claude')
   if (-not $Transcript -or -not (Test-Path $Transcript)) { return $null }
+  if ($Cli -eq 'copilot') {
+    $u = @(foreach ($line in [IO.File]::ReadLines($Transcript)) {
+        if ($line -notmatch '"session\.usage_record"') { continue }
+        $o = $line | ConvertFrom-Json -Depth 64
+        if ($o.type -eq 'session.usage_record') { $o.data.usage }
+      })
+    if (-not $u.Count) { return $null }
+    return [pscustomobject]@{
+      Calls        = $u.Count
+      OutputTokens = ($u | Measure-Object outputTokens -Sum).Sum
+      MaxContext   = ($u | Measure-Object inputTokens -Maximum).Maximum
+      CostUnits    = [math]::Round((($u | ForEach-Object {
+                Get-CostUnits ([double]$_.inputTokens - [double]$_.cacheReadTokens - [double]$_.cacheWriteTokens) ([double]$_.cacheReadTokens) ([double]$_.cacheWriteTokens) ([double]$_.outputTokens)
+              }) | Measure-Object -Sum).Sum)
+    }
+  }
   $p = Read-WorkSession -File (Get-Item $Transcript)
   $rows = @($p.Rows)
   $subRows = @($p.Subagents | ForEach-Object { $_.Rows })
@@ -56,14 +87,15 @@ function Complete-Result {
   .SYNOPSIS
     Judges the turns of one result that have a ground truth and no score yet, adds the metrics and the status.
   #>
-  param([Parameter(Mandatory)][string]$ResultFile, [string]$JudgeModel = 'sonnet', [int]$MinScore = -1)
+  param([Parameter(Mandatory)][string]$ResultFile, [string]$JudgeModel = 'sonnet', [int]$MinScore = -1, [string]$JudgeCli = 'claude')
   $dir = Split-Path $ResultFile -Parent
   $res = Get-Content $ResultFile -Raw | ConvertFrom-Json
   if ($res.status -eq 'skipped') { return $res }
+  $cli = if ($res.cli) { $res.cli } else { 'claude' }
   foreach ($t in $res.turns) {
     if ($t.groundTruth -and $null -eq $t.judge) {
       $j = try {
-        Invoke-Judge -GroundTruthFile $t.groundTruth -MaterialFile (Join-Path $dir "judge-input-$($t.n).md") -Model $JudgeModel -ScratchDir (Join-Path $script:TempRoot 'judge')
+        Invoke-Judge -GroundTruthFile $t.groundTruth -MaterialFile (Join-Path $dir "judge-input-$($t.n).md") -Model $JudgeModel -ScratchDir (Join-Path $script:TempRoot 'judge') -Cli $JudgeCli
       }
       catch {
         [pscustomobject]@{ Score = $null; Max = 0; FalsePositives = $null; Text = "Judge error: $($_.Exception.Message)"; CostUsd = 0 }
@@ -72,7 +104,7 @@ function Complete-Result {
       $t | Add-Member -Force judge ([pscustomobject]@{ score = $j.Score; max = $j.Max; falsePositives = $j.FalsePositives; costUsd = $j.CostUsd })
     }
   }
-  $m = Get-SessionMetrics (Join-Path $dir 'transcript.jsonl')
+  $m = Get-SessionMetrics (Join-Path $dir 'transcript.jsonl') -Cli $cli
   $res | Add-Member -Force metrics $m
   $checks = @($res.turns | ForEach-Object { $_.checks } | Where-Object { $_ })
   $judged = @($res.turns | Where-Object { $_.judge })
@@ -103,6 +135,7 @@ function ConvertTo-HistoryRow {
     note               = $Run.note
     fixture            = $Res.fixture
     rep                = $Res.rep
+    cli                = $(if ($Run.cli) { $Run.cli } else { 'claude' })
     model              = $Run.model
     effort             = $(if ($Run.effort) { $Run.effort } else { 'default' })
     plugin_version     = $Run.pluginVersion
@@ -130,8 +163,20 @@ function Update-History {
     Writes the rows of one run into run-history.csv; rows of the same run id are replaced.
   #>
   param([Parameter(Mandatory)][object[]]$Rows, [Parameter(Mandatory)][string]$RunId)
-  $old = if (Test-Path $script:HistoryFile) { @(Import-Csv $script:HistoryFile | Where-Object run_id -ne $RunId) } else { @() }
+  $old = if (Test-Path $script:HistoryFile) { @(Read-History | Where-Object run_id -ne $RunId) } else { @() }
   @($old) + @($Rows) | Select-Object $script:HistoryColumns | Export-Csv $script:HistoryFile -NoTypeInformation -Encoding UTF8
+}
+
+function Read-History {
+  <#
+  .SYNOPSIS
+    The rows of run-history.csv. A row from before the "cli" column gets "claude".
+  #>
+  if (-not (Test-Path $script:HistoryFile)) { return }
+  Import-Csv $script:HistoryFile | ForEach-Object {
+    if (-not $_.PSObject.Properties['cli'] -or -not $_.cli) { $_ | Add-Member -Force cli 'claude' }
+    $_
+  }
 }
 
 # History values are written with a decimal point whatever the culture.
@@ -184,21 +229,25 @@ function Write-Report {
   #>
   param([Parameter(Mandatory)]$Run, [Parameter(Mandatory)][object[]]$Results)
   New-Item -ItemType Directory -Force $script:ReportsDir | Out-Null
-  $history = if (Test-Path $script:HistoryFile) { @(Import-Csv $script:HistoryFile) } else { @() }
+  $history = @(Read-History)
+  $cli = if ($Run.cli) { $Run.cli } else { 'claude' }
+  $judgeCli = if ($Run.judgeCli) { $Run.judgeCli } else { 'claude' }
   $lines = New-Object System.Collections.Generic.List[string]
   $lines.Add("# jobsearch-kit test run $($Run.runId)")
   $lines.Add('')
   $lines.Add("- Note: $($Run.note)")
-  $lines.Add("- Started: $($Run.started); model $($Run.model), effort $(if ($Run.effort) { $Run.effort } else { 'default' }), judge $($Run.judgeModel)")
+  $lines.Add("- Started: $($Run.started); CLI $cli, model $($Run.model), effort $(if ($Run.effort) { $Run.effort } else { 'default' }), judge $($Run.judgeModel) ($judgeCli)")
   $lines.Add("- Plugin version $($Run.pluginVersion), commit $($Run.commit)")
   $all = @($history | Where-Object run_id -eq $Run.runId)
-  $lines.Add("- Sessions: $($all.Count); time $(Format-Num ((@($all | ForEach-Object { ConvertTo-Double $_.duration_s }) | Measure-Object -Sum).Sum / 60) '0.0') min; cost `$$(Format-Num ((@($all | ForEach-Object { ConvertTo-Double $_.cost_usd }) | Measure-Object -Sum).Sum) '0.00') (API price; on a plan it uses the usage limit)")
+  $costNote = if ($cli -eq 'copilot') { 'AI credits at $0.01; on a plan they use the monthly allowance' } else { 'API price; on a plan it uses the usage limit' }
+  $lines.Add("- Sessions: $($all.Count); time $(Format-Num ((@($all | ForEach-Object { ConvertTo-Double $_.duration_s }) | Measure-Object -Sum).Sum / 60) '0.0') min; cost `$$(Format-Num ((@($all | ForEach-Object { ConvertTo-Double $_.cost_usd }) | Measure-Object -Sum).Sum) '0.00') ($costNote)")
   $lines.Add('')
-  $lines.Add('| Fixture | Passed | Checks | Score | False pos. | Denials | Time, s | Cost, $ | Before: passed, score | Verdict |')
+  $lines.Add("| Fixture | Passed | Checks | Score | False pos. | Denials | Time, s | Cost, $ | Before ($cli): passed, score | Verdict |")
   $lines.Add('|---|---|---|---|---|---|---|---|---|---|')
   foreach ($g in ($all | Group-Object fixture)) {
     $now = @($g.Group)
-    $prevId = $history | Where-Object { $_.fixture -eq $g.Name -and $_.run_id -ne $Run.runId -and $_.run_id -lt $Run.runId -and $_.status -ne 'skipped' } |
+    # Compare with the previous run of the same CLI only: the two CLIs are compared separately.
+    $prevId = $history | Where-Object { $_.fixture -eq $g.Name -and $_.cli -eq $cli -and $_.run_id -ne $Run.runId -and $_.run_id -lt $Run.runId -and $_.status -ne 'skipped' } |
       Sort-Object run_id | Select-Object -Last 1 -ExpandProperty run_id
     $before = @($history | Where-Object { $_.fixture -eq $g.Name -and $_.run_id -eq $prevId })
     $skipped = @($now | Where-Object status -eq 'skipped').Count -eq $now.Count

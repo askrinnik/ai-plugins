@@ -4,14 +4,16 @@
   the rows of run-history.csv and the report reports\<run id>.md.
 
 .DESCRIPTION
-    pwsh -File tests\jobsearch-kit\scripts\Collect-Tests.ps1 [-Run <runs\<run id> folder>] [-JudgeModel sonnet]
+    pwsh -File tests\jobsearch-kit\scripts\Collect-Tests.ps1 [-Run <runs\<run id> folder>] [-JudgeModel sonnet] [-JudgeCli <claude|copilot>]
 
   Run-Tests.ps1 calls it at the end of every run. Call it yourself to rebuild the history rows and the report of a
-  run (default: the latest run). Rows of the same run id are replaced, so it is safe to run twice.
+  run (default: the latest run). Rows of the same run id are replaced, so it is safe to run twice. -JudgeCli
+  defaults to the judge CLI of the run (run.json).
 #>
 param(
   [string]$Run,
-  [string]$JudgeModel = 'sonnet'
+  [string]$JudgeModel = 'sonnet',
+  [ValidateSet('claude', 'copilot')][string]$JudgeCli
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib\Session.ps1')
@@ -22,9 +24,10 @@ if (-not $Run) {
   if (-not $Run) { throw 'No run in tests\jobsearch-kit\runs' }
 }
 $info = Get-Content (Join-Path $Run 'run.json') -Raw | ConvertFrom-Json -DateKind String
+if (-not $JudgeCli) { $JudgeCli = if ($info.judgeCli) { $info.judgeCli } else { 'claude' } }
 $results = @(Get-ChildItem $Run -Recurse -Filter 'result.json' | Sort-Object FullName | ForEach-Object {
     $r = Get-Content $_.FullName -Raw | ConvertFrom-Json
-    if ($r.status -in 'running', $null) { $r = Complete-Result -ResultFile $_.FullName -JudgeModel $JudgeModel }
+    if ($r.status -in 'running', $null) { $r = Complete-Result -ResultFile $_.FullName -JudgeModel $JudgeModel -JudgeCli $JudgeCli }
     $r
   })
 $rows = @($results | ForEach-Object { ConvertTo-HistoryRow $info $_ })

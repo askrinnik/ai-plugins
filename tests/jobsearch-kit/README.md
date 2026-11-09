@@ -7,12 +7,13 @@ There are two kinds of tests:
 
 - **Script tests** start no model session. They take seconds and do not use the usage limit. Run them after every
   change of a script or of the workspace template.
-- **Skill tests** run the skills in headless Claude Code sessions on a fresh fictional workspace and check the
-  results. They take minutes and use the Claude usage limit.
+- **Skill tests** run the skills in headless Claude Code sessions (or GitHub Copilot CLI sessions, `-Cli copilot`) on
+  a fresh fictional workspace and check the results. They take minutes and use the Claude usage limit (or the
+  Copilot AI credits).
 
 | Path | Content |
 |---|---|
-| `config.json` | Shared settings: the seed workspace of the tests (`materials/workspace-jordan`) and the plugin folder |
+| `config.json` | Shared settings: the seed workspace of the tests (`materials/workspace-jordan`), the plugin folder, and the Copilot model ids of the model aliases (`copilotModels`) |
 | `scripts/Test-Scripts.ps1` | Script tests |
 | `scripts/unit/` | The script tests and their expected outputs |
 | `scripts/Run-Tests.ps1` | Runs skill fixtures |
@@ -53,17 +54,19 @@ Three checks compare the seed workspace with stored data:
 ## Skill tests
 
 ```powershell
-pwsh -File tests\jobsearch-kit\scripts\Run-Tests.ps1 -Fixture <names or masks> -Note "<what changed>" [-DryRun]
+pwsh -File tests\jobsearch-kit\scripts\Run-Tests.ps1 -Fixture <names or masks> -Note "<what changed>" [-Cli copilot] [-DryRun]
 ```
 
 | Parameter | Meaning |
 |---|---|
 | `-Fixture` | Fixture names or `-like` masks, comma-separated. Default: all fixtures except the slow ones |
 | `-Note` | What changed since the last run; goes into the history and the report. Required unless `-DryRun` |
+| `-Cli` | The CLI of the test sessions: `claude` (default) or `copilot` (GitHub Copilot CLI) |
 | `-DryRun` | Prints the plan (sessions, expected time) and the session command line; runs nothing |
-| `-Model` | Model of the test sessions; default `sonnet` |
-| `-Effort` | Effort level of the test sessions; default: the CLI default |
+| `-Model` | Model of the test sessions; default `sonnet`. For `copilot`, `copilotModels` in `config.json` maps the alias to a Copilot model id |
+| `-Effort` | Effort level of the test sessions (`--effort`, or `--reasoning-effort` in Copilot); default: the CLI default |
 | `-JudgeModel` | Model of the judge; default `sonnet` |
+| `-JudgeCli` | The CLI of the judge; default `claude`, so that the scores of both CLIs come from the same judge |
 | `-Repetitions` | Overrides `repetitions` of every selected fixture |
 | `-Keep` | Keeps every workspace. Without it, only the workspaces of failed repetitions are kept |
 | `-IncludeSlow` | Lets a mask select slow fixtures. A slow fixture named exactly always runs |
@@ -78,21 +81,51 @@ seed workspace (config.json "seed") + fixture seed files
   -> judge, metrics -> run-history.csv, reports\<run id>.md
 ```
 
+With `-Cli copilot` the turns are `copilot --session-id <new id>`, then `copilot --resume <id>`, with the same prompt
+on stdin.
+
 - Every session runs with `--plugin-dir plugins/jobsearch-kit`, so the tests run the working tree, not the installed
   plugin. The plugin folder is added with `--add-dir`, so the skills can read the plugin reference.
 - Every session is isolated from the developer's own setup: `--setting-sources project,local` (no user settings,
   installed plugins, hooks or permissions), `--strict-mcp-config` (no MCP servers), the user `CLAUDE.md` excluded with
-  `claudeMdExcludes`, and the variables of a hosting Claude Code session removed. `JOBSEARCH_WHISPER` and
+  `claudeMdExcludes`, and the variables of a hosting Claude Code or Copilot session removed. `JOBSEARCH_WHISPER` and
   `JOBSEARCH_DEPS` pass through.
 - Every session gets an explicit `--allowedTools` list, so it never waits for a permission prompt; a tool that is not
   in the list is denied. The report counts the denials.
 - The judge is a headless session without tools. It scores the material of a turn against the ground truth.
 - A repetition passes if every session ends without an error, every check passes, and every judged turn reaches the
   minimum score.
-- The report compares each fixture with the previous run that ran it: `REGRESSION` (lower pass rate, or a mean
-  score lower by more than the noise), `improvement` (the opposite), `within noise`, or `first run`. The noise of the
-  score is the larger of 1 point and two standard deviations of the scores of both runs.
+- The report compares each fixture with the previous run of the same CLI that ran it: `REGRESSION` (lower pass rate,
+  or a mean score lower by more than the noise), `improvement` (the opposite), `within noise`, or `first run`. The
+  noise of the score is the larger of 1 point and two standard deviations of the scores of both runs. The `cli`
+  column of `run-history.csv` tells the runs of the two CLIs apart.
 - A failed check prints the check, the expected and the actual value, and the workspace stays for inspection.
+
+### GitHub Copilot CLI sessions
+
+`-Cli copilot` needs the `copilot` command on `PATH` and a signed-in Copilot account. The fixtures, checks and
+ground truths are the same as for Claude Code.
+
+- Isolation: every run uses its own Copilot home (`COPILOT_HOME=%TEMP%\jobsearch-tests\<run id>\copilot-home`), so
+  no installed plugin (also not an installed `jobsearch-kit`), MCP server or user instruction of the developer
+  reaches the sessions. The built-in MCP servers are off (`--disable-builtin-mcps`), and so is the question form
+  (`--no-ask-user`): the skills ask in the answer, as in Claude Code. The sign-in comes from the system credential
+  store; if a session cannot sign in, set `COPILOT_GITHUB_TOKEN`. The workspace instructions (`CLAUDE.md`,
+  `AGENTS.md`) load as for a user.
+- Tools: `allowedTools` keeps the Claude Code tool names. The runner maps them to Copilot tools
+  (`$script:CopilotToolMap` in `scripts/lib/Session.ps1`): `Read` → `view`, `Write` → `create`, `Edit` → `edit`,
+  `Glob`, `Grep`, `Skill` → `glob`, `grep`, `skill`, `Bash` and `PowerShell` → the shell tools, `TodoWrite` → `sql`,
+  `WebSearch` → `web_search`, `WebFetch` → `web_fetch`. Only these tools are available (`--available-tools`); the
+  calls are approved with `--allow-tool` (`read`, `write`, `shell`) and `--allow-all-urls`. A call that no rule
+  approves is denied, and the report counts it. A tool without a Copilot equivalent stops the run with a message.
+- Output: `copilot --output-format json` prints events (JSON lines); the runner keeps them as
+  `runs/<run id>/<fixture>/r<n>/output-NN.jsonl`. The answer is the last assistant message of the turn. The
+  transcript is `events.jsonl` of the session state; `tool-input` checks read it with the Claude Code tool names.
+- Cost: Copilot reports AI credits; the report gives them in dollars (1 AI credit = $0.01). `calls`,
+  `output_tokens`, `max_context` and `cost_units` come from the usage records of the transcript, with the same
+  weights as for Claude Code.
+- Copilot CLI does not expand a slash command (`/<skill>`) in a prompt-mode session. The prompts name the task in
+  words, as for Claude Code; `smoke-copilot` checks that every skill is listed as `/<skill>`.
 
 ### Fixture format
 
@@ -128,6 +161,7 @@ confirmation screenshot. Fixtures take them with `seedCopy` and `seedDiffs`, and
 | `allowedTools` | The whole tool list of the sessions | Read, Write, Edit, Glob, Grep, Skill, Bash, PowerShell, TodoWrite, WebSearch, WebFetch |
 | `addAllowedTools` | Tools added to the default list | |
 | `slow` | Leave the fixture out of a default run | false |
+| `cli` | The CLIs that run the fixture (`["claude"]`, `["copilot"]`); the other CLI leaves it out | both |
 | `requires` | `word`, `whisper`: skip the fixture with a message when it is missing | |
 | `timeoutMinutes` | Time limit of one turn | 20 |
 | `seedCopy` | `[{ "from": <path in the repository>, "to": <path in the workspace> }]`, files or folders | |
@@ -140,7 +174,8 @@ confirmation screenshot. Fixtures take them with `seedCopy` and `seedDiffs`, and
 
 Checks (`checks/NN.json`, an array). Paths are globs relative to the workspace, with forward slashes; `*` also
 matches `/`. Every check may have a `name`; patterns are .NET regular expressions, case-insensitive unless
-`"ignoreCase": false`.
+`"ignoreCase": false`. A check with `"cli": ["claude"]` or `"cli": ["copilot"]` runs only in the sessions of that
+CLI.
 
 | `type` | Fields | Passes when |
 |---|---|---|
@@ -153,7 +188,7 @@ matches `/`. Every check may have a `name`; patterns are .NET regular expression
 | `lint` | `path` | `cv.js --lint` passes for the matching files with the workspace rules |
 | `pages` | `path`, `max` | every matching `.docx` has at most `max` pages (Word; skipped without Word) |
 | `ignored` | `path` | every matching file is ignored by git |
-| `tool-input` / `no-tool-input` | `pattern` | an input of the session's tool calls so far matches / none matches. Each input reads `<tool>: <input JSON>`, for example `Skill: {"skill":"jobsearch-kit:adapt-cv"}` |
+| `tool-input` / `no-tool-input` | `pattern` | an input of the session's tool calls so far matches / none matches. Each input reads `<tool>: <input JSON>` with the Claude Code tool name, also in Copilot, for example `Skill: {"skill":"jobsearch-kit:adapt-cv"}` (Copilot: `Skill: {"skill":"adapt-cv"}`) |
 | `script` | `file`, `args` | `pwsh -File <file> -Workspace <ws> -AnswerFile <file> <args>` exits with 0. `file` is relative to the fixture folder or to the repository |
 
 Shared check scripts are in `scripts/checks/`: `Test-Letter.ps1` (front matter, one line per paragraph, 250–350
@@ -167,7 +202,8 @@ and counts false positives (claims that the material does not back). Base ground
 
 | Fixture | What it proves |
 |---|---|
-| `smoke` | The plugin loads, the seven skills are visible, `${CLAUDE_SKILL_DIR}` resolves |
+| `smoke` | The plugin loads, the seven skills are visible, `${CLAUDE_SKILL_DIR}` resolves (Claude Code only) |
+| `smoke-copilot` | Copilot CLI only: the plugin loads, the seven skills are listed as `/<skill>`, the absolute skill folder replaces `${CLAUDE_SKILL_DIR}`, the `Session tools` table gives the Copilot entry, the workspace instructions point to `CLAUDE.md` |
 | `selftest-stop` | Framework self-test: a check after turn 1 proves that the session stopped; the judge pipeline works |
 | `analyze-vacancy-text` | Fit table and company research for a vacancy given as text; the skill stops before the CV; the answers reach the facts and the rules |
 | `analyze-vacancy-defer` | The user defers: the reason is recorded, no CV |
@@ -192,6 +228,8 @@ and counts false positives (claims that the material does not back). Base ground
 ### Rules for skill tests
 
 - Use `sonnet` for test sessions and the judge.
+- If a change touches the Copilot side (the `Session tools` table, the skill folder path, `AGENTS.md`), also run the
+  fixtures with `-Cli copilot`, at least `smoke-copilot`.
 - During development run a fixture with 1 repetition. Run its `repetitions` (usually 3) once, as the final check
   before the commit.
 - Give a fixture only the tools its skill needs (`allowedTools` or the default list).

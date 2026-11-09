@@ -1,0 +1,14 @@
+This is a smoke test of the jobsearch-kit plugin. Change no file in this folder.
+
+1. List every skill of the jobsearch-kit plugin that is available to you, one per line, as its slash command
+   `/<name>`.
+2. Load the skill update-cv-facts of this plugin with the skill tool, but do not follow its procedure. Find the
+   variable that the loaded text uses for the skill's own folder, replace it with the absolute path of that folder as
+   the text tells you, and read the file `<that folder>/../../reference/scripts.md`.
+3. Read `<that folder>/../../reference/rules.md`. In its table "Session tools", find the GitHub Copilot entry of the
+   job "Run another skill of this plugin".
+4. End your answer with four lines:
+   SKILL_DIR: <the absolute folder path that you used in step 2>
+   HEADING: <the first heading of scripts.md>
+   RUN_SKILL: <the GitHub Copilot entry from step 3>
+   SETTINGS: <the file that holds the settings of this workspace, according to the workspace instructions>

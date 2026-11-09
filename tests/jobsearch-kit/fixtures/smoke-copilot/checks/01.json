@@ -1,0 +1,17 @@
+[
+  { "type": "answer-contains", "pattern": "/analyze-vacancy\\b" },
+  { "type": "answer-contains", "pattern": "/adapt-cv\\b" },
+  { "type": "answer-contains", "pattern": "/cover-letter\\b" },
+  { "type": "answer-contains", "pattern": "/submit-application\\b" },
+  { "type": "answer-contains", "pattern": "/process-call\\b" },
+  { "type": "answer-contains", "pattern": "/update-cv-facts\\b" },
+  { "type": "answer-contains", "pattern": "/init-workspace\\b" },
+  { "name": "the skill was loaded with the skill tool", "type": "tool-input", "pattern": "^Skill: .*update-cv-facts" },
+  { "name": "SKILL_DIR is the absolute skill folder", "type": "answer-contains", "pattern": "SKILL_DIR:.*([A-Za-z]:|/).*jobsearch-kit[\\\\/]+skills[\\\\/]+update-cv-facts" },
+  { "name": "no unresolved CLAUDE_SKILL_DIR", "type": "answer-not-contains", "pattern": "SKILL_DIR:.*CLAUDE_SKILL_DIR" },
+  { "name": "reference/scripts.md was read by its absolute path", "type": "tool-input", "pattern": "^Read: .*jobsearch-kit.*reference.*scripts\\.md" },
+  { "name": "the first heading of scripts.md", "type": "answer-contains", "pattern": "HEADING:\\s*#?\\s*Scripts" },
+  { "name": "the Copilot entry of the Session tools table", "type": "answer-contains", "pattern": "RUN_SKILL:.*/<skill>" },
+  { "name": "the workspace instructions point to CLAUDE.md", "type": "answer-contains", "pattern": "SETTINGS:.*CLAUDE\\.md" },
+  { "name": "no file changed", "type": "unchanged", "path": "." }
+]
