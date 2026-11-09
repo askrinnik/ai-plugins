@@ -3,9 +3,9 @@
 # Files of the workspace (not .git) whose path relative to the workspace, with forward slashes, is -like the glob.
 # "*" also matches "/", so "*/fit-analysis.md" finds the file in any application folder.
 function Get-WorkspaceFiles {
-  param([Parameter(Mandatory)][string]$Workspace, [Parameter(Mandatory)][string]$Glob, [switch]$Directories)
+  param([Parameter(Mandatory)][string]$Workspace, [Parameter(Mandatory)][string]$Glob, [Parameter(Mandatory)][datetime]$Date, [switch]$Directories)
   $root = (Resolve-Path $Workspace).Path.TrimEnd('\') + '\'
-  $glob = Expand-Placeholders $Glob $Workspace
+  $glob = Expand-Placeholders $Glob $Workspace $Date
   Get-ChildItem $Workspace -Recurse -Force -File:(-not $Directories) -Directory:$Directories |
     Where-Object { $_.FullName -notlike "$root.git\*" -and $_.FullName -ne "$root.git" } |
     Where-Object { ($_.FullName.Substring($root.Length) -replace '\\', '/') -like $glob }
@@ -55,14 +55,14 @@ function Invoke-Check {
   .SYNOPSIS
     Runs one check object against the workspace and the turn's answer; returns a result with expected and actual.
   #>
-  param([Parameter(Mandatory)]$Check, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript)
+  param([Parameter(Mandatory)]$Check, [Parameter(Mandatory)][string]$Workspace, [Parameter(Mandatory)][datetime]$Date, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript)
   $Check = $Check | Select-Object *
-  if ($Check.pattern) { $Check.pattern = Expand-Placeholders $Check.pattern $Workspace }
+  if ($Check.pattern) { $Check.pattern = Expand-Placeholders $Check.pattern $Workspace $Date }
   $type = $Check.type
   $path = [string]$Check.path
   $name = if ($Check.name) { $Check.name } else { "$type $path$(if ($Check.pattern) { " /$($Check.pattern)/" })".Trim() }
-  $files = if ($path) { @(Get-WorkspaceFiles $Workspace $path) } else { @() }
-  $dirs = if ($path -and $type -in 'exists', 'absent', 'count') { @(Get-WorkspaceFiles $Workspace $path -Directories) } else { @() }
+  $files = if ($path) { @(Get-WorkspaceFiles $Workspace $path $Date) } else { @() }
+  $dirs = if ($path -and $type -in 'exists', 'absent', 'count') { @(Get-WorkspaceFiles $Workspace $path $Date -Directories) } else { @() }
   $list = { param($f) if ($f.Count) { ($f | ForEach-Object { Get-RelativePath $Workspace $_.FullName }) -join ', ' } else { 'none' } }
   $opts = if ($Check.ignoreCase -eq $false) { 'None' } else { 'IgnoreCase' }
   switch ($type) {
@@ -136,7 +136,7 @@ function Invoke-Check {
       if (-not (Test-Path $file)) { $file = Join-Path $script:Repo $Check.file }
       $answerFile = Join-Path $ScratchDir 'answer.md'
       Set-Content -LiteralPath $answerFile -Value $Answer -Encoding UTF8
-      $extra = @($Check.args | Where-Object { $null -ne $_ } | ForEach-Object { Expand-Placeholders ([string]$_) $Workspace })
+      $extra = @($Check.args | Where-Object { $null -ne $_ } | ForEach-Object { Expand-Placeholders ([string]$_) $Workspace $Date })
       $out = & pwsh -NoProfile -File $file -Workspace $Workspace -AnswerFile $answerFile @extra 2>&1 | Out-String
       return New-CheckResult $name ($LASTEXITCODE -eq 0) "$($Check.file) exits with 0" $out.Trim()
     }
@@ -145,12 +145,32 @@ function Invoke-Check {
 }
 
 function Invoke-TurnChecks {
-  param([Parameter(Mandatory)]$Turn, [Parameter(Mandatory)][string]$Workspace, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript, [string]$Cli = 'claude')
+  <#
+  .SYNOPSIS
+    Runs the checks of a turn with the date of the repetition (-Date). A session that crosses midnight can name a
+    file with the new date: a check with {{date}} or {{today}} then runs also with the date at the end of the turn.
+    A positive check passes with either date; a negative check (absent, not-contains, answer-not-contains,
+    no-tool-input) must pass with both.
+  #>
+  param([Parameter(Mandatory)]$Turn, [Parameter(Mandatory)][string]$Workspace, [Parameter(Mandatory)][datetime]$Date, [string]$Answer, [string]$FixtureDir, [string]$ScratchDir, [string]$Transcript, [string]$Cli = 'claude', [datetime]$EndDate = (Get-Date))
   if (-not $Turn.ChecksFile) { return @() }
   # A check with "cli" runs only in the sessions of those CLIs.
   $checks = @(Get-Content $Turn.ChecksFile -Raw | ConvertFrom-Json | Where-Object { -not $_.cli -or @($_.cli) -contains $Cli })
+  $common = @{ Workspace = $Workspace; Answer = $Answer; FixtureDir = $FixtureDir; ScratchDir = $ScratchDir; Transcript = $Transcript }
   foreach ($c in $checks) {
-    try { Invoke-Check -Check $c -Workspace $Workspace -Answer $Answer -FixtureDir $FixtureDir -ScratchDir $ScratchDir -Transcript $Transcript }
+    try {
+      $r = Invoke-Check -Check $c -Date $Date @common
+      $usesDate = ($c | ConvertTo-Json -Compress -Depth 5) -match '\{\{(date|today)\}\}'
+      if ($usesDate -and $EndDate.Date -ne $Date.Date) {
+        $r2 = Invoke-Check -Check $c -Date $EndDate @common
+        $negative = $c.type -in 'absent', 'not-contains', 'answer-not-contains', 'no-tool-input'
+        if ($r.Pass -ne $r2.Pass -and $r2.Pass -ne $negative) {
+          $r2.Actual = "$($r2.Actual) (with the date at the end of the turn, $($EndDate.ToString('yyyy-MM-dd')))"
+          $r = $r2
+        }
+      }
+      $r
+    }
     catch { New-CheckResult "$($c.type) $($c.path)" $false 'the check runs' "error: $($_.Exception.Message)" }
   }
 }

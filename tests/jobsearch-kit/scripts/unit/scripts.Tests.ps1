@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-  Tests of the PowerShell scripts of jobsearch-kit and of the test tool New-CallAudio.ps1. Plain assertions, no
+  Tests of the PowerShell scripts of jobsearch-kit, of the test tool New-CallAudio.ps1 and of the date placeholders
+  of the test runner. Plain assertions, no
   Pester. Run by Test-Scripts.ps1; prints one line per test and exits with the number of failed tests.
 #>
 param(
@@ -186,6 +187,46 @@ else {
   }
   Remove-Item $ws -Recurse -Force -ErrorAction SilentlyContinue
 }
+
+# --- Test runner libraries: date placeholders --------------------------------------------------------------------
+# A dynamic module keeps the $script: variables of the libraries apart from the variables of this script.
+$libs = Join-Path $repo 'tests\jobsearch-kit\scripts\lib'
+$runner = New-Module -Name jobsearch-test-libs -ArgumentList $libs -ScriptBlock {
+  param($Libs)
+  . (Join-Path $Libs 'Session.ps1')
+  . (Join-Path $Libs 'Checks.ps1')
+  Export-ModuleMember -Function Expand-Placeholders, Invoke-TurnChecks
+}
+Import-Module $runner -Force
+
+Test-Case 'Expand-Placeholders: a fixed date, not the current date' {
+  $date = [datetime]'2026-11-08T23:58:40'
+  $out = Expand-Placeholders 'a {{date}} b {{today}} c {{workspace}}' 'C:\ws\x' $date
+  Assert-Equal 'a 2026_11_08 b 2026-11-08 c C:/ws/x' $out 'expanded text'
+}
+
+Test-Case 'Invoke-TurnChecks: a turn that crosses midnight also accepts the date at the end of the turn' {
+  $ws = New-TempDir 'midnight'
+  New-Item -ItemType Directory (Join-Path $ws '2026_11_09_Example_Call') | Out-Null
+  $checksFile = Join-Path $ws 'checks.json'
+  ConvertTo-Json -Depth 3 @(
+    @{ name = 'exists'; type = 'exists'; path = '{{date}}_Example_*' },
+    @{ name = 'absent'; type = 'absent'; path = '{{date}}_Example_*' }
+  ) | Set-Content -LiteralPath $checksFile -Encoding UTF8
+  $turn = [pscustomobject]@{ ChecksFile = $checksFile }
+  $start = [datetime]'2026-11-08T23:58:40'
+
+  $r = @(Invoke-TurnChecks -Turn $turn -Workspace $ws -Date $start -EndDate ([datetime]'2026-11-09T00:03:00'))
+  Assert-True $r[0].Pass "exists must pass with the end date: $($r[0].Actual)"
+  Assert-True ($r[0].Actual -match 'end of the turn') "the result must name the end date: $($r[0].Actual)"
+  Assert-True (-not $r[1].Pass) 'absent must fail: the folder matches the end date'
+
+  $r = @(Invoke-TurnChecks -Turn $turn -Workspace $ws -Date $start -EndDate $start)
+  Assert-True (-not $r[0].Pass) "exists must fail when the turn ends on the same day: $($r[0].Actual)"
+  Assert-True $r[1].Pass 'absent must pass when the turn ends on the same day'
+  Remove-Item $ws -Recurse -Force
+}
+Remove-Module $runner
 
 Write-Output ''
 Write-Output "PowerShell tests: $script:passed passed, $script:failed failed, $script:skipped skipped"

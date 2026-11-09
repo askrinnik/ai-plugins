@@ -125,8 +125,11 @@ function Expand-Placeholders {
   .SYNOPSIS
     Replaces {{today}}, {{date}}, {{workspace}} and {{include:<path in the repository>#<n>}} (the n-th fenced code
     block of that file, so a prompt can use a vacancy text or the user answers of materials/ without a copy).
+  .PARAMETER Date
+    The date of {{today}} and {{date}}. The runner fixes it once per fixture repetition, so that the seed, the
+    prompts and the checks of one repetition use the same date also when the run crosses midnight.
   #>
-  param([string]$Text, [string]$Workspace)
+  param([string]$Text, [string]$Workspace, [Parameter(Mandatory)][datetime]$Date)
   $Text = [regex]::Replace($Text, '\{\{include:([^#}]+)#(\d+)\}\}', {
       param($m)
       $file = Join-Path $script:Repo $m.Groups[1].Value
@@ -136,8 +139,7 @@ function Expand-Placeholders {
       if ($n -lt 1 -or $n -gt $blocks.Count) { throw "$($m.Value): $file has $($blocks.Count) code block(s)" }
       $blocks[$n - 1].Groups[1].Value
     })
-  $now = Get-Date
-  $Text.Replace('{{today}}', $now.ToString('yyyy-MM-dd')).Replace('{{date}}', $now.ToString('yyyy_MM_dd')).Replace('{{workspace}}', ($Workspace -replace '\\', '/'))
+  $Text.Replace('{{today}}', $Date.ToString('yyyy-MM-dd')).Replace('{{date}}', $Date.ToString('yyyy_MM_dd')).Replace('{{workspace}}', ($Workspace -replace '\\', '/'))
 }
 
 function New-TestWorkspace {
@@ -149,9 +151,9 @@ function New-TestWorkspace {
     ({ from: <path relative to the repository>, to: <path relative to the workspace> }; placeholders allowed in
     "to"); copy the fixture's seed\ folder over it; apply the "seedDiffs" (paths in the repository) and seed.diff
     with git apply; run "seedCommands" (pwsh commands in the workspace, for example a CV build; {{plugin}} is the
-    plugin folder); commit everything.
+    plugin folder); commit everything. -Date is the date of the placeholders (see Expand-Placeholders).
   #>
-  param([Parameter(Mandatory)]$Fixture, [Parameter(Mandatory)][string]$Path)
+  param([Parameter(Mandatory)]$Fixture, [Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][datetime]$Date)
   if (Test-Path $Path) { Remove-Item $Path -Recurse -Force }
   New-Item -ItemType Directory -Force $Path | Out-Null
   if (-not $Fixture.EmptySeed) { Copy-Item (Join-Path $script:SeedDir '*') $Path -Recurse -Force }
@@ -159,7 +161,7 @@ function New-TestWorkspace {
   foreach ($r in $Fixture.SeedRemove) { Remove-Item (Join-Path $Path $r) -Recurse -Force -ErrorAction SilentlyContinue }
   foreach ($c in $Fixture.SeedCopy) {
     $from = Join-Path $script:Repo $c.from
-    $to = Join-Path $Path (Expand-Placeholders $c.to $Path)
+    $to = Join-Path $Path (Expand-Placeholders $c.to $Path $Date)
     if (-not (Test-Path $from)) { throw "seedCopy: $($c.from) does not exist" }
     if ((Get-Item $from).PSIsContainer) {
       New-Item -ItemType Directory -Force $to | Out-Null
@@ -182,7 +184,7 @@ function New-TestWorkspace {
     if ($LASTEXITCODE -ne 0) { throw "git apply $diff failed: $out" }
   }
   foreach ($cmd in $Fixture.SeedCommands) {
-    $line = (Expand-Placeholders $cmd $Path).Replace('{{plugin}}', ($script:PluginDir -replace '\\', '/'))
+    $line = (Expand-Placeholders $cmd $Path $Date).Replace('{{plugin}}', ($script:PluginDir -replace '\\', '/'))
     Push-Location $Path
     try {
       $out = & pwsh -NoProfile -Command $line 2>&1 | Out-String

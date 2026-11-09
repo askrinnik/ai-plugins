@@ -37,7 +37,8 @@ pwsh -File tests\jobsearch-kit\scripts\Test-Scripts.ps1 [-SkipWord] [-SkipAudio]
   check of the seed (every CV claim backed by a fact), and the check that the plugin template is an empty skeleton
   that builds.
 - PowerShell tests (`scripts/unit/scripts.Tests.ps1`): `folder-variable.ps1` (on a throwaway user variable that the
-  test removes), `New-CallAudio.ps1`, and the Word scripts `export-pdf.ps1` and `render-preview.ps1`.
+  test removes), `New-CallAudio.ps1`, the Word scripts `export-pdf.ps1` and `render-preview.ps1`, and the date
+  placeholders of the test runner (a fixed date per repetition, a turn that crosses midnight).
 - Without the Word tests the run takes a few seconds. If Word is not installed, the Word tests are skipped with a
   message.
 - The tests need the npm packages of the plugin (`plugins/jobsearch-kit/scripts/install-deps.ps1`). Temporary files go
@@ -146,6 +147,12 @@ A new test is a new folder; no script change is needed. Placeholders in prompts,
 forward slashes), `{{include:<path in the repository>#<n>}}` (the n-th fenced code block of that file, so that a
 prompt uses a vacancy text or the user answers of `materials/` without a copy). In `seedCommands`, `{{plugin}}` is the
 plugin folder.
+
+The runner fixes the date of `{{today}}` and `{{date}}` once per fixture repetition, when it creates the workspace,
+so that the seed, the prompts and the checks of one repetition agree also when the run crosses midnight. If a turn
+ends on a later day, a check with `{{date}}` or `{{today}}` runs also with the date at the end of the turn: a
+positive check passes with either date; `absent`, `not-contains`, `answer-not-contains` and `no-tool-input` must pass
+with both.
 
 Shared seeds are in `materials/seeds/`: an application folder with its tailored CV for Nordwind Pay and for
 ExampleBank, the Nordwind Pay answers as a diff of the facts and rules (`nordwind-pay.diff`), and a fictional

@@ -118,14 +118,16 @@ foreach ($f in $selected) {
       continue
     }
 
-    New-TestWorkspace -Fixture $f -Path $ws
+    # One date per repetition: the seed, the prompts and the checks must agree also when the run crosses midnight.
+    $date = Get-Date
+    New-TestWorkspace -Fixture $f -Path $ws -Date $date
     $scratch = Join-Path $script:TempRoot "$runId\scratch-$($f.Name)-r$rep"
     New-Item -ItemType Directory -Force $scratch | Out-Null
     $sessionId = $null
     $nanoAiu = 0
     foreach ($t in $f.Turns) {
       Write-Output "      $($f.Name) r$rep turn $($t.N) ..."
-      $prompt = Expand-Placeholders (Get-Content $t.PromptFile -Raw) $ws
+      $prompt = Expand-Placeholders (Get-Content $t.PromptFile -Raw) $ws $date
       $sessionArgs = Get-SessionArguments -Fixture $f -Cli $Cli -Model $Model -Effort $Effort -ResumeId $sessionId -NewSessionId ([guid]::NewGuid().ToString())
       $r = Invoke-Cli -Cli $Cli -Arguments $sessionArgs -Prompt $prompt -WorkingDirectory $ws -TimeoutMinutes $f.TimeoutMinutes
       $o = ConvertFrom-CliOutput -Cli $Cli -Out $r.Out
@@ -144,7 +146,7 @@ foreach ($f in $selected) {
         error = $(if ($r.ExitCode -ne 0 -or -not $o.Parsed -or $o.IsError) { (($o.Error + ' ' + $r.Err + ' ' + $(if (-not $o.Parsed) { $r.Out })) -replace '\s+', ' ').Trim() })
         checks = @(); groundTruth = $t.GroundTruth; judge = $null
       }
-      $turn.checks = @(Invoke-TurnChecks -Turn $t -Workspace $ws -Answer $answer -FixtureDir $f.Dir -ScratchDir $scratch -Cli $Cli -Transcript $(if ($sessionId) { Find-Transcript -Cli $Cli -SessionId $sessionId }))
+      $turn.checks = @(Invoke-TurnChecks -Turn $t -Workspace $ws -Date $date -Answer $answer -FixtureDir $f.Dir -ScratchDir $scratch -Cli $Cli -Transcript $(if ($sessionId) { Find-Transcript -Cli $Cli -SessionId $sessionId }))
       foreach ($c in $turn.checks) {
         $mark = if ($c.Skipped) { 'skip' } elseif ($c.Pass) { 'ok  ' } else { 'FAIL' }
         Write-Output "      $mark  $($c.Name)$(if (-not $c.Pass) { " — expected $($c.Expected); actual: $(($c.Actual -replace '\s+', ' ').Trim())" })"
@@ -153,7 +155,7 @@ foreach ($f in $selected) {
         $material = New-Object System.Collections.Generic.List[string]
         $material.Add("## The session's answer to the user (turn $($t.N))"); $material.Add(''); $material.Add($answer)
         foreach ($glob in $f.JudgeFiles) {
-          foreach ($file in @(Get-WorkspaceFiles $ws $glob)) {
+          foreach ($file in @(Get-WorkspaceFiles $ws $glob $date)) {
             $material.Add(''); $material.Add("## File: $(Get-RelativePath $ws $file.FullName)"); $material.Add('')
             $material.Add((Get-Content $file.FullName -Raw))
           }

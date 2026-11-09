@@ -7,8 +7,9 @@
 
   - Node tests (node --test): unit\*.test.js — workspace.js, cv.js, build-cv.js, build-letter.js and the
     template consistency check.
-  - PowerShell tests: unit\scripts.Tests.ps1 — folder-variable.ps1, New-CallAudio.ps1 and the Word scripts
-    (export-pdf.ps1, render-preview.ps1; skipped with a message when Word is not installed).
+  - PowerShell tests: unit\scripts.Tests.ps1 — folder-variable.ps1, New-CallAudio.ps1, the Word scripts
+    (export-pdf.ps1, render-preview.ps1; skipped with a message when Word is not installed) and the date
+    placeholders of the test runner (lib\Session.ps1, lib\Checks.ps1).
 
   -SkipWord leaves out the Word tests (they take about 20 s), -SkipAudio the speech synthesis test.
   -UpdateExpected rewrites unit\expected\ from the current template; use it only after a deliberate template change
