@@ -1,3 +1,4 @@
 [
-  { "name": "CV PDF not older than the .docx, contact links kept", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Pdfs.ps1", "args": ["-Folder", "{{date}}_Example*Bank*"] }
+  { "name": "CV PDF not older than the .docx, contact links kept", "type": "script", "file": "tests/jobsearch-kit/scripts/checks/Test-Pdfs.ps1", "args": ["-Folder", "{{date}}_Example*Bank*"] },
+  { "name": "no heredoc and no program that reads standard input", "type": "no-tool-input", "pattern": "^(Bash|PowerShell): .*(<<-?\\s*['\"\\\\]*[A-Za-z_]+|\\b(python3?|node)(\\.exe)?\\s+-(\\s|\\\\n|\"|$))" }
 ]

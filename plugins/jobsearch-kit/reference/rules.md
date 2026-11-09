@@ -11,11 +11,16 @@ of your session that does the job:
 |---|---|---|
 | Read a web page or a page that needs a sign-in | built-in browser: `navigate`, then `get_page_text` | VS Code: browser tools (`open_browser_page`, then `read_page`), or `fetch_webpage` for a public page. Copilot CLI: `web_fetch` for a public page only |
 | Run a command | Bash or PowerShell tool | terminal tool |
+| Write or change a file | Write or Edit tool | file-edit tool |
 | Read a PDF or an image | Read tool | file-read tool; image-view tool for page images |
 | Give a file to the user | `SendUserFile` | give its path |
 | Run another skill of this plugin | Skill tool, name `jobsearch-kit:<skill>` | load the skill `<skill>` of this plugin (slash command `/<skill>`) |
 
 If the session has no tool for a job, say so and use the fallback of the step (usually: ask the user, or give a path).
+
+Write and change workspace files with the file tool. Never write them with a shell command: no redirection (`>`,
+`>>`), no heredoc (`<<EOF`), no inline script (`node -e`, `python -c`). Use a command only to run a plugin script or a
+command that a step names (see `scripts.md`, "Shells").
 
 ## Core rules
 

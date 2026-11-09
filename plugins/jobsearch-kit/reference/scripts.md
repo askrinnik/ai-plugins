@@ -27,6 +27,9 @@ skill's folder (the plugin folder is two levels above it).
   treats a backslash as an escape character.
 - Run the `.ps1` scripts with `pwsh -File` (or `powershell.exe -File` where the table says so). This works from a
   PowerShell terminal and from a Bash shell.
+- Run only the plugin scripts and the commands that a step names. Do not start a program that reads standard input
+  (`python -`, `node -`, a heredoc into a program): on Windows it can wait forever, and the session hangs.
+- Do not check for Python or use it. The plugin needs Python only in the whisper venv, for `transcribe.py`.
 
 ## Workspace root
 

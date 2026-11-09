@@ -7,5 +7,6 @@
   { "name": "a commit after the yes, with the work log", "type": "script", "file": "tests/jobsearch-kit/fixtures/init-workspace-docx/checks/one-commit.ps1" },
   { "name": "the final message says that the workspace is ready", "type": "answer-contains", "pattern": "workspace is ready" },
   { "name": "the base CV moved to the archive after the user said so", "type": "absent", "path": "base-cv.docx" },
-  { "name": "the base CV is in the archive", "type": "exists", "path": "MyProfile/cv/archive/base-cv.docx" }
+  { "name": "the base CV is in the archive", "type": "exists", "path": "MyProfile/cv/archive/base-cv.docx" },
+  { "name": "no heredoc and no program that reads standard input", "type": "no-tool-input", "pattern": "^(Bash|PowerShell): .*(<<-?\\s*['\"\\\\]*[A-Za-z_]+|\\b(python3?|node)(\\.exe)?\\s+-(\\s|\\\\n|\"|$))" }
 ]

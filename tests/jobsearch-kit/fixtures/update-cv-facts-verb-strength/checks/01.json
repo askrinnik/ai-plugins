@@ -7,5 +7,6 @@
   { "name": "full CV .md rebuilt with Redis", "type": "contains", "path": "MyProfile/cv/CV_Jordan_Sample_full.md", "pattern": "Redis" },
   { "name": "full CV .docx rebuilt too", "type": "exists", "path": "MyProfile/cv/CV_Jordan_Sample_full.docx" },
   { "name": "the full CV passes the wording rules", "type": "lint", "path": "MyProfile/cv/CV_Jordan_Sample_full.md" },
-  { "name": "work log entry", "type": "contains", "path": "README.md", "pattern": "Redis" }
+  { "name": "work log entry", "type": "contains", "path": "README.md", "pattern": "Redis" },
+  { "name": "no heredoc and no program that reads standard input", "type": "no-tool-input", "pattern": "^(Bash|PowerShell): .*(<<-?\\s*['\"\\\\]*[A-Za-z_]+|\\b(python3?|node)(\\.exe)?\\s+-(\\s|\\\\n|\"|$))" }
 ]
