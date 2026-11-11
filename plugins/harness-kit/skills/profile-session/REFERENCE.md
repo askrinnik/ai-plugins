@@ -40,6 +40,16 @@ these prices. It does not include the data-residency surcharge (`inference_geo` 
 server tools such as web search. It is only as current as the price table: `pricesUpdated` is the date of the table,
 and each record stores the date and the prices of the models it used.
 
+**Updating the prices.** `/profile-session refresh` (`-Refresh`) downloads the Anthropic pricing page in Markdown,
+reads its model table and its fast-mode table, and shows what differs from the table in use. A model id comes from
+the model name: `Claude Opus 5.5` gives `claude-opus-5-5`. A row "for prompts over N tokens" gives the `longPrompt`
+prices, and the fast-mode price over the base input price gives `fastMultiplier`. Nothing is written without
+`-Apply`. With `-Apply` the prices go to the user settings file (`-Target User`, the default). The developers of the
+plugin use `-Target Defaults` in a clone to update `profile-session.config.default.json`; it is refused for a copy in
+the plugin cache. A model the page no longer lists keeps its price. If the page format changes so that no model table
+is found, the refresh stops with an error and writes nothing. Run a refresh when the profiler reports a model without
+a price, when Anthropic announces new models or prices, and before you compare sessions over a long period.
+
 **A model without a price.** If a call uses a model that is not in the table, or fast mode on a model without a
 `fastMultiplier`, the profiler shows a warning with the model id and shows no USD total. The record then has no
 `costUsd` and lists the model in `prices.unpriced`. The price of a similar model is never used. Add the model to
@@ -107,12 +117,13 @@ its default and examples are in `CONFIGURATION.md`.
 | `<resultsDir>/report.html` | Self-contained report (data, CSS and JavaScript inline, works offline) rebuilt from all records on every `save`, `-Recompute` and `-Report`; keep it out of git (`.gitignore`). `-NoOpen` skips opening it. |
 | `scripts/Profile-Session.ps1` | Entry point; `Get-Help` lists every parameter. |
 | `scripts/lib/Session-Profile.ps1` | Transcript parser. |
+| `scripts/lib/Prices.ps1` | Reads the pricing page, compares price tables and writes prices to a settings file. |
 | `scripts/lib/Cost.ps1` | Cost weights, the price table, the USD of one call, and the cost and token helpers. |
 | `scripts/lib/Settings.ps1` | Reads and merges the settings files; finds a work item in a text. |
 | `profile-session.config.default.json` | Default settings. |
 | `scripts/lib/Session-Report.ps1` | Report builder: embeds the records as JSON in the page template. |
 | `scripts/lib/report.html` | Page template of the report: trend table with an info icon per session, filters, paging, medians, chart and how to read it; with `#session=<id>` in the address, the breakdown of that session. |
-| `scripts/tests/Test-ProfileSession.ps1` | Checks the parser, the records and the report data on the synthetic session in `scripts/tests/fixtures/session`; run it after changing the scripts. |
+| `scripts/tests/Test-ProfileSession.ps1` | Checks the parser, the records and the report data on the synthetic session in `scripts/tests/fixtures/session` and the fictional pricing page `scripts/tests/fixtures/pricing.md`; run it after changing the scripts. |
 
 Transcripts are read from `<Claude config dir>/projects/<repository key>` (`CLAUDE_CONFIG_DIR`, or `~/.claude`).
 Sessions listed in a manifest of `excludeSessionManifests` and SDK sessions are never picked as the newest session.

@@ -32,7 +32,7 @@ from the repository root, never from the results folder, so `resultsDir` cannot 
 | `activityRules` | list | empty | `[{ "pattern": "<regex>", "category": "<name>" }]`, tried in order before the built-in rules. The pattern is matched against each tag of a call (see below). |
 | `costWeights` | object | 1, 0.1, 1.25, 5 | `input`, `cacheRead`, `cacheWrite`, `output`: relative price of one token of each kind. Each record stores the weights it was costed with; sessions costed with different weights are not comparable in cost units, and the report says so. |
 | `prices` | object | API list prices of current and earlier Claude models | Price table of the estimated cost in USD, keyed by model id as the transcript records it (`claude-opus-5-5`). See "Model prices" below. |
-| `pricesUpdated` | text | date of the default table | Date of the price table, `yyyy-MM-dd`. Shown with the USD figure and stored in each record. Set it when you change `prices`. |
+| `pricesUpdated` | text | date of the default table | Date of the price table, `yyyy-MM-dd`. Shown with the USD figure and stored in each record. The newest date of the layers applies. `refresh` sets it; set it yourself when you change `prices` by hand. |
 
 ### Model prices
 
@@ -48,7 +48,11 @@ Each entry of `prices` gives USD per 1M tokens of one model:
 | `fastMultiplier` | no | Factor on every price for a call in fast mode. Without it, a fast-mode call of the model has no price. |
 | `longPrompt` | no | `above` (prompt tokens) and the five prices above, for a model whose requests over that prompt size pay more |
 
-Take the values from the Anthropic pricing page: `https://platform.claude.com/docs/en/about-claude/pricing.md`. The
+`/profile-session refresh` reads the prices from the Anthropic pricing page
+(`https://platform.claude.com/docs/en/about-claude/pricing.md`), shows the differences and, after you confirm,
+writes them to your user file. It writes there only the models whose page price differs from the defaults file and
+removes a copy that equals the default, so a newer plugin version is not hidden by an old copy. Models of your file
+that the page does not list stay. You can also write the values by hand from that page. The
 `prices` of a later layer merge model by model: an entry replaces the entry of that model as a whole, and the other
 models keep the earlier prices. A model that is in no layer has no price: the profiler warns and shows no USD total.
 A dated snapshot id (`claude-haiku-4-5-20251001`) takes the price of its id without the date.

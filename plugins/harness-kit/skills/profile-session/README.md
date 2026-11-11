@@ -53,6 +53,7 @@ The skill is `/profile-session`; the long form is `/harness-kit:profile-session`
 | Same, and keep it | `/profile-session save` | Writes one record, rebuilds `report.html` and opens it; commit the record yourself, the skill only offers |
 | Another finished session | `/profile-session <id or prefix>` (add `save` to keep it) | The same for that session |
 | Only the report | `/profile-session report` | Rebuilds and opens `report.html` from the records |
+| A model has no price, or prices changed | `/profile-session refresh` | Compares the prices with the Anthropic pricing page; after you confirm, writes the new prices to your user settings file |
 
 `-WorkItem`, `-Note`, `-Marker` and `-NoCommit` can be added to a `save`. `/clear` starts a new transcript, so take
 the start reading again after it. To check the scripts after changing them:
@@ -85,7 +86,8 @@ pushed yet, or add a new commit when it is. The steps after the profile (push, p
 | `No transcript folder at …` | Claude Code has not recorded a session for this folder yet, or `CLAUDE_CONFIG_DIR` points elsewhere in this terminal |
 | The wrong session is profiled | Pass the id explicitly: `/profile-session <id or prefix>` |
 | `<file> : unknown setting '…'` | A typo in a settings file; the message names the file and the key |
-| `No estimated cost in USD: the price table has no price for …` | A new model, or fast mode on a model without `fastMultiplier`: add the price to `prices` in your user or repository settings (`CONFIGURATION.md`) |
+| `No estimated cost in USD: the price table has no price for …` | A new model, or fast mode on a model without `fastMultiplier`: run `/profile-session refresh`, or add the price to `prices` in your user or repository settings (`CONFIGURATION.md`) |
+| `The pricing page has no model price table …` | The format of the pricing page changed: add the prices by hand (`CONFIGURATION.md`) and report the problem |
 | The USD figure differs from the bill | It is an estimate at API list prices. On a subscription plan you pay the plan, not this amount; see `REFERENCE.md` for what the estimate leaves out |
 | Figures differ after a settings change | Cost weights are stored in each record; a session costed with other weights is flagged in the report and is not comparable in cost units |
 

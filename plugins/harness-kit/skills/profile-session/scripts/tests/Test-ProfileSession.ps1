@@ -11,7 +11,8 @@
   Variants made here cover a session
   that writes the one-hour cache, plan-usage readings (get_usage results) at the start, mid-session and at the end,
   a transcript that grew after it was profiled, a record without a transcript, the equal-length prefix figures and
-  the estimated cost in USD (cache-write split, a model without a price, fast mode, long prompts, dated snapshot ids).
+  the estimated cost in USD (cache-write split, a model without a price, fast mode, long prompts, dated snapshot ids)
+  and the price refresh from the fictional pricing page in fixtures/pricing.md.
   The report is checked for its embedded data only; the behaviour of the page is checked in a browser.
 .EXAMPLE
   pwsh <skill folder>/scripts/tests/Test-ProfileSession.ps1
@@ -661,6 +662,61 @@ try {
   $long = & $u @{ input_tokens = 100001; output_tokens = 0; cache_read_input_tokens = 0; cache_creation_input_tokens = 0 }
   Assert-Equal '0.01' (Get-CallUsd 'claude-haiku-5-5' $short).Usd 'a prompt of the long-prompt limit pays the normal price'
   Assert-Equal '0.0500005' ([Math]::Round((Get-CallUsd 'claude-haiku-5-5' $long).Usd, 9)) 'a prompt over the limit pays the long-prompt price'
+
+  # ---- price refresh from a fictional pricing page
+  . (Join-Path $PSScriptRoot '../lib/Prices.ps1')
+  $pageFile = Join-Path $fixture '../pricing.md'
+  $page = ConvertFrom-PricingPage ([IO.File]::ReadAllText($pageFile))
+  Assert-Equal 'claude-example-9-1,claude-sample-9,claude-small-9-2' ($page.Keys -join ',') 'page: model ids from the names, notes and other rows left out'
+  Assert-Equal '{ "input": 6, "output": 30, "cacheWrite5m": 7.5, "cacheWrite1h": 12, "cacheRead": 0.3, "fastMultiplier": 2 }' (Get-PriceText $page['claude-example-9-1']) 'page: prices, footnote marks dropped, fast multiplier'
+  Assert-Equal '6' $page['claude-sample-9'].fastMultiplier 'page: a fast-mode row naming two models'
+  Assert-Equal '50000' $page['claude-small-9-2'].longPrompt.above 'page: the long-prompt row of a model'
+  Assert-Equal '0.4' $page['claude-small-9-2'].longPrompt.input 'page: the long-prompt prices'
+  $bad = $null; try { $null = ConvertFrom-PricingPage "# Pricing`n`nNo table here." } catch { $bad = $_.Exception.Message }
+  Assert-True ($bad -match 'no model price table') 'page without the model table: a clear error, not an empty table'
+
+  $rf = New-TempDir
+  $defaultsR = Join-Path $rf 'defaults.json'
+  Set-Content $defaultsR '{ "resultsDir": "x", "pricesUpdated": "2026-01-01", "prices": { "claude-example-9-1": { "input": 6, "output": 30, "cacheWrite5m": 7.5, "cacheWrite1h": 12, "cacheRead": 0.3, "fastMultiplier": 2 }, "claude-sample-9": { "input": 1, "output": 5, "cacheWrite5m": 1.25, "cacheWrite1h": 2, "cacheRead": 0.1 }, "claude-gone-8": { "input": 1, "output": 5, "cacheWrite5m": 1.25, "cacheWrite1h": 2, "cacheRead": 0.1 } } }' -Encoding utf8
+  $userR = Join-Path $rf 'user.json'
+  Set-Content $userR '{ "baseBranch": "main", "pricesUpdated": "2026-02-01", "prices": { "claude-example-9-1": { "input": 9, "output": 9, "cacheWrite5m": 9, "cacheWrite1h": 9, "cacheRead": 9 }, "claude-own-7": { "input": 1, "output": 1, "cacheWrite5m": 1, "cacheWrite1h": 1, "cacheRead": 1 } } }' -Encoding utf8
+  $rArgs = @{ Refresh = $true; PricingSource = $pageFile; DefaultsFile = $defaultsR; UserConfig = $userR }
+  $withArgs = { param($Extra) $h = $rArgs.Clone(); foreach ($k in $Extra.Keys) { $h[$k] = $Extra[$k] }; $h }
+  $beforeR = Get-FolderHashes $rf
+  $out = Invoke-Profiler $rArgs
+  Assert-True ($out -match 'changed claude-sample-9' -and $out -match 'added   claude-small-9-2' -and $out -match 'changed claude-example-9-1') "refresh shows the differences from the table in use: $out"
+  Assert-True ($out -match 'kept    claude-gone-8: not on the page') 'refresh: a model the page does not list is kept'
+  Assert-True ($out -match 'Nothing was written') 'refresh without -Apply: notice'
+  Assert-Equal $beforeR (Get-FolderHashes $rf) 'refresh without -Apply writes nothing'
+
+  $out = Invoke-Profiler (& $withArgs @{ Apply = $true })
+  Assert-True ($out -notmatch 'ERROR:') "refresh -Apply to the user file: $out"
+  $u = Get-Content $userR -Raw | ConvertFrom-Json
+  Assert-Equal 'claude-own-7,claude-sample-9,claude-small-9-2' (@($u.prices.PSObject.Properties.Name) -join ',') 'user file: models that differ from the defaults, plus its own models; a copy equal to the default is removed'
+  Assert-Equal 'main' $u.baseBranch 'user file: other keys are kept'
+  Assert-True ($u.pricesUpdated -match '^\d{4}-\d\d-\d\d$' -and $u.pricesUpdated -ne '2026-02-01') 'user file: the date of the refresh'
+  Assert-Equal $beforeR.Split(';')[0] (Get-FolderHashes $rf).Split(';')[0] 'refresh to the user file leaves the defaults file as it is'
+  Assert-True ((Invoke-Profiler $rArgs) -match 'matches the pricing page; nothing to write') 'a second refresh finds no difference'
+  $null = Get-ProfileSettings $defaultsR $userR
+  Assert-Equal $u.pricesUpdated $script:pricesUpdated 'pricesUpdated: the newest date of the layers'
+  Set-Content $userR '{ "pricesUpdated": "2025-01-01" }' -Encoding utf8
+  $null = Get-ProfileSettings $defaultsR $userR
+  Assert-Equal '2026-01-01' $script:pricesUpdated 'an older date of the user file does not hide the date of the defaults'
+
+  $out = Invoke-Profiler (& $withArgs @{ Apply = $true; Target = 'Defaults'; UserConfig = $noSettings })
+  Assert-True ($out -match 'Raise version') "refresh -Target Defaults: $out"
+  $d = Get-Content $defaultsR -Raw | ConvertFrom-Json
+  Assert-Equal 'claude-example-9-1,claude-sample-9,claude-small-9-2,claude-gone-8' (@($d.prices.PSObject.Properties.Name) -join ',') 'defaults file: the page models, then the models the page no longer lists'
+  Assert-Equal 'x' $d.resultsDir 'defaults file: other keys are kept'
+  Assert-True ([IO.File]::ReadAllText($defaultsR) -match '\n    "claude-sample-9": \{ "input": 2, ') 'defaults file: one model per line'
+  # the installed copy of the skill must not be changed: a reinstall would overwrite it
+  $cacheDir = Join-Path $rf 'plugins/cache/ai-plugins/harness-kit/0.1.0'
+  New-Item -ItemType Directory -Force $cacheDir | Out-Null
+  $cacheDefaults = Join-Path $cacheDir 'defaults.json'
+  Set-Content $cacheDefaults '{ "prices": {} }' -Encoding utf8
+  $out = Invoke-Profiler (& $withArgs @{ Apply = $true; Target = 'Defaults'; UserConfig = $noSettings; DefaultsFile = $cacheDefaults })
+  Assert-True ($out -match 'ERROR:.*plugin cache') "a defaults file in the plugin cache is refused: $out"
+  Assert-Equal '' ((Get-Content $cacheDefaults -Raw | ConvertFrom-Json).prices.PSObject.Properties.Name -join ',') 'the refused defaults file is not changed'
 
   "All $script:passed checks passed."
 } catch {

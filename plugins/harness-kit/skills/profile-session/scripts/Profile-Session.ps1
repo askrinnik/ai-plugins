@@ -29,6 +29,10 @@
 .PARAMETER Report           Rebuild report.html from the records without profiling anything.
 .PARAMETER NoOpen           Do not open the report in the default browser after building it.
 .PARAMETER Recompute        Recompute the measured figures of every record whose transcript is still here, over the calls the record first covered, and rebuild the report. The work item, lane, branch, commit, author, profile time, note, marker, change size and limit readings of a record are kept; a record without a transcript is left untouched, and a record whose figures did not change stays byte-identical.
+.PARAMETER Refresh          Read the model prices from the Anthropic pricing page and show how they differ from the price table; nothing is written without -Apply.
+.PARAMETER Apply            With -Refresh: write the prices. With -Target User the models whose page price differs from the defaults file go to the user settings file; with -Target Defaults the whole table of the page goes to the defaults file of this copy of the skill.
+.PARAMETER Target           With -Refresh: User (default) or Defaults. Defaults is for the developers of the plugin and is refused for a copy in the plugin cache.
+.PARAMETER PricingSource    With -Refresh: URL or file of the pricing page in Markdown (default: the Anthropic pricing page).
 .PARAMETER TopTurns         Number of costliest human turns shown on screen.
 .PARAMETER TranscriptDir    Folder with the session transcripts (default: <Claude config dir>/projects/<repository key>).
 .PARAMETER ResultsDir       Folder of records/ and report.html (default: .ai/benchmarks/sessions).
@@ -41,6 +45,8 @@
   pwsh <skill folder>/scripts/Profile-Session.ps1 6d1025ce -Save -WorkItem 662
 .EXAMPLE
   pwsh <skill folder>/scripts/Profile-Session.ps1 -Report
+.EXAMPLE
+  pwsh <skill folder>/scripts/Profile-Session.ps1 -Refresh -Apply
 #>
 param(
   [Parameter(Position = 0)][string]$Session,
@@ -54,6 +60,10 @@ param(
   [switch]$Report,
   [switch]$NoOpen,
   [switch]$Recompute,
+  [switch]$Refresh,
+  [switch]$Apply,
+  [ValidateSet('User', 'Defaults')][string]$Target = 'User',
+  [string]$PricingSource,
   [int]$TopTurns = 8,
   [string]$TranscriptDir,
   [string]$ResultsDir,
@@ -65,6 +75,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 . (Join-Path $PSScriptRoot 'lib/Session-Profile.ps1')
 . (Join-Path $PSScriptRoot 'lib/Session-Report.ps1')
+. (Join-Path $PSScriptRoot 'lib/Prices.ps1')
 
 $profilerVersion = 'profile-session/8'
 
@@ -72,8 +83,9 @@ $inv = [Globalization.CultureInfo]::InvariantCulture
 if ($Session -eq 'save') { $Save = $true; $Session = '' }
 
 $top = [string]((& git rev-parse --show-toplevel 2>$null) | Select-Object -First 1)
-if ($LASTEXITCODE -ne 0 -or -not $top) { throw "Run the profiler from inside a git repository: the working directory $((Get-Location).Path) is not in one, or git is not on the path." }
-$repoRoot = [IO.Path]::GetFullPath($top.Trim())
+# a price refresh reads no session, so it also runs outside a repository (without the repository settings layer)
+if (($LASTEXITCODE -ne 0 -or -not $top) -and -not $Refresh) { throw "Run the profiler from inside a git repository: the working directory $((Get-Location).Path) is not in one, or git is not on the path." }
+$repoRoot = if ($top) { [IO.Path]::GetFullPath($top.Trim()) } else { (Get-Location).Path }
 $claudeDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME '.claude' }
 if (-not $DefaultsFile) { $DefaultsFile = Join-Path $PSScriptRoot '../profile-session.config.default.json' }
 if (-not $UserConfig) { $UserConfig = Join-Path $claudeDir 'profile-session.config.json' }
@@ -359,7 +371,65 @@ function Update-Report {
   if (-not $NoOpen) { Invoke-Item $file }
 }
 
-if ($Recompute) {
+<#
+.SYNOPSIS
+  Reads the pricing page, shows how its prices differ from the price table in use and, with -Apply, writes them.
+.DESCRIPTION
+  Target User writes to the user settings file the models whose page price differs from the defaults file, and
+  keeps the models of that file that the page does not list; a model whose page price equals the default is removed
+  from it, so a newer default is not hidden by an old copy. Target Defaults writes the whole table of the page, plus
+  the models of the defaults file that the page no longer lists, to the defaults file. pricesUpdated is the UTC date
+  of the refresh.
+#>
+function Invoke-PriceRefresh {
+  $source = if ($PricingSource) { $PricingSource } else { $script:pricingPageUrl }
+  $text = if ($source -match '^https?://') {
+    try { [string](Invoke-WebRequest -Uri $source -UseBasicParsing -TimeoutSec 60).Content }
+    catch { throw "Could not download the pricing page $source : $($_.Exception.Message)" }
+  } else { [IO.File]::ReadAllText($source) }
+  $page = ConvertFrom-PricingPage $text
+  $defaults = (Read-SettingsFile $DefaultsFile).prices
+  if ($null -eq $defaults) { $defaults = [ordered]@{} }
+  $current = if ($Target -eq 'Defaults') { $defaults } else { $script:modelPrices }
+  $changes = @(Compare-PriceTable $current $page)
+  "Pricing page: $source ($($page.Count) models)."
+  "Compared with: $(if ($Target -eq 'Defaults') { "the defaults file $DefaultsFile" } else { 'the price table in use (all settings layers)' }), prices of $(if ($script:pricesUpdated) { $script:pricesUpdated } else { 'unknown date' })."
+  foreach ($c in $changes) {
+    switch ($c.Change) {
+      'added' { "  added   $($c.Model): $($c.New)" }
+      'changed' { "  changed $($c.Model): $($c.Old)"; "          -> $($c.New)" }
+      default { "  kept    $($c.Model): not on the page, its price stays" }
+    }
+  }
+  $real = @($changes | Where-Object { $_.Change -ne 'not on the page' })
+  if (-not $real.Count) { 'The price table matches the pricing page; nothing to write.'; return }
+  if (-not $Apply) { "Nothing was written. Run again with -Apply to write $($real.Count) price(s) to the $(if ($Target -eq 'Defaults') { 'defaults' } else { 'user' }) settings file."; return }
+  $date = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd', $inv)
+  if ($Target -eq 'Defaults') {
+    $full = [IO.Path]::GetFullPath($DefaultsFile)
+    if ($full -match '[\\/]plugins[\\/]cache[\\/]') { throw "The defaults file $full is in the plugin cache, which a reinstall overwrites. Run -Target Defaults from a clone of the plugin repository." }
+    $table = [ordered]@{}
+    foreach ($id in $page.Keys) { $table[$id] = $page[$id] }
+    foreach ($id in $defaults.Keys) { if (-not $table.Contains($id)) { $table[$id] = $defaults[$id] } }
+    Write-PricesToSettings $DefaultsFile $date $table
+    "Wrote $($table.Count) model prices of $date to $full."
+    'Raise version in .claude-plugin/plugin.json of the plugin; users get the prices after they reinstall it.'
+    return
+  }
+  $user = [ordered]@{}
+  $old = Read-SettingsFile $UserConfig
+  if ($old -and $old.prices) { foreach ($id in $old.prices.Keys) { if (-not $page.Contains($id)) { $user[$id] = $old.prices[$id] } } }
+  foreach ($id in $page.Keys) {
+    if (-not $defaults.Contains($id) -or (Get-PriceText $defaults[$id]) -ne (Get-PriceText $page[$id])) { $user[$id] = $page[$id] }
+  }
+  Write-PricesToSettings $UserConfig $date $user
+  "Wrote $($user.Count) model price(s) of $date to $([IO.Path]::GetFullPath($UserConfig)); the other models keep the prices of the defaults file."
+}
+
+if ($Refresh) {
+  Invoke-PriceRefresh
+}
+elseif ($Recompute) {
   if (-not (Test-Path $recordsDir)) { throw "No records at $recordsDir" }
   # what the transcript cannot tell again, or could only tell differently later
   $kept = 'workItem', 'lane', 'branch', 'commit', 'author', 'profiled', 'note', 'marker', 'diff'

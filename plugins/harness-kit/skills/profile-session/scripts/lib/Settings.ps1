@@ -81,7 +81,8 @@ function Get-ProfileSettings {
     Merges the defaults, user and repository settings files, applies the cost weights and returns the settings.
   .DESCRIPTION
     Later layers override earlier ones per key; a list replaces the earlier list as a whole, costWeights are
-    merged weight by weight and prices model by model. The defaults file must exist.
+    merged weight by weight and prices model by model; pricesUpdated is the newest date of the layers. The defaults
+    file must exist.
   #>
   param([Parameter(Mandatory)][string]$DefaultsFile, [string]$UserFile, [string]$RepoFile)
   if (-not (Test-Path $DefaultsFile)) { throw "Defaults file not found: $DefaultsFile" }
@@ -107,7 +108,8 @@ function Get-ProfileSettings {
         'activityRules' { $s.ActivityRules = @($p.Value) }
         'costWeights' { try { Set-CostWeights $p.Value } catch { throw "$file : $($_.Exception.Message)" } }
         'prices' { Set-ModelPrices $p.Value }
-        'pricesUpdated' { $script:pricesUpdated = $p.Value }
+        # the newest date of the layers: a user file from an earlier refresh does not hide a newer defaults table
+        'pricesUpdated' { if ([string]::CompareOrdinal([string]$p.Value, [string]$script:pricesUpdated) -gt 0) { $script:pricesUpdated = $p.Value } }
       }
     }
   }

@@ -65,3 +65,15 @@ Problems with a single skill are in that skill's README.
 Skills live in `skills/<name>/`, each with its own `README.md` for people and `SKILL.md` for the model. Run a skill's
 tests after changing its scripts; for `profile-session`:
 `pwsh skills/profile-session/scripts/tests/Test-ProfileSession.ps1`.
+
+To update the default model prices of `profile-session` from the Anthropic pricing page, run from the repository
+root of a clone, not from the plugin cache:
+
+```bash
+pwsh plugins/harness-kit/skills/profile-session/scripts/Profile-Session.ps1 -Refresh -Target Defaults
+pwsh plugins/harness-kit/skills/profile-session/scripts/Profile-Session.ps1 -Refresh -Target Defaults -Apply
+```
+
+The first command shows the differences; the second writes them to `profile-session.config.default.json`. Then
+raise `version` in `.claude-plugin/plugin.json` and commit. Users get the new prices after they reinstall the
+plugin.
