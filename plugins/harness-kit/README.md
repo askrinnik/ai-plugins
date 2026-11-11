@@ -9,7 +9,7 @@ except an optional settings file of a skill.
 
 | Skill | What it does | Documentation |
 |---|---|---|
-| `profile-session` | Profiles finished work sessions: calls, weighted cost, context growth, cache behaviour, cost by activity, share of the weekly plan limit; keeps one record per session and builds a local report | `skills/profile-session/README.md` |
+| `profile-session` | Profiles finished work sessions: calls, weighted cost, estimated cost in USD at API list prices, context growth, cache behaviour, cost by activity, share of the weekly plan limit; keeps one record per session and builds a local report | `skills/profile-session/README.md` |
 
 ## Requirements
 

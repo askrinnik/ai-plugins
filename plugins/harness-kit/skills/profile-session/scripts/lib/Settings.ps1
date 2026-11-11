@@ -3,7 +3,7 @@
 # key is optional in the user and repository files and a missing file is not an error.
 . (Join-Path $PSScriptRoot 'Cost.ps1')
 
-$script:settingKeys = 'resultsDir', 'baseBranch', 'workItemPattern', 'workItemCommandPattern', 'lanePlanGlob', 'excludeSessionManifests', 'activityRules', 'costWeights'
+$script:settingKeys = 'resultsDir', 'baseBranch', 'workItemPattern', 'workItemCommandPattern', 'lanePlanGlob', 'excludeSessionManifests', 'activityRules', 'costWeights', 'prices', 'pricesUpdated'
 
 function Assert-RegexText([string]$Text, [string]$What, [string]$File) {
   try { $null = [regex]::new($Text) } catch { throw "$File : $What is not a valid regular expression ('$Text'): $($_.Exception.Message)" }
@@ -35,7 +35,7 @@ function Read-SettingsFile {
     $k = $p.Name; $v = $p.Value
     if ($k -notin $script:settingKeys) { throw "$File : unknown setting '$k'; the settings are $($script:settingKeys -join ', ')." }
     switch ($k) {
-      { $_ -in 'resultsDir', 'baseBranch', 'lanePlanGlob', 'workItemCommandPattern' } {
+      { $_ -in 'resultsDir', 'baseBranch', 'lanePlanGlob', 'workItemCommandPattern', 'pricesUpdated' } {
         if ($v -isnot [string]) { throw "$File : '$k' must be a text." }
         if ($k -eq 'workItemCommandPattern' -and $v) { Assert-RegexText $v $k $File }
         if ($k -eq 'resultsDir' -and -not $v) { throw "$File : 'resultsDir' must not be empty." }
@@ -62,6 +62,14 @@ function Read-SettingsFile {
         if ($v -isnot [pscustomobject]) { throw "$File : 'costWeights' must be an object." }
         $out[$k] = $v
       }
+      'prices' {
+        if ($v -isnot [pscustomobject]) { throw "$File : 'prices' must be an object keyed by model id." }
+        $checked = [ordered]@{}
+        foreach ($m in $v.PSObject.Properties) {
+          try { $checked[$m.Name] = ConvertTo-ModelPrice $m.Name $m.Value } catch { throw "$File : $($_.Exception.Message)" }
+        }
+        $out[$k] = $checked
+      }
     }
   }
   [pscustomobject]$out
@@ -72,8 +80,8 @@ function Get-ProfileSettings {
   .SYNOPSIS
     Merges the defaults, user and repository settings files, applies the cost weights and returns the settings.
   .DESCRIPTION
-    Later layers override earlier ones per key; a list replaces the earlier list as a whole, and costWeights are
-    merged weight by weight. The defaults file must exist.
+    Later layers override earlier ones per key; a list replaces the earlier list as a whole, costWeights are
+    merged weight by weight and prices model by model. The defaults file must exist.
   #>
   param([Parameter(Mandatory)][string]$DefaultsFile, [string]$UserFile, [string]$RepoFile)
   if (-not (Test-Path $DefaultsFile)) { throw "Defaults file not found: $DefaultsFile" }
@@ -82,6 +90,7 @@ function Get-ProfileSettings {
     LanePlanGlob = ''; ExcludeSessionManifests = @(); ActivityRules = @(); Sources = @()
   }
   Reset-CostWeights
+  Reset-ModelPrices
   foreach ($file in $DefaultsFile, $UserFile, $RepoFile) {
     if (-not $file) { continue }
     $cfg = Read-SettingsFile $file
@@ -97,6 +106,8 @@ function Get-ProfileSettings {
         'excludeSessionManifests' { $s.ExcludeSessionManifests = @($p.Value) }
         'activityRules' { $s.ActivityRules = @($p.Value) }
         'costWeights' { try { Set-CostWeights $p.Value } catch { throw "$file : $($_.Exception.Message)" } }
+        'prices' { Set-ModelPrices $p.Value }
+        'pricesUpdated' { $script:pricesUpdated = $p.Value }
       }
     }
   }

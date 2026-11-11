@@ -82,7 +82,8 @@ function Read-SubagentTranscripts {
   <#
   .SYNOPSIS
     Reads every subagent transcript under <session>/subagents (including nested folders such as workflows/) and
-    returns one record per subagent with its type, calls, token totals and the time, cost and model of each call.
+    returns one record per subagent with its type, calls, token totals, estimated USD (empty when a call has no
+    price) and the time, cost, USD and model of each call.
   .DESCRIPTION
     The subagent type comes from the .meta.json file next to the transcript. A response split over several lines is
     counted once (by message id and request id); placeholder responses without context are skipped.
@@ -110,11 +111,12 @@ function Read-SubagentTranscripts {
       $u = Get-UsageTokens $o.message.usage
       if ($u.In + $u.CR + $u.CW -eq 0) { continue }
       $in += $u.In; $outTok += $u.Out; $cr += $u.CR; $cw += $u.CW; $n++
-      $callCosts.Add([pscustomobject]@{ Time = $time; Cost = (Get-CostUnits $u.In $u.CR $u.CW $u.Out); Model = [string]$o.message.model })
+      $usd = Get-CallUsd ([string]$o.message.model) $o.message.usage
+      $callCosts.Add([pscustomobject]@{ Time = $time; Cost = (Get-CostUnits $u.In $u.CR $u.CW $u.Out); Model = [string]$o.message.model; Usd = $usd.Usd; Unpriced = $usd.Unpriced })
     }
     # a subagent whose calls all fall after the cut was started after the period being profiled
     if ($null -ne $Until -and $n -eq 0) { continue }
-    $out.Add([pscustomobject]@{ Type = $type; Calls = $n; In = $in; Out = $outTok; CR = $cr; CW = $cw; Cost = (Get-CostUnits $in $cr $cw $outTok); CallCosts = $callCosts.ToArray() })
+    $out.Add([pscustomobject]@{ Type = $type; Calls = $n; In = $in; Out = $outTok; CR = $cr; CW = $cw; Cost = (Get-CostUnits $in $cr $cw $outTok); Usd = (Get-UsdSum $callCosts); CallCosts = $callCosts.ToArray() })
   }
   $out
 }
@@ -135,12 +137,12 @@ function Get-SubagentsByModel {
     $groups = @($sub.CallCosts | Group-Object Model)
     foreach ($g in $groups) {
       $cost = if ($groups.Count -eq 1) { $sub.Cost } else { ($g.Group | Measure-Object Cost -Sum).Sum }
-      [pscustomobject]@{ Type = $sub.Type; Model = $g.Name; Calls = $g.Count; Cost = $cost }
+      [pscustomobject]@{ Type = $sub.Type; Model = $g.Name; Calls = $g.Count; Cost = $cost; Usd = (Get-UsdSum $g.Group) }
     }
   }
   @($parts | Group-Object Type, Model | ForEach-Object {
       [pscustomobject]@{ Type = $_.Group[0].Type; Model = $_.Group[0].Model; Agents = $_.Count
-        Calls = ($_.Group | Measure-Object Calls -Sum).Sum; Cost = ($_.Group | Measure-Object Cost -Sum).Sum }
+        Calls = ($_.Group | Measure-Object Calls -Sum).Sum; Cost = ($_.Group | Measure-Object Cost -Sum).Sum; Usd = (Get-UsdSum $_.Group) }
     } | Sort-Object @{ Expression = 'Cost'; Descending = $true }, @{ Expression = 'Type'; Descending = $true }, Model)
 }
 
@@ -300,7 +302,9 @@ function Read-WorkSession {
       $u = Get-UsageTokens $o.message.usage
       $ctx = $u.In + $u.CR + $u.CW
       if ($ctx -gt 0) { $callN++ }
+      $usd = Get-CallUsd ([string]$o.message.model) $o.message.usage
       $calls[$key] = [pscustomobject]@{
+        Usd = $usd.Usd; Unpriced = $usd.Unpriced
         Time = [datetimeoffset]$o.timestamp; Turn = $(if ($curTurn) { $curTurn.N } else { 0 }); U = $u; Ctx = $ctx
         Ttl = (Get-CacheLifetime $o.message.usage); Model = [string]$o.message.model; Tags = New-Object System.Collections.Generic.List[string]; Names = New-Object System.Collections.Generic.List[string]
       }
@@ -328,7 +332,7 @@ function Read-WorkSession {
     $r = [pscustomobject]@{
       I = $idx; Time = $c.Time; Turn = $c.Turn; Cat = (Get-ActivityCategory @($c.Tags) $ActivityRules); Names = (@($c.Names | Select-Object -Unique) -join ' + ')
       In = $c.U.In; Out = $c.U.Out; CR = $c.U.CR; CW = $c.U.CW; Ctx = $c.Ctx; Gap = $gap; Model = $c.Model
-      Cost = (Get-CostUnits $c.U.In $c.U.CR $c.U.CW $c.U.Out)
+      Cost = (Get-CostUnits $c.U.In $c.U.CR $c.U.CW $c.U.Out); Usd = $c.Usd; Unpriced = $c.Unpriced
       Rebuild = ($gap -gt $lifetime -and $c.U.CW -gt 30000)
       Compact = [bool]($prev -and $c.Ctx -lt 0.6 * $prev.Ctx -and $prev.Ctx -gt 50000)
     }
@@ -555,6 +559,11 @@ function Format-SessionProfile {
   $d = $Row.Duration
   $lines.Add($(if ($d) { "Duration: $(Format-Duration $d.active) active of $(Format-Duration $d.wall) from the first human turn; $(Format-Duration $d.waiting) waiting for the user in $($d.waits) waits" } else { 'Duration: unknown (no human turn)' }))
   $lines.Add((& $f 'TOTAL weighted cost: {0:N0}   (main {1:N0} = {2}, subagents {3:N0} = {4})   units per main-thread call: {5:N0}' $total ([double]$Row.MainCost) (& $pct $Row.MainCost) ([double]$Row.SubagentCost) (& $pct $Row.SubagentCost) ([double]$Row.UnitsPerCall)))
+  if ($null -ne $Row.CostUsd) {
+    $lines.Add((& $f 'Estimated cost at API list prices: ${0:N2}   (main ${1:N2}, subagents ${2:N2}; prices of {3}). An estimate, not the amount billed on a subscription plan.' $Row.CostUsd $Row.MainUsd $Row.SubagentUsd $(if ($Row.PricesUpdated) { $Row.PricesUpdated } else { 'unknown date' })))
+  } else {
+    $lines.Add("Estimated cost at API list prices: not shown, no price for $($Row.Unpriced -join ', ') (add it to 'prices' in the settings)")
+  }
   $prefix = @(foreach ($n in 40, 70) { $v = $Row."First${n}UnitsPerCall"; if ($v) { & $f 'first {0} calls {1:N0} per call (context at call {0}: {2:N0})' $n ([double]$v) ([double]$Row."First${n}Ctx") } })
   $lines.Add("Equal-length comparison: $(if ($prefix) { $prefix -join '; ' } else { 'session shorter than 40 calls' })")
   $lines.Add('')
@@ -566,14 +575,15 @@ function Format-SessionProfile {
   }
   $lines.Add('')
   $lines.Add('== By activity (main-thread calls) ==')
-  foreach ($g in ($rows | Group-Object Cat | ForEach-Object { [pscustomobject]@{ Cat = $_.Name; Calls = $_.Count; Cost = ($_.Group | Measure-Object Cost -Sum).Sum; AvgCtx = ($_.Group | Measure-Object Ctx -Average).Average } } | Sort-Object Cost -Descending)) {
-    $lines.Add((& $f '{0,-24} calls={1,4}  cost={2,12:N0}  {3,7}  avg ctx={4,8:N0}  carry={5,11:N0}' $g.Cat $g.Calls $g.Cost (& $pct $g.Cost) $g.AvgCtx ([double]$S.CarryByCat[$g.Cat])))
+  $usdText = { param($u) if ($null -eq $Row.CostUsd -or $null -eq $u) { '' } else { [string]::Format($script:pinv, '  ${0:N2}', [double]$u) } }
+  foreach ($g in ($rows | Group-Object Cat | ForEach-Object { [pscustomobject]@{ Cat = $_.Name; Calls = $_.Count; Cost = ($_.Group | Measure-Object Cost -Sum).Sum; Usd = (Get-UsdSum $_.Group); AvgCtx = ($_.Group | Measure-Object Ctx -Average).Average } } | Sort-Object Cost -Descending)) {
+    $lines.Add((& $f '{0,-24} calls={1,4}  cost={2,12:N0}  {3,7}  avg ctx={4,8:N0}  carry={5,11:N0}{6}' $g.Cat $g.Calls $g.Cost (& $pct $g.Cost) $g.AvgCtx ([double]$S.CarryByCat[$g.Cat]) (& $usdText $g.Usd)))
   }
   $lines.Add('')
   $lines.Add('== Subagents by type and model ==')
   if (-not $subs.Count) { $lines.Add('none') }
   foreach ($g in (Get-SubagentsByModel $subs)) {
-    $lines.Add((& $f '{0,-24} {1,-20} agents={2,3} calls={3,4}  cost={4,12:N0}  per call={5,8:N0}  {6}' $g.Type $g.Model $g.Agents $g.Calls $g.Cost ($g.Cost / $g.Calls) (& $pct $g.Cost)))
+    $lines.Add((& $f '{0,-24} {1,-20} agents={2,3} calls={3,4}  cost={4,12:N0}  per call={5,8:N0}  {6}{7}' $g.Type $g.Model $g.Agents $g.Calls $g.Cost ($g.Cost / $g.Calls) (& $pct $g.Cost) (& $usdText $g.Usd)))
   }
   $lines.Add('')
   $lines.Add('== Context (input + cache read + cache write per main-thread call) ==')

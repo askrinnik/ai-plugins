@@ -66,7 +66,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/Session-Profile.ps1')
 . (Join-Path $PSScriptRoot 'lib/Session-Report.ps1')
 
-$profilerVersion = 'profile-session/7'
+$profilerVersion = 'profile-session/8'
 
 $inv = [Globalization.CultureInfo]::InvariantCulture
 if ($Session -eq 'save') { $Save = $true; $Session = '' }
@@ -80,6 +80,7 @@ if (-not $UserConfig) { $UserConfig = Join-Path $claudeDir 'profile-session.conf
 if (-not $RepoConfig) { $RepoConfig = Join-Path $repoRoot 'profile-session.config.json' }
 $settings = Get-ProfileSettings $DefaultsFile $UserConfig $RepoConfig
 $defaultWeights = Copy-CostWeights $script:costWeights
+$defaultPrices = Copy-CostWeights $script:modelPrices; $defaultPricesUpdated = $script:pricesUpdated
 if (-not $ResultsDir) { $ResultsDir = if ([IO.Path]::IsPathRooted($settings.ResultsDir)) { $settings.ResultsDir } else { Join-Path $repoRoot $settings.ResultsDir } }
 if (-not $TranscriptDir) {
   $TranscriptDir = Join-Path (Join-Path $claudeDir 'projects') ($repoRoot -replace '[^A-Za-z0-9]', '-')
@@ -190,6 +191,16 @@ function New-SessionProfile($s, [string]$current) {
   $mainCost = ($rows | Measure-Object Cost -Sum).Sum
   $cost = $mainCost + [double](($subs | Measure-Object Cost -Sum).Sum)
   $reb = @($rows | Where-Object Rebuild)
+  # estimated USD at API list prices: none when a call of the session has no price, so a total never leaves a call out
+  $allCalls = @($rows) + @($subs | ForEach-Object { $_.CallCosts })
+  $unpriced = @($allCalls | Where-Object { $_.Unpriced } | ForEach-Object { $_.Unpriced } | Sort-Object -Unique)
+  $mainUsd = $null; $subUsd = $null; $usd = $null
+  if (-not $unpriced.Count) {
+    $mainUsd = [double](Get-UsdSum $rows); $subUsd = [double](Get-UsdSum @($subs | ForEach-Object { $_.CallCosts })); $usd = $mainUsd + $subUsd
+  }
+  $usedModels = @($allCalls | ForEach-Object { $_.Model } | Where-Object { $_ -and (Get-ModelPrice $_) } | Sort-Object -Unique)
+  $usedPrices = [ordered]@{}
+  foreach ($m in $usedModels) { $usedPrices[$m] = Copy-PriceForRecord (Get-ModelPrice $m) }
 
   $wi = $WorkItem -replace '^#', ''
   $patterns = $settings.WorkItemPatterns
@@ -222,7 +233,7 @@ function New-SessionProfile($s, [string]$current) {
   }
   $diff = Get-DiffSize $repoRoot $branch (Resolve-BaseBranch $repoRoot $settings.BaseBranch)
 
-  $byAct = @($rows | Group-Object Cat | ForEach-Object { [pscustomobject]@{ Cat = $_.Name; Calls = $_.Count; Cost = ($_.Group | Measure-Object Cost -Sum).Sum } } | Sort-Object Cost, Cat -Descending)
+  $byAct = @($rows | Group-Object Cat | ForEach-Object { [pscustomobject]@{ Cat = $_.Name; Calls = $_.Count; Cost = ($_.Group | Measure-Object Cost -Sum).Sum; Usd = (Get-UsdSum $_.Group) } } | Sort-Object Cost, Cat -Descending)
   $bySub = Get-SubagentsByModel $subs
   $top = @($s.Carriers | Sort-Object Carry -Descending | Select-Object -First 3)
   $ruleSum = [ordered]@{}; foreach ($r in ($s.Rules | Sort-Object Name)) { $ruleSum[$r.Name] += $r.Tok }
@@ -250,6 +261,7 @@ function New-SessionProfile($s, [string]$current) {
     Version = $s.Version; Model = $s.Model; Account = $s.Account
     Calls = $rows.Count; HumanTurns = $s.Turns.Count; Subagents = $subs.Count; SubagentCalls = $subCalls
     # the main thread's own cost over its own calls; subagent calls are not in the denominator, so their cost is not in the numerator either
+    CostUsd = $usd; MainUsd = $mainUsd; SubagentUsd = $subUsd; Unpriced = $unpriced; PricesUpdated = $script:pricesUpdated
     CostUnits = Format-Num $cost; UnitsPerCall = Format-Num ($mainCost / $rows.Count); MainCost = Format-Num $mainCost; SubagentCost = Format-Num ($cost - $mainCost)
     CacheTtl = $s.CacheTtl; InputTok = $in; CacheReadTok = $cr; CacheWriteTok = $cw; OutTok = $out
     FirstCtx = $rows[0].Ctx; MaxCtx = $maxCtx; LastCtx = $rows[-1].Ctx
@@ -271,7 +283,7 @@ function New-SessionProfile($s, [string]$current) {
     }
   }
   $record = [ordered]@{
-    schema = 1; profiler = $profilerVersion
+    schema = 2; profiler = $profilerVersion
     session = $s.Id; workItem = ConvertTo-RecordText $wi; lane = ConvertTo-RecordText $lane; branch = ConvertTo-RecordText $branch
     commit = ConvertTo-RecordText $commit; author = ConvertTo-RecordText $author; profiled = $profiled; started = $started; ended = $ended; duration = $duration
     version = ConvertTo-RecordText $s.Version; model = ConvertTo-RecordText $s.Model; account = ConvertTo-RecordText $s.Account
@@ -280,6 +292,8 @@ function New-SessionProfile($s, [string]$current) {
     tokens = [ordered]@{ input = [int64]$in; cacheRead = [int64]$cr; cacheWrite = [int64]$cw; output = [int64]$out }
     weights = [ordered]@{ input = ConvertTo-RecordNumber $w.Input 4; cacheRead = ConvertTo-RecordNumber $w.CacheRead 4; cacheWrite = ConvertTo-RecordNumber $w.CacheWrite 4; output = ConvertTo-RecordNumber $w.Output 4 }
     cost = [ordered]@{ total = ConvertTo-RecordNumber $cost; main = ConvertTo-RecordNumber $mainCost; subagents = ConvertTo-RecordNumber ($cost - $mainCost) }
+    costUsd = $(if ($null -ne $usd) { [ordered]@{ total = ConvertTo-RecordNumber $usd 4; main = ConvertTo-RecordNumber $mainUsd 4; subagents = ConvertTo-RecordNumber $subUsd 4 } } else { $null })
+    prices = [ordered]@{ updated = ConvertTo-RecordText $script:pricesUpdated; models = $usedPrices; unpriced = @($unpriced) }
     cacheReadShare = ConvertTo-RecordNumber $cacheShare 1
     unitsPerCall = [ordered]@{ first40 = ConvertTo-RecordNumber $p40.UnitsPerCall; first70 = ConvertTo-RecordNumber $p70.UnitsPerCall; whole = ConvertTo-RecordNumber ($mainCost / $rows.Count) }
     context = [ordered]@{ first = [int64]$rows[0].Ctx; max = [int64]$maxCtx; last = [int64]$rows[-1].Ctx; first40 = ConvertTo-RecordNumber $p40.Ctx; first70 = ConvertTo-RecordNumber $p70.Ctx }
@@ -287,14 +301,26 @@ function New-SessionProfile($s, [string]$current) {
     idleRebuilds = [ordered]@{ count = [int64]$reb.Count; cost = ConvertTo-RecordNumber $rebuildCost }
     carryCost = ConvertTo-RecordNumber $carryCost
     diff = [ordered]@{ files = ConvertTo-RecordNumber $diff.Files; lines = ConvertTo-RecordNumber $diff.Lines }
-    byActivity = @($byAct | ForEach-Object { [ordered]@{ activity = $_.Cat; calls = [int64]$_.Calls; cost = ConvertTo-RecordNumber $_.Cost } })
-    subagentsByType = @($bySub | ForEach-Object { [ordered]@{ type = $_.Type; model = $_.Model; agents = [int64]$_.Agents; calls = [int64]$_.Calls; cost = ConvertTo-RecordNumber $_.Cost } })
+    byActivity = @($byAct | ForEach-Object { [ordered]@{ activity = $_.Cat; calls = [int64]$_.Calls; cost = ConvertTo-RecordNumber $_.Cost; costUsd = $(if ($null -ne $usd) { ConvertTo-RecordNumber $_.Usd 4 } else { $null }) } })
+    subagentsByType = @($bySub | ForEach-Object { [ordered]@{ type = $_.Type; model = $_.Model; agents = [int64]$_.Agents; calls = [int64]$_.Calls; cost = ConvertTo-RecordNumber $_.Cost; costUsd = $(if ($null -ne $usd) { ConvertTo-RecordNumber $_.Usd 4 } else { $null }) } })
     topCarriers = @($top | ForEach-Object { [ordered]@{ tools = $_.Names; cost = ConvertTo-RecordNumber $_.Carry } })
     rulesLoaded = @($ruleSum.Keys | ForEach-Object { [ordered]@{ rule = $_; tokens = [int64]$ruleSum[$_] } })
     rulesTokens = [int64]$rulesTok
     limit = $limitRecord
   }
   [pscustomobject]@{ Row = $row; Limit = $limit; Record = $record }
+}
+
+<#
+.SYNOPSIS
+  A price entry as it is stored in a record: numbers rounded to six decimals, the long-prompt prices nested.
+#>
+function Copy-PriceForRecord($Price) {
+  $o = [ordered]@{}
+  foreach ($k in $Price.Keys) {
+    $o[$k] = if ($k -eq 'longPrompt') { Copy-PriceForRecord $Price[$k] } else { ConvertTo-RecordNumber $Price[$k] 6 }
+  }
+  $o
 }
 
 <#
@@ -348,6 +374,13 @@ if ($Recompute) {
     # weights apply while the transcript is read, which prices every call
     $script:costWeights = Copy-CostWeights $defaultWeights
     if ($old.weights) { Set-CostWeights $old.weights }
+    # the same for the prices: a model the record priced keeps its stored price; a record of an older schema, or a
+    # model it could not price, takes the price table of the settings
+    $script:modelPrices = Copy-CostWeights $defaultPrices; $script:pricesUpdated = $defaultPricesUpdated
+    if ($old.prices) {
+      if ($old.prices.models) { Set-ModelPrices $old.prices.models }
+      if ($old.prices.updated -and @($old.prices.models.PSObject.Properties).Count) { $script:pricesUpdated = [string]$old.prices.updated }
+    }
     $parsed = Read-WorkSession (Get-Item $file) -Until $until @sessionOptions
     # the end time has minute precision, and the session can go on within the minute it was profiled in; the cut
     # falls just before the first call the record did not have, so the later lines of a split last response stay in
@@ -355,6 +388,7 @@ if ($Recompute) {
     if ($stored -gt 0 -and $parsed.Rows.Count -gt $stored) { $parsed = Read-WorkSession (Get-Item $file) -Until $parsed.Rows[$stored].Time.AddTicks(-1) @sessionOptions }
     $new = (New-SessionProfile $parsed).Record
     $script:costWeights = Copy-CostWeights $defaultWeights
+    $script:modelPrices = Copy-CostWeights $defaultPrices; $script:pricesUpdated = $defaultPricesUpdated
     foreach ($k in $kept) {
       $v = $old.$k
       if ($k -eq 'diff') { $v = [ordered]@{ files = ConvertTo-RecordNumber $v.files; lines = ConvertTo-RecordNumber $v.lines } }
@@ -382,6 +416,7 @@ else {
   # without -Session the session profiled is the one running in this checkout (its own id, else the newest transcript)
   $current = if (-not $Session) { [string]((& git -C $repoRoot branch --show-current) | Select-Object -First 1) } else { '' }
   $p = New-SessionProfile $parsed $current
+  if ($p.Row.Unpriced.Count) { Write-Warning "No estimated cost in USD: the price table has no price for $($p.Row.Unpriced -join ', '). Add the model to 'prices' in the settings (see CONFIGURATION.md); the price of a similar model is not used." }
   Format-SessionProfile $parsed $p.Row $TopTurns $p.Limit
   ''
   if (-not $Save) {

@@ -11,12 +11,12 @@ Three JSON files, merged key by key; a later file overrides the earlier one:
 | Layer | File | Use it for |
 |---|---|---|
 | 1. defaults | `profile-session.config.default.json` in the skill folder | Never edit; copy a key into layer 2 or 3 |
-| 2. user | `profile-session.config.json` in the Claude config folder (`~/.claude/`, or `CLAUDE_CONFIG_DIR`) | Values for all of your repositories, for example `costWeights` |
+| 2. user | `profile-session.config.json` in the Claude config folder (`~/.claude/`, or `CLAUDE_CONFIG_DIR`) | Values for all of your repositories, for example `costWeights` or the price of a new model |
 | 3. repository | `profile-session.config.json` in the repository root | Values that describe this repository's branches, tools and folders |
 
 Every key is optional and a missing file is not an error. An unknown key, a value of the wrong type or an invalid
 regular expression stops the run with a message that names the file and the key. A list replaces the list of the
-earlier layer as a whole; `costWeights` merge weight by weight. The repository file is the one to commit; it is read
+earlier layer as a whole; `costWeights` merge weight by weight and `prices` model by model. The repository file is the one to commit; it is read
 from the repository root, never from the results folder, so `resultsDir` cannot point at its own settings.
 
 ## Keys
@@ -31,6 +31,36 @@ from the repository root, never from the results folder, so `resultsDir` cannot 
 | `excludeSessionManifests` | list | empty | Folders of `*_manifest.json` files whose `sessions[].session` ids are never picked as the newest session (for example the test sessions of a benchmark). |
 | `activityRules` | list | empty | `[{ "pattern": "<regex>", "category": "<name>" }]`, tried in order before the built-in rules. The pattern is matched against each tag of a call (see below). |
 | `costWeights` | object | 1, 0.1, 1.25, 5 | `input`, `cacheRead`, `cacheWrite`, `output`: relative price of one token of each kind. Each record stores the weights it was costed with; sessions costed with different weights are not comparable in cost units, and the report says so. |
+| `prices` | object | API list prices of current and earlier Claude models | Price table of the estimated cost in USD, keyed by model id as the transcript records it (`claude-opus-5-5`). See "Model prices" below. |
+| `pricesUpdated` | text | date of the default table | Date of the price table, `yyyy-MM-dd`. Shown with the USD figure and stored in each record. Set it when you change `prices`. |
+
+### Model prices
+
+Each entry of `prices` gives USD per 1M tokens of one model:
+
+| Key | Required | Meaning |
+|---|---|---|
+| `input` | yes | Base input tokens |
+| `output` | yes | Output tokens |
+| `cacheWrite5m` | yes | Five-minute cache writes (1.25x input on the price page) |
+| `cacheWrite1h` | yes | One-hour cache writes (2x input on the price page) |
+| `cacheRead` | yes | Cache hits and refreshes |
+| `fastMultiplier` | no | Factor on every price for a call in fast mode. Without it, a fast-mode call of the model has no price. |
+| `longPrompt` | no | `above` (prompt tokens) and the five prices above, for a model whose requests over that prompt size pay more |
+
+Take the values from the Anthropic pricing page: `https://platform.claude.com/docs/en/about-claude/pricing.md`. The
+`prices` of a later layer merge model by model: an entry replaces the entry of that model as a whole, and the other
+models keep the earlier prices. A model that is in no layer has no price: the profiler warns and shows no USD total.
+A dated snapshot id (`claude-haiku-4-5-20251001`) takes the price of its id without the date.
+
+```json
+{
+  "pricesUpdated": "2026-12-01",
+  "prices": {
+    "claude-example-6": { "input": 4, "output": 20, "cacheWrite5m": 5, "cacheWrite1h": 8, "cacheRead": 0.2, "fastMultiplier": 2 }
+  }
+}
+```
 
 ### Activity rules
 

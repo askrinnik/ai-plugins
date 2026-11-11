@@ -137,6 +137,7 @@
 <details>
 <summary>How to read this report</summary>
 <p><b>Cost units.</b> <code>input x w1 + cache read x w2 + cache write x w3 + output x w4</code> with the weights 1, 0.1, 1.25 and 5 unless the settings change them, summed over every model call of the main thread and its subagents. The weights are relative prices, not money; the token counts and weights of each session are stored in its record, so a value can be recomputed from it.</p>
+<p><b>Est. cost USD.</b> An estimate of what the session would cost at the API list prices of the price table in the settings (USD per 1M tokens per model; the record stores the prices it used and the date of the table): every call of the main thread and its subagents priced by its own model, with cache writes split into five-minute and one-hour writes. It is not the amount billed on a subscription plan. A session with a call whose model has no price gets no estimate and shows "-", as do records made before the estimate existed. Data-residency surcharges and Batch API discounts are not applied.</p>
 <p><b>Subagent share.</b> The part of the cost units spent by subagents. It is not in the per-call figures, which are main-thread only.</p>
 <p><b>Units per main-thread call.</b> Main-thread cost units divided by main-thread calls: the cost of an average call. A call re-reads the whole context, and the context grows during a session, so this figure grows with the length of the session: a 500-call session costs more per call than a 50-call one even under the same instructions. Compare sessions of different length by <b>first 40 (70) calls, per call</b>, the same average over only the first 40 (70) main-thread calls (empty for a shorter session), and by the length bands of the medians. The column sorts by the whole-session figure.</p>
 <p><b>Duration, active / wall.</b> Wall is the time from the first human turn to the last assistant line or tool result of the profiled period. Active is wall minus the time spent waiting for the user: from the end of each agent reply to the next human message, and from an <code>AskUserQuestion</code> or <code>ExitPlanMode</code> call to its answer. A permission prompt cannot be told apart from a long-running tool in the transcript, so its wait counts as active. The column sorts by active time.</p>
@@ -145,7 +146,7 @@
 <p><b>Idle rebuilds and compactions</b> (session breakdown). An idle rebuild is a call after a pause longer than the lifetime of the cache the session writes (one hour or five minutes, read from the transcript) that wrote over 30k tokens to the cache again. A compaction is a call whose context fell below 60 % of the previous one.</p>
 <p><b>Weekly % used and units per 1 %.</b> Recorded only when the session called <code>get_usage</code> (the Claude desktop app's plan-usage tool) at least twice: the first result in the transcript is the start reading, the last one the end. Only the cost between the two readings is related to the used percent, since the start reading already contains what the session spent before it. Both readings are whole numbers, so the percent really used is up to one point more or less than the difference; the session breakdown gives the range of units per 1 % this allows. Other use of the account in the same period (other sessions, chat) counts too, and the limit formula is not public and may weight models differently. Treat it as a trend indicator; 100 x units per 1 % is only an estimate of the weekly allowance in units for the same plan and model.</p>
 <p><b>Account.</b> <code>org-</code> and the first four hex digits of the SHA-256 of the organization id in the transcript; the id itself is never stored. Empty for transcripts of Claude Code versions that do not record it.</p>
-<p><b>Changed vs previous session</b> (the <i>i</i> icon next to the work item, which also shows the note of the session; the <b>M</b> icon next to it shows the marker of the session, a label such as the change of rules the session was the first to run under). A different model, Claude Code version, cache lifetime or set of cost weights than the previous session in time order (over all records, not only the filtered ones), one per line: a change of cost there may come from that, not from the instructions; sessions costed with different weights are not comparable in cost units. A cache change is flagged only when both sessions have a value. The account is not flagged: it is shown in its own column and does not change the token figures; the medians have a row per account.</p>
+<p><b>Changed vs previous session</b> (the <i>i</i> icon next to the work item, which also shows the note of the session; the <b>M</b> icon next to it shows the marker of the session, a label such as the change of rules the session was the first to run under). A different model, Claude Code version, cache lifetime, set of cost weights or date of the price table than the previous session in time order (over all records, not only the filtered ones), one per line: a change of cost there may come from that, not from the instructions; sessions costed with different weights are not comparable in cost units. A cache change is flagged only when both sessions have a value. The account is not flagged: it is shown in its own column and does not change the token figures; the medians have a row per account.</p>
 <p><b>Medians.</b> One row per lane (Bug or Feature), session length band and account (each account has its own plan and limit; records without an account form "(unknown)"), and one over all sessions, for the sessions that pass the filters. The columns are those of the trend table, each the median of that column over the group; the duration cell holds the median active and the median wall time, which may come from different sessions. Compare groups of different length by the first-40-calls figure, which does not depend on session length. Units per 1 % in a lane, length or all-sessions row marked "mixed accounts" comes from sessions of more than one account; only the account rows compare like with like.</p>
 <p><b>Accuracy.</b> Token totals and context sizes are exact (API usage). The split by activity is inferred from the tools each call used. The commit is read when the session is profiled, not when it ran, and is empty for a record amended into that commit. A workflow that profiles its session before shipping leaves the last actions (push, pull request, time report) out of the profile. With only a few sessions the trend is indicative, not statistically reliable; a benchmark that runs fixed test sessions is the repeatable reference.</p>
 </details>
@@ -164,6 +165,8 @@
   const fmt = x => !isNum(x) ? '' : Math.abs(x) >= 100 ? Math.round(x).toLocaleString('en-US') : String(Math.round(x * 10) / 10);
   const fix1 = x => !isNum(x) ? '' : x.toFixed(1);
   const k = x => !isNum(x) ? '' : (x / 1000).toFixed(1) + 'k';
+  // estimated USD; '-' for a record without it (an older record, or a session with a model the price table lacks)
+  const usd = x => !isNum(x) ? '-' : '$' + (Math.abs(x) >= 100 ? Math.round(x).toLocaleString('en-US') : x.toFixed(2));
   const dur = s => { if (!isNum(s)) return ''; const m = Math.round(s / 60); return m >= 60 ? Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm' : m + 'm'; };
 
   // ---- derived figures, oldest first
@@ -184,6 +187,8 @@
       if (p.cacheTtl && r.cacheTtl && p.cacheTtl !== r.cacheTtl) r.changes.push(['cache lifetime', p.cacheTtl, r.cacheTtl]);
       const wt = w => w ? [w.input, w.cacheRead, w.cacheWrite, w.output].join(' / ') : '';
       if (wt(p.weights) && wt(r.weights) && wt(p.weights) !== wt(r.weights)) r.changes.push(['cost weights', wt(p.weights), wt(r.weights)]);
+      const pd = x => x.prices && x.prices.updated;
+      if (pd(p) && pd(r) && pd(p) !== pd(r)) r.changes.push(['price table', pd(p), pd(r)]);
     }
   });
   const bands = ['up to 80 calls', '81-200 calls', 'over 200 calls'];
@@ -197,6 +202,7 @@
       cell: r => r.duration ? dur(r.duration.active) + ' / ' + dur(r.duration.wall) : '' },
     { key: 'turns', label: 'Human<br>turns', num: true, val: r => r.humanTurns, cell: r => fmt(r.humanTurns) },
     { key: 'cost', label: 'Cost<br>units', num: true, val: r => r.cost.total, cell: r => fmt(r.cost.total) },
+    { key: 'usd', label: 'Est. cost<br>USD', num: true, val: r => r.costUsd ? r.costUsd.total : null, cell: r => usd(r.costUsd && r.costUsd.total) },
     { key: 'used', label: 'Weekly<br>% used', num: true, val: r => r.limit ? r.limit.usedPct : null, cell: r => fmt(r.limit && r.limit.usedPct) },
     { key: 'perPct', label: 'Units<br>per 1 %', num: true, val: r => r.limit ? r.limit.unitsPerPct : null, cell: r => fmt(r.limit && r.limit.unitsPerPct) },
     { key: 'sub', label: 'Subagent<br>share', num: true, val: r => r.subShare, cell: r => isNum(r.subShare) ? fix1(r.subShare) + ' %' : '' },
@@ -353,6 +359,7 @@
     { label: 'Duration<br>active / wall', cell: (g, n) => medianCell(g.map(r => r.duration && r.duration.active), n, dur) + ' / ' + medianCell(g.map(r => r.duration && r.duration.wall), n, dur) },
     { label: 'Human<br>turns', cell: (g, n) => medianCell(g.map(r => r.humanTurns), n, fmt) },
     { label: 'Cost<br>units', cell: (g, n) => medianCell(g.map(r => r.cost.total), n, fmt) },
+    { label: 'Est. cost<br>USD', cell: (g, n) => medianCell(g.map(r => r.costUsd && r.costUsd.total), n, usd) || '-' },
     { label: 'Weekly<br>% used', cell: (g, n) => medianCell(g.map(r => r.limit && r.limit.usedPct), n, fmt) },
     { label: 'Units<br>per 1 %', cell: (g, n, mixed) => {
       const t = medianCell(g.map(r => r.limit && r.limit.unitsPerPct), n, fmt);
@@ -393,21 +400,24 @@
     let h = '<p>Session <code>' + esc(r.session) + '</code>, branch <code>' + esc(r.branch) + '</code>' + (r.commit ? ', commit ' + esc(r.commit) : '')
       + ', Claude Code ' + esc(r.version) + ', model ' + esc(r.model) + (r.account ? ', account ' + esc(r.account) : '') + '. ' + esc(r.started) + ' → ' + esc(r.ended) + ' UTC. '
       + fmt(r.calls) + ' main-thread calls, ' + fmt(r.humanTurns) + ' human turns, ' + fmt(r.subagents) + ' subagents with ' + fmt(r.subagentCalls) + ' calls; '
-      + fmt(total) + ' cost units in total.</p>';
+      + fmt(total) + ' cost units in total'
+      + (r.costUsd ? ', an estimated ' + usd(r.costUsd.total) + ' at the API list prices of ' + esc(r.prices && r.prices.updated || 'an unknown date') + ' (not the amount billed on a subscription plan)'
+        : r.prices && r.prices.unpriced && r.prices.unpriced.length ? '; no estimate in USD: no price for ' + esc(r.prices.unpriced.join(', ')) : '') + '.</p>';
     if (r.note) h += '<p>Note: ' + esc(r.note) + '</p>';
     if (r.changes.length) h += '<ul>' + r.changes.map(c => '<li>' + changeText(c) + '</li>').join('') + '</ul>';
     if (r.marker) h += '<p>Marker: ' + esc(r.marker) + '</p>';
     const perCall = (cost, calls) => calls ? k(cost / calls) : '';
     const td = x => '<td class="num">' + x + '</td>';
-    h += '<h3>By activity</h3><table><thead><tr><th>Activity</th><th class="num">Calls</th><th class="num">Cost units</th><th class="num">Units per call</th><th class="num">Share</th></tr></thead><tbody>';
-    r.byActivity.forEach(a => { h += '<tr><td>' + esc(a.activity) + '</td>' + td(fmt(a.calls)) + td(fmt(a.cost)) + td(perCall(a.cost, a.calls)) + td(share(a.cost)) + '</tr>'; });
-    h += '<tr><td>subagents (all types)</td>' + td(fmt(r.subagentCalls)) + td(fmt(r.cost.subagents)) + td(perCall(r.cost.subagents, r.subagentCalls)) + td(share(r.cost.subagents)) + '</tr>';
+    h += '<h3>By activity</h3><table><thead><tr><th>Activity</th><th class="num">Calls</th><th class="num">Cost units</th><th class="num">Units per call</th><th class="num">Share</th><th class="num">Est. USD</th></tr></thead><tbody>';
+    const cu = r.costUsd || {};
+    r.byActivity.forEach(a => { h += '<tr><td>' + esc(a.activity) + '</td>' + td(fmt(a.calls)) + td(fmt(a.cost)) + td(perCall(a.cost, a.calls)) + td(share(a.cost)) + td(usd(a.costUsd)) + '</tr>'; });
+    h += '<tr><td>subagents (all types)</td>' + td(fmt(r.subagentCalls)) + td(fmt(r.cost.subagents)) + td(perCall(r.cost.subagents, r.subagentCalls)) + td(share(r.cost.subagents)) + td(usd(cu.subagents)) + '</tr>';
     const allCalls = r.calls + r.subagentCalls;
-    h += '<tr><td><b>Total</b></td>' + td('<b>' + fmt(allCalls) + '</b>') + td('<b>' + fmt(total) + '</b>') + td('<b>' + perCall(total, allCalls) + '</b>') + td('<b>' + (total ? '100.0 %' : '') + '</b>') + '</tr></tbody></table>';
-    h += '<p class="muted">Activity rows are main-thread calls; the subagent row holds every subagent call. Units per call is cost units over calls.</p>';
+    h += '<tr><td><b>Total</b></td>' + td('<b>' + fmt(allCalls) + '</b>') + td('<b>' + fmt(total) + '</b>') + td('<b>' + perCall(total, allCalls) + '</b>') + td('<b>' + (total ? '100.0 %' : '') + '</b>') + td('<b>' + usd(cu.total) + '</b>') + '</tr></tbody></table>';
+    h += '<p class="muted">Activity rows are main-thread calls; the subagent row holds every subagent call. Units per call is cost units over calls. Est. USD is the estimated cost at API list prices; "-" when the record has none.</p>';
     if (r.subagentsByType && r.subagentsByType.length) {
-      h += '<h3>Subagents by type and model</h3><table><thead><tr><th>Type</th><th>Model</th><th class="num">Agents</th><th class="num">Calls</th><th class="num">Cost units</th><th class="num">Units per call</th><th class="num">Share</th></tr></thead><tbody>'
-        + r.subagentsByType.map(s => '<tr><td>' + esc(s.type) + '</td><td>' + esc(s.model) + '</td>' + td(fmt(s.agents)) + td(fmt(s.calls)) + td(fmt(s.cost)) + td(perCall(s.cost, s.calls)) + td(share(s.cost)) + '</tr>').join('')
+      h += '<h3>Subagents by type and model</h3><table><thead><tr><th>Type</th><th>Model</th><th class="num">Agents</th><th class="num">Calls</th><th class="num">Cost units</th><th class="num">Units per call</th><th class="num">Share</th><th class="num">Est. USD</th></tr></thead><tbody>'
+        + r.subagentsByType.map(s => '<tr><td>' + esc(s.type) + '</td><td>' + esc(s.model) + '</td>' + td(fmt(s.agents)) + td(fmt(s.calls)) + td(fmt(s.cost)) + td(perCall(s.cost, s.calls)) + td(share(s.cost)) + td(usd(s.costUsd)) + '</tr>').join('')
         + '</tbody></table><p class="muted">Calls and cost are split by the model of each call; a subagent that used several models counts in Agents of each, so that column can add up to more than the number of subagents.</p>';
     }
     const carriers = (r.topCarriers || []).map(c => esc(c.tools) + ' ' + fmt(c.cost)).join(', ') || 'none';

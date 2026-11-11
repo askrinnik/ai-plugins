@@ -1,6 +1,7 @@
 # profile-session
 
-Profiles finished Claude Code work sessions of the repository you are in: model calls, weighted cost, context growth,
+Profiles finished Claude Code work sessions of the repository you are in: model calls, weighted cost, an estimated cost
+in USD at API list prices, context growth,
 cache behaviour, cost by activity and the share of the weekly plan limit used. `save` keeps one small JSON record per
 session and builds a local, self-contained `report.html` with the trend, medians and a breakdown per session. It works
 in any repository, whatever its language or workflow.
@@ -66,6 +67,7 @@ the start reading again after it. To check the scripts after changing them:
 | Change size | no base branch is found and `baseBranch` is empty |
 | Weekly % used, units per 1 % | the session has fewer than two `get_usage` readings (CLI, or no `start`), or the weekly window rolled over |
 | Account | the transcript does not record an organization (older Claude Code) |
+| Est. cost USD | a call of the session uses a model that is not in `prices` (the profiler names it; add its price to a settings file), or the record was saved before the estimate existed |
 
 ## A repository with its own workflow command
 
@@ -83,6 +85,8 @@ pushed yet, or add a new commit when it is. The steps after the profile (push, p
 | `No transcript folder at …` | Claude Code has not recorded a session for this folder yet, or `CLAUDE_CONFIG_DIR` points elsewhere in this terminal |
 | The wrong session is profiled | Pass the id explicitly: `/profile-session <id or prefix>` |
 | `<file> : unknown setting '…'` | A typo in a settings file; the message names the file and the key |
+| `No estimated cost in USD: the price table has no price for …` | A new model, or fast mode on a model without `fastMultiplier`: add the price to `prices` in your user or repository settings (`CONFIGURATION.md`) |
+| The USD figure differs from the bill | It is an estimate at API list prices. On a subscription plan you pay the plan, not this amount; see `REFERENCE.md` for what the estimate leaves out |
 | Figures differ after a settings change | Cost weights are stored in each record; a session costed with other weights is flagged in the report and is not comparable in cost units |
 
 Problems with the command itself (not found, old behaviour after a change) are plugin problems: `../../README.md`.

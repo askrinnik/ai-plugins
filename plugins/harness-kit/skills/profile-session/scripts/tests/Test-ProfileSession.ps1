@@ -10,7 +10,8 @@
   subagents/workflows/) and a fake organization id, whose account label is checked against a hash computed here.
   Variants made here cover a session
   that writes the one-hour cache, plan-usage readings (get_usage results) at the start, mid-session and at the end,
-  a transcript that grew after it was profiled, a record without a transcript and the equal-length prefix figures.
+  a transcript that grew after it was profiled, a record without a transcript, the equal-length prefix figures and
+  the estimated cost in USD (cache-write split, a model without a price, fast mode, long prompts, dated snapshot ids).
   The report is checked for its embedded data only; the behaviour of the page is checked in a browser.
 .EXAMPLE
   pwsh <skill folder>/scripts/tests/Test-ProfileSession.ps1
@@ -171,6 +172,7 @@ try {
   Assert-True ($out -match "Session $id") "show-only run picks the newest session: $out"
   Assert-True ($out -match 'Main model calls: 7\s+human turns: 2\s+subagents: 2 \(3 calls\)') 'calls, turns and subagents on screen'
   Assert-True ($out -match 'TOTAL weighted cost: 165,446') 'total cost on screen'
+  Assert-True ($out -match 'Estimated cost at API list prices: \$0\.35 +\(main \$0\.31, subagents \$0\.04; prices of \d{4}-\d\d-\d\d\)\. An estimate, not the amount billed') 'estimated USD on screen'
   Assert-True ($out -match 'Duration: 7m active of 8m from the first human turn; 1m waiting for the user in 1 waits') 'duration on screen'
   Assert-True ($out -match "account $label") 'account label on screen'
   Assert-True ($out -notmatch $orgId) 'organization id not on screen'
@@ -186,14 +188,19 @@ try {
   Assert-True (Test-Path $report) 'save writes report.html'
   $text = [IO.File]::ReadAllText($recordFile)
   Assert-True ($text -notmatch "`r") 'record has LF line ends'
-  Assert-True ($text.StartsWith("{`n  `"schema`": 1,`n  `"profiler`": `"profile-session/7`",")) 'record starts with schema and profiler, two-space indented'
+  Assert-True ($text.StartsWith("{`n  `"schema`": 2,`n  `"profiler`": `"profile-session/8`",")) 'record starts with schema and profiler, two-space indented'
   Assert-True ([IO.File]::ReadAllBytes($recordFile)[0] -ne 0xEF) 'record has no BOM'
   $r = $text | ConvertFrom-Json
   $expected = [ordered]@{
     session = $id; workItem = '999'; lane = 'Feature'; branch = '#999'; version = '2.1.300'; model = 'claude-sonnet-5'; account = $label; note = 'fixture'; marker = ''
     started = '2026-09-01 10:00'; ended = '2026-09-01 10:08'
     calls = '7'; humanTurns = '2'; subagents = '2'; subagentCalls = '3'
-    'cost.total' = '165446'; 'cost.main' = '155640'; 'cost.subagents' = '9806'; 'unitsPerCall.whole' = '22234'; 'unitsPerCall.first40' = ''; 'unitsPerCall.first70' = ''
+    'cost.total' = '165446'; 'cost.main' = '155640'; 'cost.subagents' = '9806'
+    # sonnet-5 costs 2 USD per 1M input tokens with the ratios of the default weights, so main = 2 x 155,640 / 1M;
+    # the subagents: opus-5 at 5 x 5,203 / 1M plus sonnet-5 at 2 x (2,651 + 1,952) / 1M
+    'costUsd.total' = '0.3465'; 'costUsd.main' = '0.3113'; 'costUsd.subagents' = '0.0352'
+    'prices.models.claude-sonnet-5.input' = '2'; 'prices.models.claude-opus-5.output' = '25'; 'prices.unpriced' = ''
+ 'unitsPerCall.whole' = '22234'; 'unitsPerCall.first40' = ''; 'unitsPerCall.first70' = ''
     cacheReadShare = '11.8'; cacheTtl = ''
     'tokens.input' = '46'; 'tokens.cacheRead' = '195000'; 'tokens.cacheWrite' = '113000'; 'tokens.output' = '930'
     'weights.cacheRead' = '0.1'; 'weights.cacheWrite' = '1.25'
@@ -207,6 +214,8 @@ try {
   }
   Assert-Equal 'explore (read/search):2:78265; build/test:1:40505; implement:1:17755; other subagent:1:9355; ship:1:6255; reply (no tools):1:3505' (($r.byActivity | ForEach-Object { "$($_.activity):$($_.calls):$($_.cost)" }) -join '; ') 'byActivity'
   Assert-Equal 'wi-planner/claude-opus-5:1:1:5203; skill-runner/claude-sonnet-5:1:1:2651; wi-planner/claude-sonnet-5:1:1:1952' (($r.subagentsByType | ForEach-Object { "$($_.type)/$($_.model):$($_.agents):$($_.calls):$($_.cost)" }) -join '; ') 'subagentsByType split by the model of each call'
+  Assert-Equal '0.026; 0.0053; 0.0039' (($r.subagentsByType | ForEach-Object { "$($_.costUsd)" }) -join '; ') 'subagentsByType: USD by the price of each model'
+  Assert-Equal '0.1565; 0.081; 0.0355; 0.0187; 0.0125; 0.007' (($r.byActivity | ForEach-Object { "$($_.costUsd)" }) -join '; ') 'byActivity: USD per activity'
   Assert-Equal 'Read=17997; Bash=5000; Edit=2000' (($r.topCarriers | ForEach-Object { "$($_.tools)=$($_.cost)" }) -join '; ') 'topCarriers'
   Assert-Equal 'csharp=100' (($r.rulesLoaded | ForEach-Object { "$($_.rule)=$($_.tokens)" }) -join '; ') 'rulesLoaded'
   Assert-True ($text -notmatch $orgId) 'organization id not in the record'
@@ -375,6 +384,9 @@ try {
   $r5 = Get-Record $res5 $id5
   Assert-Equal '1h' $r5.cacheTtl 'one-hour cache: lifetime recorded'
   Assert-Equal '0' $r5.idleRebuilds.count 'one-hour cache: a six-minute gap is no rebuild'
+  # the copy has no subagents and writes the one-hour cache: its main thread costs the main thread of the fixture
+  # plus 4 - 2.5 USD per 1M cache-write tokens
+  Assert-Equal ([Math]::Round([double]$r.costUsd.main + 1.5 * $r5.tokens.cacheWrite / 1e6, 4)) $r5.costUsd.total 'one-hour cache writes are priced at the one-hour price'
 
   # ---- settings layers: the repository file overrides the user file, which overrides the defaults; the work item
   # pattern, the command pattern, the results folder, the base branch, the plan glob and bad files
@@ -586,6 +598,69 @@ try {
   Assert-Equal '27923' ([Math]::Round($p3.UnitsPerCall)) 'prefix: units per call over the first three calls'
   Assert-Equal '60005' $p3.Ctx 'prefix: context of the third call'
   Assert-Equal '' (Get-PrefixMetrics $parsed.Rows 40).UnitsPerCall 'prefix longer than the session is empty'
+
+  # ---- estimated USD: a model without a price gives a warning and no estimate, never the price of a similar model
+  $resU2 = New-TempDir; $dirU2 = Join-Path $resU2 'transcripts'; New-Item -ItemType Directory $dirU2 | Out-Null
+  Set-Content (Join-Path $dirU2 "$id.jsonl") @(Get-Content (Join-Path $fixture "$id.jsonl") | ForEach-Object { $_ -replace 'claude-sonnet-5', 'claude-sonnet-5-9' }) -Encoding utf8
+  $out = Invoke-Profiler @{ Session = $id; Save = $true; TranscriptDir = $dirU2; ResultsDir = $resU2 }
+  Assert-True ($out -notmatch '^ERROR:') "session with a model without a price: $out"
+  Assert-True ($out -match 'No estimated cost in USD: the price table has no price for claude-sonnet-5-9') 'a model without a price: warning with the model id'
+  Assert-True ($out -match 'Estimated cost at API list prices: not shown, no price for claude-sonnet-5-9') 'a model without a price: no USD on screen'
+  $rU = Get-Record $resU2 $id
+  Assert-True ($null -eq $rU.costUsd) 'a model without a price: no costUsd in the record'
+  Assert-Equal 'claude-sonnet-5-9' ($rU.prices.unpriced -join ',') 'a model without a price: listed in the record'
+  Assert-True ($null -eq $rU.byActivity[0].costUsd) 'a model without a price: no USD per activity'
+  Assert-Equal '155640' $rU.cost.total 'a model without a price: cost units are still computed (the copy has no subagents)'
+
+  # a price of the repository settings replaces the default one, and -Recompute keeps the prices of a record
+  $priceCfg = Write-Settings 'prices.json' @{ pricesUpdated = '2030-01-01'; prices = @{ 'claude-sonnet-5' = @{ input = 4; output = 20; cacheWrite5m = 5; cacheWrite1h = 8; cacheRead = 0.4 } } }
+  $resPr = New-TempDir
+  $rPr = Get-Record (Save-Into $resPr $transcripts @{ RepoConfig = $priceCfg }) $id
+  # sonnet-5 at 4 USD per 1M input tokens for the main thread and two subagent calls, opus-5 at its default price
+  Assert-Equal ([Math]::Round(4 * ([double]$rPr.cost.main + 2651 + 1952) / 1e6 + 5 * 5203 / 1e6, 4)) $rPr.costUsd.total 'a price of the settings replaces the default price of its model'
+  Assert-Equal '2030-01-01' $rPr.prices.updated 'the date of the price table is stored'
+  $beforePr = Get-FolderHashes (Join-Path $resPr 'records')
+  $out = Invoke-Profiler @{ Recompute = $true; TranscriptDir = $transcripts; ResultsDir = $resPr }
+  Assert-True ($out -match 'Recomputed 1 records .*: 0 changed') "-Recompute keeps the prices of the record: $out"
+  Assert-Equal $beforePr (Get-FolderHashes (Join-Path $resPr 'records')) 'record bytes after -Recompute under other prices'
+  # a record of the previous schema gets the estimate from the current table
+  $fPr = Get-RecordFile $resPr $id
+  $old = Get-Content $fPr -Raw | ConvertFrom-Json
+  $old.PSObject.Properties.Remove('costUsd'); $old.PSObject.Properties.Remove('prices'); $old.schema = 1
+  [IO.File]::WriteAllText($fPr, (($old | ConvertTo-Json -Depth 8) -replace "`r`n", "`n") + "`n", [Text.UTF8Encoding]::new($false))
+  $out = Invoke-Profiler @{ Recompute = $true; TranscriptDir = $transcripts; ResultsDir = $resPr }
+  Assert-Equal ([Math]::Round(2 * ([double]$rPr.cost.main + 2651 + 1952) / 1e6 + 5 * 5203 / 1e6, 4)) (Get-Record $resPr $id).costUsd.total '-Recompute adds the estimate to a record of the previous schema'
+
+  foreach ($case in @(
+      @{ Body = '{ "prices": { "m": { "input": 1, "output": 1, "cacheWrite5m": 1, "cacheWrite1h": 1 } } }'; Expect = "Price 'cacheRead' of 'm'" },
+      @{ Body = '{ "prices": { "m": { "input": 1, "output": 1, "cacheWrite5m": 1, "cacheWrite1h": 1, "cacheRead": 1, "cachRead": 1 } } }'; Expect = "Unknown price key 'cachRead'" },
+      @{ Body = '{ "prices": { "m": { "input": -1, "output": 1, "cacheWrite5m": 1, "cacheWrite1h": 1, "cacheRead": 1 } } }'; Expect = 'zero or more' },
+      @{ Body = '{ "pricesUpdated": 5 }'; Expect = "'pricesUpdated' must be a text" })) {
+    $p = Join-Path $cfgA ('bad-price-' + [guid]::NewGuid().ToString('N').Substring(0, 6) + '.json')
+    Set-Content $p $case.Body -Encoding utf8
+    $out = Invoke-Profiler @{ Session = $id; TranscriptDir = $transcripts; ResultsDir = (New-TempDir); RepoConfig = $p }
+    Assert-True ($out -match 'ERROR:' -and $out.Contains($case.Expect) -and $out.Contains((Split-Path $p -Leaf))) "price error names the file and the key: $out"
+  }
+
+  # ---- the price of one call
+  . (Join-Path $PSScriptRoot '../lib/Session-Profile.ps1')
+  $null = Get-ProfileSettings (Join-Path $PSScriptRoot '../../profile-session.config.default.json')
+  $u = { param($h) [pscustomobject]$h }
+  $call = & $u @{ input_tokens = 1000; output_tokens = 1000; cache_read_input_tokens = 1000000; cache_creation_input_tokens = 300000
+    cache_creation = [pscustomobject]@{ ephemeral_5m_input_tokens = 100000; ephemeral_1h_input_tokens = 200000 } }
+  # 0.004 + 0.02 + 0.2 + 0.5 + 1.6
+  Assert-Equal '2.324' ([Math]::Round((Get-CallUsd 'claude-opus-5-5' $call).Usd, 6)) 'one call: input, output, cache read, 5m and 1h writes'
+  $noSplit = & $u @{ input_tokens = 0; output_tokens = 0; cache_read_input_tokens = 0; cache_creation_input_tokens = 1000000 }
+  Assert-Equal '5' (Get-CallUsd 'claude-opus-5-5' $noSplit).Usd 'no cache-write split: every write is a five-minute write'
+  Assert-Equal '1.25' (Get-CallUsd 'claude-haiku-4-5-20251001' $noSplit).Usd 'a dated snapshot id takes the price of its id'
+  Assert-Equal 'claude-opus-9' (Get-CallUsd 'claude-opus-9' $noSplit).Unpriced 'an unknown model has no price'
+  $fast = & $u @{ input_tokens = 1000000; output_tokens = 0; cache_read_input_tokens = 0; cache_creation_input_tokens = 0; speed = 'fast' }
+  Assert-Equal '8' (Get-CallUsd 'claude-opus-5-5' $fast).Usd 'fast mode: the fast multiplier of the model'
+  Assert-Equal 'claude-sonnet-5-5 (fast)' (Get-CallUsd 'claude-sonnet-5-5' $fast).Unpriced 'fast mode without a fast multiplier has no price'
+  $short = & $u @{ input_tokens = 100000; output_tokens = 0; cache_read_input_tokens = 0; cache_creation_input_tokens = 0 }
+  $long = & $u @{ input_tokens = 100001; output_tokens = 0; cache_read_input_tokens = 0; cache_creation_input_tokens = 0 }
+  Assert-Equal '0.01' (Get-CallUsd 'claude-haiku-5-5' $short).Usd 'a prompt of the long-prompt limit pays the normal price'
+  Assert-Equal '0.0500005' ([Math]::Round((Get-CallUsd 'claude-haiku-5-5' $long).Usd, 9)) 'a prompt over the limit pays the long-prompt price'
 
   "All $script:passed checks passed."
 } catch {

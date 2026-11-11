@@ -8,6 +8,7 @@ How to read a profile and the report, and how the records and files are built. T
 | Figure | Meaning |
 |---|---|
 | **Cost units** | `input x 1 + cache read x 0.1 + cache write x 1.25 + output x 5` (the default weights; `costWeights` in the settings changes them, and each record stores the weights it used), over the main thread and every subagent. Relative prices, not money. |
+| **Estimated cost, USD** | What the session would cost at API list prices: each call of the main thread and every subagent priced by its own model from the price table (`prices` in the settings, USD per 1M tokens), then added up. See "What the USD figure is" below. |
 | **Subagent share** | Part of the cost units spent by subagents; it is not in the per-call figures. |
 | **Units per call** | Main-thread cost units divided by main-thread calls: the cost of an average call. It grows with the context, and the context with the length of the session, so a long session costs more per call under the same instructions. |
 | **First 40 (70) calls, per call** | The same average over only the first 40 (70) main-thread calls; empty for a shorter session. Compare sessions of different length by this and by the length bands of the medians, not by the whole-session figure. |
@@ -26,6 +27,25 @@ How to read a profile and the report, and how the records and files are built. T
 Token totals and context sizes are exact (API usage); the activity split is inferred. The costliest human turns
 and the full activity detail are shown on screen only; the record keeps a summary and no per-call data.
 
+**What the USD figure is.** It is an estimate at API list prices, calculated the way Claude Code calculates the
+`Cost` that `/usage` shows: tokens of each kind times the price of the model of the call, over the main thread and
+its subagents. For a session that uses only models in the table, the two should be within a few percent. Cache
+writes are split by lifetime from the transcript (`usage.cache_creation`): a one-hour write costs 2x input, a
+five-minute write 1.25x. Without the split, every write is priced as a five-minute write. A call in fast mode
+(`usage.speed` is `fast`) is priced with the `fastMultiplier` of its model. A request whose prompt (input + cache
+read + cache write) is over `longPrompt.above` tokens pays the `longPrompt` prices of its model.
+
+**What the USD figure is not.** It is not the amount billed on a subscription plan: there the plan limit applies, not
+these prices. It does not include the data-residency surcharge (`inference_geo` `us`, 1.1x), Batch API discounts or
+server tools such as web search. It is only as current as the price table: `pricesUpdated` is the date of the table,
+and each record stores the date and the prices of the models it used.
+
+**A model without a price.** If a call uses a model that is not in the table, or fast mode on a model without a
+`fastMultiplier`, the profiler shows a warning with the model id and shows no USD total. The record then has no
+`costUsd` and lists the model in `prices.unpriced`. The price of a similar model is never used. Add the model to
+`prices` in a settings file (see `CONFIGURATION.md`). A dated snapshot id such as `claude-haiku-4-5-20251001` takes
+the price of its id without the date when the table has no entry for the snapshot itself.
+
 **Limits of the weekly-limit figure.** Only the cost between the start and end readings is related to the used
 percent: the start reading already contains what the session spent before it, and the end reading nothing after it. Both readings are whole numbers, so
 the percent really used is up to one point more or less than the difference; the session breakdown of the report gives the range of units
@@ -39,7 +59,7 @@ exist are still recorded.
 **Account privacy.** Only the four-digit hash prefix is stored or shown; the organization id itself never reaches the
 screen, a record or the report. Four digits are enough to tell a handful of accounts apart, not to identify one.
 
-**Comparability.** In the report, the "i" icon next to the work item shows the note of a session and flags a session whose model, Claude Code version or cache lifetime differs from
+**Comparability.** In the report, the "i" icon next to the work item shows the note of a session and flags a session whose model, Claude Code version, cache lifetime, cost weights or price-table date differs from
 the previous session in time order, one change per line: a change of cost there may come from that. A cache change is flagged only
 when both sessions have a value; the account is shown in its own column and not flagged. The medians table has the
 numeric columns of the trend table and one row per lane (Bug or Feature, from the work item's plan file name when `lanePlanGlob` finds one), session
@@ -51,14 +71,15 @@ report does not group by it. With a handful of sessions the trend is indicative,
 **Session breakdown.** A click on a trend row or a chart point opens the breakdown of that session in a new browser tab,
 the same file with `#session=<id>` and the sort and filters of the table in its address, so several breakdowns can be
 compared by switching tabs. Previous / next in that tab step through the trend table as it was filtered and sorted. The
-breakdown gives cost and units per call by activity and by subagent type and model (calls and cost split by the model
-of each call), carrying cost, rules loaded, context, idle rebuilds, compactions, change size and the limit reading.
+breakdown gives cost, units per call and estimated USD by activity and by subagent type and model (calls and cost
+split by the model of each call), carrying cost, rules loaded, context, idle rebuilds, compactions, change size and the limit reading.
 
 **Recomputing the records.** After a change to how the figures are computed, `-Recompute` recomputes the measured
 figures of every record whose transcript is still on this machine, over the calls the record first covered, and keeps
 what the transcript cannot tell again (work item, lane, branch, commit, author, profile time, note, marker, change size;
 the limit figures when the transcript has no plan-usage reading). A record without a transcript, or whose figures did
-not change, stays byte-identical; the others are rewritten. Offer to commit the changed records like after a `save`.
+not change, stays byte-identical; the others are rewritten. A record keeps the cost weights and the model prices it
+was first costed with; a record of schema 1, which has no prices, gets its USD estimate from the current price table. Offer to commit the changed records like after a `save`.
 
 **What is in the record.** The work item comes from `-WorkItem`, else from the first of these that holds one under
 `workItemPattern`: the branch of the session, the slash command named by `workItemCommandPattern`, a `git commit -m` command
@@ -68,10 +89,14 @@ in for it. The branch and commit are read from git when the session is profiled,
 A workflow that profiles its session before shipping (push, pull request, time report) leaves those last actions out of
 the profile. When the record is then amended into the current commit, pass `-NoCommit`: the amend gives that commit a
 new id, so the record keeps no commit and the branch names the work.
+The estimate in USD is `costUsd` (`total`, `main`, `subagents`), with `costUsd` in each `byActivity` and
+`subagentsByType` entry; `prices` holds the date of the price table (`updated`), the prices of the models the session
+used (`models`) and the models without a price (`unpriced`). `costUsd` is empty when `unpriced` is not. Records of
+schema 1 have neither, and the report shows `-` for them.
 
 ## Settings
 
-Paths, patterns and cost weights are settings read from three JSON files merged key by key; the layers, every key,
+Paths, patterns, cost weights and model prices are settings read from three JSON files merged key by key; the layers, every key,
 its default and examples are in `CONFIGURATION.md`.
 
 ## Files
@@ -82,7 +107,7 @@ its default and examples are in `CONFIGURATION.md`.
 | `<resultsDir>/report.html` | Self-contained report (data, CSS and JavaScript inline, works offline) rebuilt from all records on every `save`, `-Recompute` and `-Report`; keep it out of git (`.gitignore`). `-NoOpen` skips opening it. |
 | `scripts/Profile-Session.ps1` | Entry point; `Get-Help` lists every parameter. |
 | `scripts/lib/Session-Profile.ps1` | Transcript parser. |
-| `scripts/lib/Cost.ps1` | Cost weights and the cost and token helpers. |
+| `scripts/lib/Cost.ps1` | Cost weights, the price table, the USD of one call, and the cost and token helpers. |
 | `scripts/lib/Settings.ps1` | Reads and merges the settings files; finds a work item in a text. |
 | `profile-session.config.default.json` | Default settings. |
 | `scripts/lib/Session-Report.ps1` | Report builder: embeds the records as JSON in the page template. |
