@@ -49,6 +49,8 @@ how to register it and install, update and remove a plugin. This file is for the
 - If you change a jobsearch-kit script or its workspace template, run the script tests:
   `pwsh -File tests/jobsearch-kit/scripts/Test-Scripts.ps1`. They start no model session. See
   `tests/jobsearch-kit/README.md`.
+- If you change an issue-kit script, hook or the configuration defaults, run the issue-kit tests:
+  `pwsh -File tests/issue-kit/Test-IssueKit.ps1`. They start no model session. See `tests/issue-kit/README.md`.
 - If you change a jobsearch-kit skill, run its fixtures: `pwsh -File tests/jobsearch-kit/scripts/Run-Tests.ps1
   -Fixture <names> -Note "<what changed>"`, or use the `jobsearch-kit-tests` skill of this repository. The sessions
   use the Claude usage limit: check the plan with `-DryRun` first.

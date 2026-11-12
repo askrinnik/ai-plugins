@@ -64,7 +64,7 @@ the start reading again after it. To check the scripts after changing them:
 | Column | Empty when |
 |---|---|
 | Work item | no pattern in `workItemPattern` matches the branch, a commit subject or the command of the session |
-| Lane | the work item has no plan file found by `lanePlanGlob` |
+| Lane | the `save` has no `-Lane` and the work item has no plan file found by `lanePlanGlob` |
 | Change size | no base branch is found and `baseBranch` is empty |
 | Weekly % used, units per 1 % | the session has fewer than two `get_usage` readings (CLI, or no `start`), or the weekly window rolled over |
 | Account | the transcript does not record an organization (older Claude Code) |
@@ -77,6 +77,21 @@ adds two lines of its own: call the `get_usage` tool at its first step, and run 
 `save`) in the main session, not in a subagent: a subagent has its own transcript. Profiling after the work is committed
 and before the push lets the record travel in that commit: save with `-NoCommit` and amend the commit while it is not
 pushed yet, or add a new commit when it is. The steps after the profile (push, pull request) are not part of it.
+
+## Called by a workflow plugin
+
+Another plugin can profile its own sessions with this skill. The contract is one-way: the caller knows this skill,
+this skill knows nothing about the caller.
+
+- The caller checks that the skill is in the session's skill list (`harness-kit:profile-session`) and skips its
+  profile step with one line if it is not.
+- The caller invokes the skill in its main session, never in a subagent, and asks the user before a `save`.
+- The caller passes `save -WorkItem <id> -Lane <lane> -NoCommit` (without `-NoCommit` when the record goes into a
+  new commit). `-Lane` takes any name the caller uses, so the repository needs no `lanePlanGlob`.
+- The script prints `Saved session <id> to <path>.` with the full path of the record. The caller takes the path from
+  that line and commits that file; it does not assume a folder, because `resultsDir` is a setting.
+
+The `issue-kit` plugin of this marketplace calls the skill this way at its commit step.
 
 ## Troubleshooting
 

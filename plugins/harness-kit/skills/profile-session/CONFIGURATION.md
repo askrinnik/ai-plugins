@@ -27,7 +27,7 @@ from the repository root, never from the results folder, so `resultsDir` cannot 
 | `baseBranch` | text | empty | Branch the change size (files and lines changed) is measured against. Empty: the branch `origin/HEAD` points to, else the first of `develop`, `main`, `master` that exists, else no change size. |
 | `workItemPattern` | text or list | `^#(\d+)` | Regular expression(s), tried in order, matched against the branch name and against the first line of each `git commit -m` message of the session. The first capture group is the work item; without a group, the whole match. No match: the work item stays empty. |
 | `workItemCommandPattern` | text | empty | Regular expression naming a slash command whose first argument is the work item, for example `/implement-work-item`. Empty: commands are not read. |
-| `lanePlanGlob` | text | `.ai/plans/*-{id}-*.md` | Plan file of a work item, relative to the repository root, `{id}` replaced by the work item. A file name starting with `bug-` gives lane Bug, any other name Feature. Empty, or no file: no lane. |
+| `lanePlanGlob` | text | `.ai/plans/*-{id}-*.md` | Plan file of a work item, relative to the repository root, `{id}` replaced by the work item. A file name starting with `bug-` gives lane Bug, any other name Feature. Empty, or no file: no lane. A `-Lane` argument of the `save` overrides it. |
 | `excludeSessionManifests` | list | empty | Folders of `*_manifest.json` files whose `sessions[].session` ids are never picked as the newest session (for example the test sessions of a benchmark). |
 | `activityRules` | list | empty | `[{ "pattern": "<regex>", "category": "<name>" }]`, tried in order before the built-in rules. The pattern is matched against each tag of a call (see below). |
 | `costWeights` | object | 1, 0.1, 1.25, 5 | `input`, `cacheRead`, `cacheWrite`, `output`: relative price of one token of each kind. Each record stores the weights it was costed with; sessions costed with different weights are not comparable in cost units, and the report says so. |
@@ -67,6 +67,9 @@ A dated snapshot id (`claude-haiku-4-5-20251001`) takes the price of its id with
 ```
 
 ### Activity rules
+
+A plugin agent or skill has its plugin name in front: `Agent:<plugin>:<agent>`, `Skill:<plugin>:<skill>`. Write
+the rule for the name as the session records it, for example `^Agent:example-kit:build-runner`.
 
 Each model call is classified by the tools it used. A tag is built per tool use: `Read`, `Edit:<path>`,
 `Write:<path>`, `Bash:<command>` (for the Bash and the PowerShell tool alike), `Agent:<subagent type>`, `Skill:<name>`, or the tool name for any other tool

@@ -1,0 +1,57 @@
+{
+  "baseBranch": "main",
+  "branchPattern": "{n}-{slug}",
+  "batchBranchPattern": "{first}-{last}-{slug}",
+  "shipLanguage": "English",
+  "commands": {
+    "build": "",
+    "testFull": "",
+    "testProject": "",
+    "format": ""
+  },
+  "prd": {
+    "path": "",
+    "idPattern": ""
+  },
+  "plans": {
+    "dir": "docs/plans",
+    "nameTemplate": "{type}-{n}-{slug}.md",
+    "language": "English",
+    "typeLabelPattern": "^(?:type:)?(bug|feature|chore|test)$"
+  },
+  "issueSections": {
+    "requirements": "Requirements",
+    "acceptance": "Acceptance criteria",
+    "dependencies": "Dependencies"
+  },
+  "lanes": {
+    "bug": ["bug"],
+    "testAuthoring": ["type:test"]
+  },
+  "ordering": {
+    "titleCodePattern": ""
+  },
+  "roles": {
+    "planner": "issue-kit:issue-planner",
+    "developer": "issue-kit:issue-developer",
+    "buildRunner": "issue-kit:build-runner",
+    "skillRunner": "issue-kit:skill-runner",
+    "architect": "",
+    "securityReviewer": "",
+    "debugSkill": "",
+    "testsSkill": ""
+  },
+  "securityReview": {
+    "triggers": []
+  },
+  "commentReview": {
+    "globs": []
+  },
+  "profile": {
+    "enabled": true,
+    "skill": "harness-kit:profile-session"
+  },
+  "commitCheck": {
+    "enabled": true
+  }
+}

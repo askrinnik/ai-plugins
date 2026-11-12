@@ -1,0 +1,8 @@
+{
+  "name": "issue-kit",
+  "description": "GitHub issue workflow for Claude Code: take an issue or a batch of issues from plan to pull request with planner, developer, build and ship agents, commit and pull-request conventions, a commit message check and per-repository configuration.",
+  "version": "0.1.0",
+  "author": {
+    "name": "askrinnik"
+  }
+}
