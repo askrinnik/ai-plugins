@@ -185,6 +185,13 @@ try {
   Assert-True ($out -notmatch '^ERROR:') "save run: $out"
   $recordFile = Join-Path $results "records/2026-09-01_$id.json"
   Assert-True (Test-Path $recordFile) 'save writes records/<start date>_<session>.json'
+  # a calling workflow takes the record path from this line (the contract in README.md)
+  Assert-True ($out -match "Saved session $($id.Substring(0, 8)) to (.+)\.(\r?\n|$)" -and (Resolve-Path $Matches[1]).Path -eq (Resolve-Path $recordFile).Path) 'save prints the full record path'
+  $laneResults = New-TempDir
+  $null = Save-Into $laneResults $transcripts @{ Lane = 'Test-authoring'; WorkItem = '42'; NoCommit = $true }
+  $laneRecord = Get-Content (Get-RecordFile $laneResults $id) -Raw | ConvertFrom-Json
+  Assert-Equal 'Test-authoring' $laneRecord.lane 'a lane name given by the caller'
+  Assert-Equal '42' $laneRecord.workItem 'the work item given by the caller'
   $report = Join-Path $results 'report.html'
   Assert-True (Test-Path $report) 'save writes report.html'
   $text = [IO.File]::ReadAllText($recordFile)

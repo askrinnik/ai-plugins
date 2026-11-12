@@ -22,7 +22,7 @@
 .PARAMETER CurrentSession   Id of the session the skill runs in (the skill passes ${CLAUDE_SESSION_ID}). Used when no -Session is given; without it the CLAUDE_CODE_SESSION_ID environment variable is tried, then the newest interactive transcript.
 .PARAMETER Save             Write the record of the session and rebuild the report.
 .PARAMETER WorkItem         Work item id; defaults to the id found by workItemPattern in the branch of the session, in the first argument of the slash command named by workItemCommandPattern, or in the subject of a `git commit -m` command of the session. When the newest session is profiled and its transcript names no branch, the checked-out branch and the subject of its last commit are used.
-.PARAMETER Lane             Bug or Feature; defaults to the prefix (bug-) of the work item's plan file found by lanePlanGlob; empty without one.
+.PARAMETER Lane             Lane of the work item as the caller names it (for example Bug, Feature or Test-authoring); defaults to the prefix (bug-) of the work item's plan file found by lanePlanGlob (Bug, else Feature); empty without one.
 .PARAMETER Note             Free text stored with the record.
 .PARAMETER NoCommit         Leave the commit of the record empty: for a record that is then amended into the current commit, whose id the amend changes, so no id stored in the record can name it.
 .PARAMETER Marker          Label stored with the record (for example the rule change the session was the first to run under).

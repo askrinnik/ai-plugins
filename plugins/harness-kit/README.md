@@ -12,6 +12,14 @@ except an optional settings file of a skill.
 | `profile-session` | Profiles finished work sessions: calls, weighted cost, estimated cost in USD at API list prices, context growth, cache behaviour, cost by activity, share of the weekly plan limit; keeps one record per session and builds a local report | `skills/profile-session/README.md` |
 | `harness-quality-check` | Runs fixed test sessions (fixtures kept in the repository under test) and records context size, rules loaded, cost and judged answer quality; compares each run with the previous one. Started by you only | `skills/harness-quality-check/README.md` |
 
+## Contract with workflow plugins
+
+`profile-session` can be called by the workflow of another plugin, for example the `issue-kit` workflow of this
+marketplace at its commit step. The dependency is one-way and optional: harness-kit has no code or setting that knows
+the caller, and the caller skips its profile step when harness-kit is not installed. The caller passes
+`save -WorkItem <id> -Lane <lane> -NoCommit` and takes the record path from the line `Saved session <id> to <path>.`
+that the script prints. Details: `skills/profile-session/README.md`, section "Called by a workflow plugin".
+
 ## Requirements
 
 Claude Code (desktop app or CLI), `git` and PowerShell 7 (`pwsh`) on the path. Each skill lists anything further in
