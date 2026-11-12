@@ -8,7 +8,7 @@ published to a public catalog; the marketplace is read from a clone of this repo
 
 | Plugin | What it is | Documentation |
 |---|---|---|
-| `harness-kit` | Tools that measure and check the Claude Code harness of any repository; skill `profile-session` profiles finished work sessions (Claude Code only) | `plugins/harness-kit/README.md` |
+| `harness-kit` | Tools that measure and check the Claude Code harness of any repository; skill `profile-session` profiles finished work sessions, skill `harness-quality-check` runs fixed test sessions against the repository's own fixtures (Claude Code only) | `plugins/harness-kit/README.md` |
 | `issue-kit` | GitHub issue workflow: take an issue or a batch of issues from plan to pull request with planner, developer, build and ship agents, a commit message check and a per-repository configuration (Claude Code only) | `plugins/issue-kit/README.md` |
 | `jobsearch-kit` | Job search workflow: vacancy analysis, tailored CVs, cover letters, application records, call transcripts (Claude Code and GitHub Copilot) | `plugins/jobsearch-kit/README.md` |
 

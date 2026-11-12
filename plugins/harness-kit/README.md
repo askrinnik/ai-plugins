@@ -10,6 +10,7 @@ except an optional settings file of a skill.
 | Skill | What it does | Documentation |
 |---|---|---|
 | `profile-session` | Profiles finished work sessions: calls, weighted cost, estimated cost in USD at API list prices, context growth, cache behaviour, cost by activity, share of the weekly plan limit; keeps one record per session and builds a local report | `skills/profile-session/README.md` |
+| `harness-quality-check` | Runs fixed test sessions (fixtures kept in the repository under test) and records context size, rules loaded, cost and judged answer quality; compares each run with the previous one. Started by you only | `skills/harness-quality-check/README.md` |
 
 ## Requirements
 
@@ -63,8 +64,11 @@ Problems with a single skill are in that skill's README.
 ## Development
 
 Skills live in `skills/<name>/`, each with its own `README.md` for people and `SKILL.md` for the model. Run a skill's
-tests after changing its scripts; for `profile-session`:
-`pwsh skills/profile-session/scripts/tests/Test-ProfileSession.ps1`.
+tests after changing its scripts:
+
+- `profile-session`: `pwsh skills/profile-session/scripts/tests/Test-ProfileSession.ps1`;
+- `harness-quality-check`: `pwsh ../../tests/harness-kit/HarnessQualityCheck.Cases.ps1` (a dry run in a temporary
+  repository; it starts no session).
 
 To update the default model prices of `profile-session` from the Anthropic pricing page, run from the repository
 root of a clone, not from the plugin cache:
