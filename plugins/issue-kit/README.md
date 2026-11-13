@@ -67,6 +67,9 @@ Commit `issue-kit.config.json` and the settings change.
 
 Start each issue in a new session: the workflow keeps its context small and recommends a new session at the end.
 
+Step trees and flowcharts of the two workflows, with every step, gate and agent call:
+[implement-issue](docs/implement-issue.md) and [implement-issues](docs/implement-issues.md).
+
 ## Session profile (contract with harness-kit)
 
 At the commit step the workflow profiles its own session with the skill named in `profile.skill` (default
