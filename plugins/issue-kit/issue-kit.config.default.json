@@ -6,6 +6,7 @@
   "commands": {
     "build": "",
     "testFull": "",
+    "testExtra": [],
     "testProject": "",
     "format": ""
   },
@@ -36,6 +37,8 @@
     "developer": "issue-kit:issue-developer",
     "buildRunner": "issue-kit:build-runner",
     "skillRunner": "issue-kit:skill-runner",
+    "testAuthor": "",
+    "verifier": "",
     "architect": "",
     "securityReviewer": "",
     "debugSkill": "",

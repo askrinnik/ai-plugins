@@ -52,6 +52,7 @@ reports it as `NOT CONFIGURED`; the workflow then names the step as not done.
 |---|---|---|---|
 | `commands.build` | text | empty | Full build. Make warnings errors here if the project wants that. |
 | `commands.testFull` | text | empty | All tests, after the build. |
+| `commands.testExtra` | list | empty | Further test commands for a repository with several test runners (for example a unit test runner and an end-to-end suite). In scope `full` the build runner runs them after `commands.testFull`, in list order, each to its own output file. |
 | `commands.testProject` | text | empty | Tests of one project or folder; `{project}` is replaced by the name the workflow passes. Must contain `{project}`. |
 | `commands.format` | text | empty | Format check that changes nothing (for example a `--check` or `--verify-no-changes` mode). |
 
@@ -89,6 +90,8 @@ list; plugin agents never list project MCP tools.
 | `roles.developer` | text | `issue-kit:issue-developer` | Agent that implements the approved plan with tests. |
 | `roles.buildRunner` | text | `issue-kit:build-runner` | Agent that runs the build-and-test gate. |
 | `roles.skillRunner` | text | `issue-kit:skill-runner` | Agent that carries out one approved commit, issue comment or pull request. |
+| `roles.testAuthor` | text | empty | Optional agent that writes the tests in the Test-authoring lane, for example one with the browser tools of the project. Empty: `roles.developer`. |
+| `roles.verifier` | text | empty | Optional agent that reproduces a defect (Bug lane) and walks the acceptance items in the running application (Bug and Feature lanes), in `reproduce` or `verify` mode, and returns an evidence table per item. When set, this walk is a required part of verification for items with visible behaviour. Empty: verification uses tests and commands only. |
 | `roles.architect` | text | empty | Optional agent that shapes a large or cross-layer change before the plan. Empty: skipped. |
 | `roles.securityReviewer` | text | empty | Optional agent that reviews a change that matches `securityReview.triggers`. Empty: skipped. |
 | `roles.debugSkill` | text | empty | Optional skill that reproduces and diagnoses a defect in the Bug lane. Empty: the workflow reproduces without it. |

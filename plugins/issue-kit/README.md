@@ -27,7 +27,8 @@ The plugin is installed once per machine and works in every repository. A reposi
 | Hook | commit message check | After every `git commit` in the Bash or PowerShell tool, checks the message against `git-commit`. Only in a repository with `issue-kit.config.json` and `commitCheck.enabled` |
 
 Agents and skills that belong to one project (an architect, a security reviewer, a debugging or test-writing skill,
-an agent with the project's MCP tools) stay in that repository; the configuration names them in `roles`.
+a test author or a verifier with the project's MCP tools) stay in that repository; the configuration names them in
+`roles`. A repository with several test runners lists the further test commands in `commands.testExtra`.
 
 ## Requirements
 

@@ -54,6 +54,12 @@ try {
 	$r = Invoke-Check '{ "commands": { "build": "no-such-program-xyz build" } }'
 	Assert-Case 'missing program fails and is named' ($r.Exit -eq 1 -and $r.Text -match "program 'no-such-program-xyz'")
 
+	$r = Invoke-Check '{ "commands": { "testExtra": ["git status", "no-such-program-xyz test"] }, "roles": { "verifier": "architect", "testAuthor": "no-such-agent" } }'
+	Assert-Case 'extra test command is checked' ($r.Text -match "OK +commands.testExtra\[0\]: 'git' found")
+	Assert-Case 'missing extra test program fails' ($r.Exit -eq 1 -and $r.Text -match "FAIL +commands.testExtra\[1\]: program 'no-such-program-xyz'")
+	Assert-Case 'verifier agent is checked' ($r.Text -match "OK +roles.verifier: agent 'architect' found")
+	Assert-Case 'missing test author agent fails' ($r.Text -match "FAIL +roles.testAuthor: agent 'no-such-agent' not found")
+
 	$r = Invoke-Check '{ "roles": { "buildRunner": "build-runner" } }'
 	Assert-Case 'plugin agent without prefix fails with a hint' ($r.Exit -eq 1 -and $r.Text -match "needs the prefix: 'issue-kit:build-runner'")
 

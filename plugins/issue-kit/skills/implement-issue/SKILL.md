@@ -54,7 +54,9 @@ name of the role as `subagent_type`. A plugin agent has the plugin prefix (`issu
 | Plan | `roles.planner` | Opus | 4 |
 | Design of a cross-layer change | `roles.architect` (optional) | the agent's own | 4 |
 | Implement | `roles.developer` | Sonnet; Opus for complexity `L` | 8 |
+| Implement tests (Test-authoring lane) | `roles.testAuthor` (optional; empty: `roles.developer`) | the agent's own | 8 |
 | Build, tests and format | `roles.buildRunner` | Haiku | 9, 12 |
+| Reproduce a defect, verify in the running application | `roles.verifier` (optional) | the agent's own | 3, 10 |
 | Security review (when triggered) | `roles.securityReviewer` (optional) | the agent's own | 9 |
 | Commit, issue comment, pull request (after the user's go-ahead) | `roles.skillRunner` | Haiku | 12, 13 |
 | Broad code search | `Explore` (summary of at most 30 lines) | default | 3 |
@@ -132,6 +134,10 @@ those. The requirements document is the scope authority. If `prd.path` is empty,
 - Reproduce before you plan a fix, preferably with a **failing test** in the layer that owns the decision, or with a
   run of the program against a temporary folder that captures the exit code, the output and the log. Follow
   `roles.debugSkill` when it is set.
+- If `roles.verifier` is set and the defect is visible in the running application, delegate the reproduction to that
+  agent in `reproduce` mode: give it the issue number, the reproduction steps and the expected and actual behaviour.
+  Keep only its result table. A failing test in the layer that owns the decision is an equally good reproduction for a
+  defect without visible behaviour.
 - If it cannot be reproduced as described, report what you tried and ask how to continue.
 
 **Feature lane and Test-authoring lane: acceptance and current state.**
@@ -192,6 +198,8 @@ Apply the feedback to the same plan file and present it again. Repeat until the 
   agent's default; `L` → pass `model: "opus"` in the Agent call. Give it the plan file path, the acceptance list, the
   decisions of the review, the lane, and the commands of `commands`. It implements and tests, and returns a change
   summary; it never commits, pushes or posts.
+- **Test-authoring lane:** delegate to `roles.testAuthor` when it is set, otherwise to `roles.developer`, with the
+  same inputs. If the plan has tests outside the test author's scope, give those to `roles.developer`.
 - For a trivial change, implement inline.
 - **Feature lane:** wire the whole slice that the issue covers, as `CLAUDE.md` describes the layers of the project.
   A half-wired feature is not done.
@@ -211,7 +219,8 @@ Run the gate independently of the developer, even if it reported success:
   Everything must be green. On a failure, give the reported errors back to `roles.developer` (or fix a trivial cause
   inline) and call the build runner again; do not run the commands yourself to see the same output. Give the build
   runner a subfolder of its own in your scratch folder (for example `<scratch>/build`), the same one on every call.
-  If a command is empty, the build runner reports `NOT CONFIGURED`; name that part as not done in step 11.
+  If a command is empty, the build runner reports `NOT CONFIGURED`; name that part as not done in step 11. Stop any
+  application you started for a reproduction before this call: a running instance can lock build output.
 - **Review the comments this change adds** when `commentReview.globs` is not empty, also those the developer wrote:
   `git diff -U0 -- <globs>`, the added lines (`+`) that hold a comment. Check each against the comment-hygiene rules
   (no change narration, no issue references, no line numbers, no repetition of the code) and fix what fails.
@@ -235,8 +244,14 @@ Run the gate independently of the developer, even if it reported success:
   only the CI run can confirm stays open until it has.
 - **Test-authoring lane:** the new or changed tests appear in the build runner's summary, pass, and assert the
   intended behaviour. A test that passes without asserting anything is not done.
-- UI issues: the UI tests that the plan names; manual inspection of the running application only when the user asks
-  for it.
+- **Verification in the running application** (Bug and Feature lanes, only when `roles.verifier` is set): give every
+  acceptance item with behaviour visible in the running application (Bug lane: the original reproduction) to that
+  agent in `verify` mode, with the negatives to exercise. Record its evidence table per item. This walk is not
+  optional for such items: tests of the same behaviour do not replace it, and neither does the user's go-ahead to
+  skip the plan review. Skip it only when the user explicitly says so for this issue, and name it in step 11 as not
+  done.
+- When `roles.verifier` is empty, UI issues use the UI tests that the plan names; inspect the running application
+  only when the user asks for it.
 - **This step is not optional.** The user's go-ahead to skip the plan review does not cover it, and a green test run
   does not replace the record per item. Skip an item only when the user explicitly says so for this issue, and name it
   in step 11 as not verified.

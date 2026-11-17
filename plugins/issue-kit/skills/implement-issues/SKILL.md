@@ -37,7 +37,7 @@ single-issue workflow changes, the batch inherits the change.
 | Branch created at the commit in step 12 | Created at the first issue's commit, then reused (see *Branch*) |
 | Steps 5 to 7, plan review stop and compact milestone | Save the plan and continue; stop only with `--review-plans` |
 | Step 9, build runner with scope `full` and the security review per issue | Build runner with scope `projects` (the test projects the change touches) per issue; scope `full` and the security review once at the end |
-| Step 10, verification per issue | Per issue as written; slow UI tests once at the end |
+| Step 10, verification per issue | Per issue as written; slow UI tests and the `roles.verifier` walk once at the end |
 | Step 11, result confirmation per issue | One confirmation for the whole batch |
 | Steps 12 and 13, commit, push, comment, pull request per issue | A commit per issue; one comment per issue, one push and one pull request at the end. The task tick in a plan that covers several issues goes into each issue's commit |
 | Step 12, session profile after the commit, amended into it | Once, after the batch confirmation and before the push; the record goes in as a separate commit (see *Ship*) |
@@ -68,7 +68,8 @@ issues of the batch have in common. Later commits reuse the branch. Never commit
 ## Per issue (in list order)
 
 1. Run `implement-issue` steps 1 to 10 with the differences above. Plan with `roles.planner`, implement with
-   `roles.developer`, review the added comments, keep the plan file in the working tree.
+   `roles.developer` (Test-authoring lane: `roles.testAuthor` when set), review the added comments, keep the plan
+   file in the working tree.
 2. **Questions.** A question that the issue, the requirements document, the code and sensible defaults do not settle
    stops the batch: ask the user, then continue from the same issue. A necessary change of the requirements document
    always stops the batch (propose the text, wait for approval). A choice that is yours to make but could be
@@ -100,8 +101,11 @@ Run on the branch as a whole, against `git diff <baseBranch>...HEAD`, in this or
    run.
 3. **Security review:** `roles.securityReviewer` (when set) on the branch diff when a changed file matches
    `securityReview.triggers`. Fix CRITICAL and IMPORTANT findings.
-4. Verify again the acceptance items of every issue that the final run could affect.
-5. Fix what fails or what the review finds as **additional commits**, each under the `#<n>` of the issue it belongs
+4. **Verification in the running application:** when `roles.verifier` is set, give it in one `verify` call the
+   acceptance items with visible behaviour of every Bug and Feature issue of the batch. Record its evidence per
+   item.
+5. Verify again the acceptance items of every issue that the final run could affect.
+6. Fix what fails or what the review finds as **additional commits**, each under the `#<n>` of the issue it belongs
    to (Case 1), then run the affected checks again.
 
 ## Report and confirmation
