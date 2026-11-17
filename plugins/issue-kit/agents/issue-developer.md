@@ -1,7 +1,7 @@
 ---
 name: issue-developer
 description: Implementation agent of the issue-kit implement-issue workflow. Implements an approved plan in the current repository with its tests, builds and runs the tests, and returns a change summary. Never commits, pushes, opens pull requests or posts to GitHub. The caller chooses the model per call from the plan's complexity.
-tools: Read, Edit, Write, Grep, Glob, Bash, PowerShell
+disallowedTools: Agent
 model: sonnet
 ---
 

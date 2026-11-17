@@ -30,6 +30,10 @@ Agents and skills that belong to one project (an architect, a security reviewer,
 a test author or a verifier with the project's MCP tools) stay in that repository; the configuration names them in
 `roles`. A repository with several test runners lists the further test commands in `commands.testExtra`.
 
+The planner and the developer get the MCP tools of the session (for example documentation servers such as
+`context7` or `microsoft-learn`). The planner uses them only to read. The build runner and the skill runner have a
+fixed tool list without MCP tools.
+
 ## Requirements
 
 - Claude Code (desktop app or CLI).

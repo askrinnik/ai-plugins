@@ -81,8 +81,10 @@ reports it as `NOT CONFIGURED`; the workflow then names the step as not done.
 ### Roles
 
 A role names the agent (or skill) that does one part of the workflow. The defaults are the plugin agents. A
-repository can name its own agent instead, for example one that has the MCP tools of the project in its `tools`
-list; plugin agents never list project MCP tools.
+repository can name its own agent instead, for example one with project rules or a different model. The plugin
+planner and developer have no `tools` list: they inherit the built-in and MCP tools of the session and lose only the
+tools in their `disallowedTools` (the planner stays read-only). `build-runner` and `skill-runner` have a fixed
+`tools` list without MCP tools.
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
