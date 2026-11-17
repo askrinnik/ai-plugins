@@ -18,7 +18,8 @@ workflow reaches the batch too. Repository values appear as keys of `issue-kit.c
 - agents have their model written out: it is set in `agents/*.md` of the plugin and does not depend on the session's
   model;
 - 🤖 — an agent call. The plugin agents (`agents/`) are the defaults of the `roles` keys, and a repository can name
-  other agents there. `roles.securityReviewer` has no default: it is optional and uses its own model;
+  other agents there. `roles.securityReviewer`, `roles.testAuthor` and `roles.verifier` have no default: they are
+  optional and use their own model (an empty `roles.testAuthor` falls back to `roles.developer`);
 - 🧩 — a skill: a plugin skill (`skills/`), or the skill that `profile.skill` names (optional);
 - 🙋 — a point where the process waits for the user.
 
@@ -44,6 +45,7 @@ workflow reaches the batch too. Repository values appear as keys of `issue-kit.c
 │    │          (--review-plans → 🙋 review the plan)
 │    │          (requirements change needed → stop, 🙋 approve)
 │    ├─ 💻 ──▶ 🤖 issue-kit:issue-developer (Sonnet) ◀── change summary (no commits)
+│    │          (Test-authoring → 🤖 roles.testAuthor, optional)
 │    │          (unsettled question → stop, 🙋; debatable choice → plan's Decisions
 │    │           and the running list, no stop)
 │    ├─ 💻 review of the added comments; verification of the acceptance items (step 10)
@@ -62,6 +64,8 @@ workflow reaches the batch too. Repository values appear as keys of `issue-kit.c
 │    │                   (change touches a UI project → its UI test run is in the summary)
 │    ├─ if a changed file matches securityReview.triggers:
 │    │    💻 ──▶ 🤖 roles.securityReviewer (optional) ◀── findings
+│    ├─ roles.verifier set: 💻 ──1 call──▶ 🤖 roles.verifier, verify mode
+│    │          (visible acceptance items of every Bug and Feature issue) ◀── evidence table
 │    ├─ 💻 verifies again the acceptance items the final run could affect
 │    └─ failure or finding → fix as an additional commit under the issue's #<n>,
 │       then the affected checks again
@@ -102,7 +106,7 @@ flowchart TD
     P0 -. "dirty tree · closed · outside blocker · size" .-> STOP(["stop and report"])
     subgraph LOOP["Per issue, in list order"]
         A1["Plan<br/>🤖 issue-kit:issue-planner · Opus<br/>saved in plans.dir"]:::agent
-        A2["Implement<br/>🤖 issue-kit:issue-developer · Sonnet"]:::agent
+        A2["Implement<br/>🤖 issue-kit:issue-developer · Sonnet<br/>Test-authoring: 🤖 roles.testAuthor"]:::agent
         S2["💻 Comments · acceptance"]:::session
         A3["Build and project tests<br/>🤖 issue-kit:build-runner · Haiku<br/>scope projects"]:::agent
         A4["Commit #n<br/>🤖 issue-kit:skill-runner · Haiku<br/>🧩 issue-kit:git-commit"]:::agent
@@ -124,14 +128,18 @@ flowchart TD
     subgraph FINAL["Final verification (once)"]
         F1["Build, all tests, format<br/>🤖 issue-kit:build-runner · Haiku<br/>scope full"]:::agent
         F3["Security review<br/>🤖 roles.securityReviewer · optional"]:::agent
+        FV["Verify in the running application<br/>🤖 roles.verifier · optional"]:::agent
         F4["💻 Acceptance items again"]:::session
         F1 -. "file matches securityReview.triggers" .-> F3
+        F1 -. "roles.verifier set" .-> FV
         F1 --> F4
         F3 -.-> F4
+        FV -.-> F4
     end
     A4 -- "last issue" --> F1
     F1 -- "red" --> FIX
     F3 -. "findings" .-> FIX
+    FV -. "failed item" .-> FIX
     F4 -- "failed item" --> FIX
     F4 --> UC{{"🙋 is the result acceptable?"}}:::user
     UC -- "no" --> FIX

@@ -6,7 +6,8 @@
 .DESCRIPTION
 	- Keys and types: the configuration reader (an invalid file fails here and names the file and the key).
 	- Paths: prd.path must be a file and plans.dir a folder, relative to the repository root.
-	- Commands: the program of each non-empty commands.* entry must be on the path (or a file in the repository).
+	- Commands: the program of each non-empty commands.* entry, and of each commands.testExtra entry, must be on the
+	  path (or a file in the repository).
 	- Roles: a plugin agent or skill "issue-kit:<name>" must exist in this plugin; a repository agent "<name>" must
 	  exist in .claude/agents/<name>.md and a repository skill in .claude/skills/<folder>/SKILL.md. A name of another
 	  plugin ("<plugin>:<name>") is reported as not checked.
@@ -67,6 +68,14 @@ foreach ($key in 'build', 'testFull', 'testProject', 'format') {
 	if ($inRepo -or (Get-Command $program -ErrorAction SilentlyContinue)) { Write-Check 'OK' "commands.${key}: '$program' found" }
 	else { Write-Check 'FAIL' "commands.${key}: program '$program' is not on the path and not a file in the repository" }
 }
+$extra = @($c.commands['testExtra'])
+for ($i = 0; $i -lt $extra.Count; $i++) {
+	$program = ([string]$extra[$i]).Trim() -split '\s+' | Select-Object -First 1
+	$program = $program.Trim('"', "'")
+	$inRepo = Test-Path -LiteralPath (Join-Path $RepoRoot $program) -PathType Leaf
+	if ($inRepo -or (Get-Command $program -ErrorAction SilentlyContinue)) { Write-Check 'OK' "commands.testExtra[$i]: '$program' found" }
+	else { Write-Check 'FAIL' "commands.testExtra[$i]: program '$program' is not on the path and not a file in the repository" }
+}
 
 # Roles
 function Test-Agent([string]$Name) {
@@ -86,7 +95,7 @@ function Test-Skill([string]$Name) {
 	}
 	return $false
 }
-foreach ($role in 'planner', 'developer', 'buildRunner', 'skillRunner', 'architect', 'securityReviewer', 'debugSkill', 'testsSkill') {
+foreach ($role in 'planner', 'developer', 'buildRunner', 'skillRunner', 'testAuthor', 'verifier', 'architect', 'securityReviewer', 'debugSkill', 'testsSkill') {
 	$name = [string]$c.roles[$role]
 	if (-not $name) { Write-Check 'OK' "roles.${role}: empty, the workflow skips this role"; continue }
 	$isSkill = $role -like '*Skill'

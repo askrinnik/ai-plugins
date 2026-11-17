@@ -15,8 +15,9 @@ retry; the caller decides what to do with the result.
 - The **scope**:
   - `full`: build, all tests, format check;
   - `projects: <list>`: build, then the tests of the listed projects only; no format check.
-- The **commands** (`commands.build`, `commands.testFull`, `commands.testProject`, `commands.format` of the issue-kit
-  configuration). In `commands.testProject`, `{project}` stands for one project name of the list. If the caller gives
+- The **commands** (`commands.build`, `commands.testFull`, `commands.testExtra`, `commands.testProject`,
+  `commands.format` of the issue-kit configuration). `commands.testExtra` is a list of further test commands for a
+  repository with several test runners. In `commands.testProject`, `{project}` stands for one project name of the list. If the caller gives
   no commands, read `commands` from `issue-kit.config.json` in the repository root. A command that is empty or
   missing is not configured: do not invent one.
 - A **scratch folder** for the output files, outside the repository. If it is missing or lies inside the repository,
@@ -37,7 +38,9 @@ Both do nothing when the folder exists.
 
 1. `commands.build` → `build.txt`. If the build fails, skip step 2: tests on a broken build mean nothing.
 2. Tests → `test.txt`:
-   - `full`: `commands.testFull`;
+   - `full`: `commands.testFull`, then each command of `commands.testExtra` in list order, one file per command
+     (`test-extra-1.txt`, `test-extra-2.txt`, …). Run every test command even when an earlier one failed; they are
+     independent;
    - `projects`: `commands.testProject` once per listed project, `{project}` replaced (one file per project,
      `test-<project>.txt`).
 3. `full` only: `commands.format` → `format.txt`. Run it even when the build or the tests failed; it is independent.
@@ -56,7 +59,8 @@ Build: OK | FAILED (exit <code>) | NOT CONFIGURED
 <on failure: the first 10 error lines verbatim>
 
 Tests: OK | FAILED | SKIPPED (build failed) | NOT CONFIGURED (exit <code>)
-<the test runner's own summary lines, copied verbatim: totals of passed, failed and skipped per run>
+<the test runner's own summary lines, copied verbatim: totals of passed, failed and skipped per run; one block per
+test command, headed by the command>
 <on failure: each failed test's full name and its first 3 error lines, at most 10 tests>
 
 Format: OK | DRIFT | NOT RUN | NOT CONFIGURED (exit <code>)

@@ -34,7 +34,9 @@ Without an argument:
    - **Stack and commands:** look for the project files in the root and one level down (`*.sln`, `*.slnx`,
      `*.csproj`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle*`, `Makefile`)
      and for the build section of `CLAUDE.md` and `README.md`. Draft `commands.build`, `commands.testFull`,
-     `commands.testProject` (with `{project}`) and `commands.format` (a check mode that changes nothing). Prefer the
+     `commands.testProject` (with `{project}`) and `commands.format` (a check mode that changes nothing). If the
+     repository has several test runners (for example unit tests and an end-to-end suite), put the first in
+     `commands.testFull` and the others in `commands.testExtra`, one command each. Prefer the
      commands that `CLAUDE.md` gives. Leave a command empty when you cannot find a reliable one, and say so.
    - **Base branch:** `git symbolic-ref --short refs/remotes/origin/HEAD` (strip `origin/`); else the current
      default branch from `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`.
@@ -55,7 +57,8 @@ Without an argument:
    - **Plans:** an existing folder of plan files (`docs/plans/`, `.ai/plans/`); keep `plans.dir` at the default
      otherwise. Draft `plans.language` from the language of the existing plans, else leave the default.
    - **Roles:** agents in `.claude/agents/` and skills in `.claude/skills/`. Offer an architect, a security reviewer,
-     a debugging skill and a test-writing skill when they exist; never invent names.
+     a debugging skill, a test-writing skill, a test author agent (`roles.testAuthor`) and an agent that verifies in
+     the running application (`roles.verifier`) when they exist; never invent names.
    - **Checks:** draft `securityReview.triggers` (infrastructure, authentication, CI workflows, package manifests)
      only when `roles.securityReviewer` is set, and `commentReview.globs` from the source file types.
 3. **Show the draft.** Write only the keys that differ from the defaults. Give one line per key on where the value
@@ -84,7 +87,8 @@ Without an argument:
    }
    ```
 
-   Add one `Bash(<command>)` rule per configured command of `commands` (for example `Bash(npm test*)`), and the same
+   Add one `Bash(<command>)` rule per configured command of `commands`, each entry of `commands.testExtra` included
+   (for example `Bash(npm test*)`), and the same
    rules with `PowerShell(` on Windows. Say that `attribution` is empty because the commit format has no trailers,
    and that `git push` stays an `ask` rule because the workflow asks before every push anyway. The marketplace name
    `ai-plugins` is the one the user registered; if the user registered it under another name, use that name.

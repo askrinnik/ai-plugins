@@ -18,8 +18,9 @@ example `baseBranch` or `commands.build`. The diagram below shows who does what 
 - agents have their model written out: it is set in `agents/*.md` of the plugin and does not depend on the session's
   model; the developer's model is chosen per call from the plan's complexity;
 - 🤖 — an agent call. The plugin agents (`agents/`) are the defaults of the `roles` keys, and a repository can name
-  other agents there. `roles.architect` and `roles.securityReviewer` have no default: they are optional, use their
-  own model, and an empty role means that part is skipped with one line;
+  other agents there. `roles.architect`, `roles.securityReviewer`, `roles.testAuthor` and `roles.verifier` have no
+  default: they are optional, use their own model, and an empty role means that part is skipped with one line (an
+  empty `roles.testAuthor` falls back to `roles.developer`);
 - 🧩 — a skill: a plugin skill (`skills/`), or the skill that `roles.debugSkill`, `roles.testsSkill` or
   `profile.skill` names (optional);
 - 🙋 — a point where the process waits for the user.
@@ -51,6 +52,7 @@ example `baseBranch` or `commands.build`. The diagram below shows who does what 
 │
 ├─ 3. Understand the problem ─────── 💻 reads only the linked sections of prd.path (if set)
 │    ├─ Bug: reproduce with a failing test (🧩 roles.debugSkill, if set)
+│    │          (visible defect → 🤖 roles.verifier in reproduce mode, optional)
 │    │          (cannot reproduce → 🙋)
 │    ├─ Feature / Test-authoring: 🧩 issue-kit:github-issue → acceptance list
 │    │          (material gap → 🙋)
@@ -70,6 +72,7 @@ example `baseBranch` or `commands.build`. The diagram below shows who does what 
 │
 ├─ 8. Implement ─────────────────────────────▶ 🤖 issue-kit:issue-developer (Sonnet · Opus for L)
 │                                    tests (🧩 roles.testsSkill, if set) · docs in the same change
+│                                    (Test-authoring → 🤖 roles.testAuthor, optional)
 │                                    (trivial change → 💻 implements inline)
 │                                    ◀── change summary (no commits)
 │                                    (plan wrong in the code → plan updated, 🙋 before diverging)
@@ -78,7 +81,7 @@ example `baseBranch` or `commands.build`. The diagram below shows who does what 
 ├─ 9. Build and test
 │    ├─ 💻 ──1 call──▶ 🤖 issue-kit:build-runner (Haiku), scope full
 │    │                   commands.build
-│    │                   commands.testFull (output to a file)
+│    │                   commands.testFull, then each commands.testExtra (output to files)
 │    │                   commands.format
 │    │    💻 ◀── verbatim summary lines + first errors
 │    │    (red → errors to 🤖 issue-kit:issue-developer → 🤖 issue-kit:build-runner again)
@@ -90,6 +93,8 @@ example `baseBranch` or `commands.build`. The diagram below shows who does what 
 │    └─ 🙋 /compact
 ├─ 10. Verify ────────────────────── 💻 every acceptance item → test / command / result
 │                                    (Bug: the reproducing test passes, the reproduction is gone)
+│                                    (roles.verifier set: items with visible behaviour ──▶
+│                                     🤖 roles.verifier in verify mode ◀── evidence table)
 │                                    (item without runtime behaviour — CI, configuration,
 │                                     documentation — by a command, a test or the CI run of the
 │                                     pull request; an item only CI confirms stays open until then)
@@ -157,7 +162,7 @@ flowchart TD
     S1 --> S2["💻 2. Dependencies, lane, owner"]:::session
     S2 -. "open blocker · labels and text disagree" .-> UB{{"🙋 how to continue?"}}:::user
     UB -.-> S2
-    S2 --> S3["💻 3. Understand the problem<br/>prd.path · acceptance (🧩 issue-kit:github-issue)<br/>or reproduction (🧩 roles.debugSkill)"]:::session
+    S2 --> S3["💻 3. Understand the problem<br/>prd.path · acceptance (🧩 issue-kit:github-issue)<br/>or reproduction (🧩 roles.debugSkill · 🤖 roles.verifier)"]:::session
     S3 -. "cannot reproduce · material gap" .-> U3{{"🙋 how to continue?"}}:::user
     U3 -.-> S3
     S3 -. "requirements change needed" .-> U3P{{"🙋 approve the requirements change"}}:::user
@@ -168,7 +173,7 @@ flowchart TD
     A4 --> S5["💻 5–6. Save the plan<br/>plans.dir"]:::session
     S5 --> U5{{"🙋 review the plan"}}:::user
     U5 -- "feedback" --> S5
-    U5 -- "approved" --> A8["8. Implement<br/>🤖 issue-kit:issue-developer · Sonnet, Opus for L<br/>🧩 roles.testsSkill"]:::agent
+    U5 -- "approved" --> A8["8. Implement<br/>🤖 issue-kit:issue-developer · Sonnet, Opus for L<br/>🧩 roles.testsSkill · Test-authoring: 🤖 roles.testAuthor"]:::agent
     A8 -. "Test-authoring: broken behaviour" .-> U8{{"🙋 separate defect: how to continue?"}}:::user
     subgraph STEP9["9. Build and checks"]
         A9["Build and test<br/>🤖 issue-kit:build-runner · Haiku<br/>build · test · format"]:::agent
@@ -178,7 +183,7 @@ flowchart TD
         S9 -. "file matches securityReview.triggers" .-> A9S
     end
     A8 --> A9
-    S9 --> S10["💻 10. Verify every<br/>acceptance item"]:::session
+    S9 --> S10["💻 10. Verify every<br/>acceptance item<br/>🤖 roles.verifier · optional"]:::session
     A9S -.-> S10
     S10 --> U11{{"11. 🙋 is the result acceptable?"}}:::user
     A9 -- "red" --> FIX

@@ -85,6 +85,10 @@ try {
 	Assert-Case 'a project test command without {project} is an error' ($e -like "*'commands.testProject' must contain {project}*")
 	$e = Get-Error -Repo '{ "roles": { "planner": "" } }'
 	Assert-Case 'an empty required role is an error' ($e -like "*'roles.planner' must not be empty*")
+	$e = Get-Error -Repo '{ "commands": { "testExtra": "npm test" } }'
+	Assert-Case 'testExtra as a text instead of a list is an error' ($e -like "*'commands.testExtra' must be a list*")
+	$e = Get-Error -Repo '{ "commands": { "testExtra": ["npm test", ""] } }'
+	Assert-Case 'an empty testExtra entry is an error' ($e -like "*'commands.testExtra' must be a list of non-empty texts*")
 	$e = Get-Error -Repo '{ "roles": { "architect": "" } }'
 	Assert-Case 'an empty optional role is allowed' ($e -eq '')
 	$e = Get-Error -Repo '{ not json'
